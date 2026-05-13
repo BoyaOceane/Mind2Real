@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>即墨 · 设计系统</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300..900&family=Noto+Sans+SC:wght@300..700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       即墨 · 设计系统总览
+       宣纸色为境 · 墨分五色 · 朱砂为印
+    ============================================================ */
+
+    :root {
+      /* 宣纸底色系 */
+      --paper-new:   oklch(98% 0.006 95);
+      --paper-aged:  oklch(96% 0.010 92);
+      --paper-dark:  oklch(92% 0.014 88);
+      /* 墨分五色 */
+      --ink-light:   oklch(65% 0.018 85);
+      --ink-mid:     oklch(40% 0.024 80);
+      --ink-heavy:   oklch(20% 0.030 70);
+      --ink-black:   oklch(15% 0.032 60);
+      /* 朱砂唯一点缀 */
+      --seal:        oklch(48% 0.16 28);
+      --seal-dark:   oklch(38% 0.18 22);
+      /* 边框 */
+      --border:       oklch(82% 0.008 90);
+      --border-dark:  oklch(60% 0.012 82);
+
+      --font-display: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif;
+      --font-body:    'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+
+      --space-xs:  8px;
+      --space-sm:  16px;
+      --space-md:  24px;
+      --space-lg:  48px;
+      --space-xl:  80px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--paper-new);
+      color: var(--ink-light);
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- 顶部 Hero ---- */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: var(--space-xl) var(--space-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    /* 淡淡的水墨晕染背景 */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 80% 50%, oklch(92% 0.014 88 / 0.4) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 20% 80%, oklch(96% 0.010 92 / 0.5) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      position: relative;
+    }
+    .hero-eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--seal);
+      font-weight: 600;
+      margin-bottom: var(--space-md);
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(64px, 12vw, 140px);
+      font-weight: 700;
+      color: var(--ink-heavy);
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+    }
+    .hero-title span {
+      color: var(--seal);
+    }
+    .hero-subtitle {
+      margin-top: var(--space-lg);
+      font-family: var(--font-display);
+      font-size: clamp(18px, 2.5vw, 26px);
+      color: var(--ink-mid);
+      font-weight: 400;
+      line-height: 1.6;
+      max-width: 540px;
+    }
+    .hero-tagline {
+      margin-top: var(--space-sm);
+      font-size: 14px;
+      color: var(--ink-mid);
+      opacity: 0.7;
+      letter-spacing: 0.05em;
+    }
+    .hero-actions {
+      margin-top: var(--space-xl);
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+
+    /* ---- 按钮 ---- */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--ink-heavy);
+      color: var(--paper-new);
+      border: none;
+      border-radius: 4px;
+      padding: 14px 32px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--ink-black); transform: translateY(-2px); }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: var(--ink-heavy);
+      border: 1.5px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 13px 32px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, transform 0.15s;
+    }
+    .btn-secondary:hover { border-color: var(--ink-heavy); transform: translateY(-2px); }
+
+    /* ---- 色板展示 ---- */
+    .section-dark {
+      background: var(--paper-aged);
+      padding: var(--space-xl) var(--space-lg);
+    }
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--seal);
+      margin-bottom: var(--space-sm);
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 600;
+      color: var(--ink-heavy);
+      line-height: 1.2;
+      margin-bottom: var(--space-sm);
+    }
+    .section-desc {
+      font-size: 16px;
+      color: var(--ink-mid);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: var(--space-lg);
+    }
+
+    /* 色板 */
+    .palette-row {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+    .color-card {
+      flex: 1;
+      min-width: 160px;
+      max-width: 200px;
+    }
+    .color-swatch-large {
+      height: 100px;
+      border-radius: 4px 4px 0 0;
+    }
+    .color-info {
+      background: var(--paper-new);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      padding: 12px 14px;
+    }
+    .color-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-heavy);
+    }
+    .color-val {
+      font-size: 11px;
+      color: var(--ink-mid);
+      font-family: monospace;
+      margin-top: 3px;
+    }
+
+    /* ---- 字体展示 ---- */
+    .type-section { padding: var(--space-xl) var(--space-lg); }
+    .type-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: var(--space-lg);
+      align-items: baseline;
+      padding: var(--space-lg) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .type-row:last-child { border-bottom: none; }
+    .type-meta { font-size: 12px; color: var(--ink-mid); }
+    .type-meta strong { display: block; font-size: 14px; color: var(--ink-heavy); margin-bottom: 4px; }
+    .type-display-sample {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 700;
+      color: var(--ink-heavy);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .type-body-sample {
+      font-family: var(--font-body);
+      font-size: 18px;
+      color: var(--ink-light);
+      line-height: 1.9;
+    }
+
+    /* ---- 阅读示例 ---- */
+    .reading-example {
+      background: var(--paper-new);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: var(--space-lg);
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .reading-example-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--ink-heavy);
+      margin-bottom: var(--space-md);
+    }
+    .reading-example-body {
+      font-family: var(--font-body);
+      font-size: 17px;
+      color: var(--ink-light);
+      line-height: 2;
+    }
+    .reading-example-body p + p { margin-top: 1.4em; }
+    .reading-example-meta {
+      margin-top: var(--space-md);
+      font-size: 12px;
+      color: var(--ink-mid);
+      letter-spacing: 0.05em;
+    }
+
+    /* ---- 组件预览 ---- */
+    .component-row {
+      display: flex;
+      gap: var(--space-lg);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .component-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .component-label {
+      font-size: 11px;
+      color: var(--ink-mid);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* 按钮样式复刻 */
+    .ds-btn-primary {
+      background: var(--ink-heavy);
+      color: var(--paper-new);
+      border: none;
+      border-radius: 4px;
+      padding: 10px 24px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .ds-btn-secondary {
+      background: transparent;
+      color: var(--ink-heavy);
+      border: 1.5px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 9px 24px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .ds-tag {
+      display: inline-block;
+      background: var(--paper-dark);
+      color: var(--ink-mid);
+      border-radius: 3px;
+      padding: 3px 10px;
+      font-size: 12px;
+    }
+    .ds-tag-seal {
+      background: oklch(48% 0.16 28 / 0.12);
+      color: var(--seal-dark);
+    }
+
+    /* 引用块 */
+    .ds-blockquote {
+      border-left: 3px solid var(--seal);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--paper-aged);
+      border-radius: 0 4px 4px 0;
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: var(--ink-mid);
+      font-style: italic;
+    }
+
+    /* ---- 导航卡片 ---- */
+    .nav-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+    .nav-card {
+      background: var(--paper-new);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: var(--space-md);
+      text-decoration: none;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      display: block;
+    }
+    .nav-card:hover {
+      border-color: var(--seal);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px oklch(20% 0.030 70 / 0.08);
+    }
+    .nav-card-eyebrow {
+      font-size: 11px;
+      color: var(--seal);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: var(--space-xs);
+    }
+    .nav-card-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ink-heavy);
+      margin-bottom: 6px;
+    }
+    .nav-card-desc {
+      font-size: 14px;
+      color: var(--ink-mid);
+      line-height: 1.6;
+    }
+    .nav-card-arrow {
+      margin-top: var(--space-sm);
+      color: var(--seal);
+      font-size: 14px;
+    }
+
+    /* ---- Footer ---- */
+    footer {
+      padding: var(--space-lg) var(--space-lg);
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+    footer p {
+      font-size: 13px;
+      color: var(--ink-mid);
+      opacity: 0.7;
+    }
+
+    /* ---- 响应式 ---- */
+    @media (max-width: 768px) {
+      .hero { min-height: 80vh; padding: var(--space-lg) var(--space-md); }
+      .type-row { grid-template-columns: 1fr; gap: var(--space-sm); }
+      .palette-row { gap: var(--space-sm); }
+      .color-card { min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Design System v2.0 · 2026</div>
+    <h1 class="hero-title">即<span>墨</span></h1>
+    <p class="hero-subtitle">宣纸色为境 · 墨分五色 · 朱砂为印<br>专为小说生成阅读场景设计，强对比度与留白为核心理念。</p>
+    <p class="hero-tagline"> Rice-paper tones · Ink hierarchy · Vermillion accent</p>
+    <div class="hero-actions">
+      <a href="docs/design-system-v2.html" class="btn-primary">设计规范文档 →</a>
+      <a href="story.html" class="btn-secondary">打开故事生成器</a>
+    </div>
+  </div>
+</section>
+
+<!-- 色彩系统 -->
+<section class="section-dark">
+  <div class="section-inner">
+    <div class="section-label">01 · 色彩</div>
+    <h2 class="section-title">宣纸色系</h2>
+    <p class="section-desc">以宣纸底色为背景，墨分五色为层次，朱砂印为唯一点缀。克制、留白、强对比。</p>
+
+    <div class="palette-row">
+      <div class="color-card">
+        <div class="color-swatch-large" style="background: oklch(98% 0.006 95);"></div>
+        <div class="color-info">
+          <div class="color-name">生宣</div>
+          <div class="color-val">oklch(98% 0.006 95)</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch-large" style="background: oklch(96% 0.010 92);"></div>
+        <div class="color-info">
+          <div class="color-name">熟宣</div>
+          <div class="color-val">oklch(96% 0.010 92)</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch-large" style="background: oklch(20% 0.030 70);"></div>
+        <div class="color-info">
+          <div class="color-name">重墨</div>
+          <div class="color-val">oklch(20% 0.030 70)</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch-large" style="background: oklch(40% 0.024 80);"></div>
+        <div class="color-info">
+          <div class="color-name">中墨</div>
+          <div class="color-val">oklch(40% 0.024 80)</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch-large" style="background: oklch(65% 0.018 85);"></div>
+        <div class="color-info">
+          <div class="color-name">淡墨</div>
+          <div class="color-val">oklch(65% 0.018 85)</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch-large" style="background: oklch(48% 0.16 28);"></div>
+        <div class="color-info">
+          <div class="color-name">朱砂印</div>
+          <div class="color-val">oklch(48% 0.16 28)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 字体系统 -->
+<section class="type-section">
+  <div class="section-inner">
+    <div class="section-label">02 · 字体</div>
+    <h2 class="section-title">字体层级</h2>
+    <p class="section-desc">宋体衬线用于标题，黑体用于正文，楷体用于古文引用。三层分离，确保阅读舒适度。</p>
+
+    <div style="margin-top: var(--space-lg);">
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Display — 宋体衬线</strong>
+          标题 · 大字号 · 重墨色
+        </div>
+        <div class="type-display-sample">天地玄黄 宇宙洪荒</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Body — 雅黑/思源</strong>
+          正文阅读 · 17px起 · 淡墨色
+        </div>
+        <div class="type-body-sample">
+          秋风清，秋月明，落叶聚还散，寒鸦栖复惊。相思相见知何日，此时此夜难为情。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 阅读排版 -->
+<section class="section-dark">
+  <div class="section-inner">
+    <div class="section-label">03 · 阅读排版</div>
+    <h2 class="section-title">正文排版规范</h2>
+    <p class="section-desc">小说阅读场景的核心：强对比度、充足行高、合理行长。</p>
+
+    <div class="reading-example">
+      <div class="reading-example-title">第一章 · 烽火戏诸侯</div>
+      <div class="reading-example-body">
+        <p>夜色渐深，江面泛起薄雾。画舫缓缓行驶，船头挂着两盏红灯笼，光晕落在水面上，随波纹一圈圈散开。</p>
+        <p>林霜坐在窗边，手指轻轻敲着桐木桌面，似乎在等什么。桌上摊开一本旧册，纸页已经泛黄，边角卷起了毛边。</p>
+      </div>
+      <div class="reading-example-meta">17px · 行高 2.0 · 字重 400 · 宋体标题</div>
+    </div>
+  </div>
+</section>
+
+<!-- 组件概览 -->
+<section class="type-section">
+  <div class="section-inner">
+    <div class="section-label">04 · 组件系统</div>
+    <h2 class="section-title">核心组件</h2>
+    <p class="section-desc">墨色为主，宣纸色为底，朱砂为唯一点缀。克制是核心原则。</p>
+
+    <div style="margin-top: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-md);">
+      <div class="component-row">
+        <div class="component-item">
+          <div class="component-label">Primary</div>
+          <button class="ds-btn-primary">开始创作</button>
+        </div>
+        <div class="component-item">
+          <div class="component-label">Secondary</div>
+          <button class="ds-btn-secondary">了解更多</button>
+        </div>
+        <div class="component-item">
+          <div class="component-label">Tags</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="ds-tag">古风</span>
+            <span class="ds-tag ds-tag-seal">武侠</span>
+          </div>
+        </div>
+      </div>
+      <div class="ds-blockquote">
+        「山不在高，有仙则名。水不在深，有龙则灵。」
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 导航 -->
+<section class="section-dark">
+  <div class="section-inner">
+    <div class="section-label">Explore</div>
+    <h2 class="section-title">深入探索</h2>
+    <div class="nav-cards">
+      <a href="docs/design-system-v2.html" class="nav-card">
+        <div class="nav-card-eyebrow">Documentation</div>
+        <div class="nav-card-title">完整设计规范</div>
+        <div class="nav-card-desc">色彩、字体、间距、组件、阅读排版的完整技术规范文档。</div>
+        <div class="nav-card-arrow">→</div>
+      </a>
+      <a href="story.html" class="nav-card">
+        <div class="nav-card-eyebrow">Product</div>
+        <div class="nav-card-title">故事生成器</div>
+        <div class="nav-card-desc">即墨核心产品——AI 驱动的沉浸式小说生成工具。</div>
+        <div class="nav-card-arrow">→</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>即墨设计系统 v2.0 · 宣纸色为境 · 墨分五色 · 朱砂为印</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+# 临时文件
+*.tmp
+*.log
+
+# 本地配置文件（包含密钥）
+key.txt
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# node_modules（如有）
+node_modules/
+
+# 压缩包（如有）
+*.zip
+*.rar
