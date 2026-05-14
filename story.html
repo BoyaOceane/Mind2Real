@@ -7,52 +7,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #f8f6f2;
-            --bg-secondary: #eee8df;
-            --bg-tertiary: #e3dbd0;
-            --surface-card: rgba(255, 255, 255, 0.92);
-            --surface-card-soft: rgba(255, 255, 255, 0.78);
-            --surface-overlay: rgba(45, 42, 38, 0.6);
-            --text-primary: #1f1d1a;
-            --text-secondary: #5c554c;
-            --text-muted: #8e867d;
-            --text-inverse: #ffffff;
-            --accent-primary: #c4971e;
-            --accent-secondary: #a8800d;
-            --accent-tertiary: #7a5f2e;
-            --accent-world: #3d7a9e;
-            --accent-protagonist: #9e5a3d;
-            --accent-narrative: #5a7a4e;
-            --success: #5a8a50;
-            --warning: #c88a3a;
-            --error: #b85555;
-            --info: #5b7aaa;
-            --border-light: #e0d9cf;
-            --border-medium: #ccc0ae;
-            --border-dark: #a89882;
-            --shadow-soft: 0 2px 12px rgba(100, 80, 50, 0.07), 0 4px 20px rgba(100, 80, 50, 0.05);
-            --shadow-medium: 0 4px 16px rgba(100, 80, 50, 0.10), 0 8px 30px rgba(100, 80, 50, 0.08);
-            --shadow-strong: 0 8px 24px rgba(100, 80, 50, 0.14), 0 14px 40px rgba(100, 80, 50, 0.10);
-            --shadow-glow: 0 4px 18px rgba(196, 151, 30, 0.35);
-            --topbar-bg: #2c2825;
-            --topbar-text: #e8e2d8;
-            --space-xs: 4px;
-            --space-sm: 8px;
-            --space-md: 16px;
-            --space-lg: 24px;
-            --space-xl: 32px;
-            --space-2xl: 48px;
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-            --radius-full: 9999px;
-            --transition-fast: 0.15s ease;
-            --transition-normal: 0.3s ease;
-            --transition-slow: 0.5s ease;
-            --font-display: 'Ma Shan Zheng', cursive;
-            --font-body: 'Noto Serif SC', 'Songti SC', serif;
-            --font-code: 'Consolas', 'Monaco', monospace;
+            /* 宣纸底色系 */
+            --paper-new: oklch(98% 0.006 95);
+            --paper-aged: oklch(96% 0.010 92);
+            --paper-dark: oklch(92% 0.014 88);
+            /* 墨分五色 */
+            --ink-light: oklch(65% 0.018 85);
+            --ink-mid: oklch(40% 0.024 80);
+            --ink-heavy: oklch(20% 0.030 70);
+            --ink-black: oklch(15% 0.032 60);
+            /* 朱砂唯一点缀 */
+            --seal: oklch(48% 0.16 28);
+            --seal-dark: oklch(38% 0.18 22);
+            /* 边框 */
+            --border: oklch(82% 0.008 90);
+            --border-dark: oklch(60% 0.012 82);
+            /* 字体 */
+            --font-display: 'Noto Serif SC', serif;
+            --font-body: 'Noto Sans SC', sans-serif;
+            /* 间距 */
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 48px;
+            --space-xl: 80px;
+            /* 圆角 */
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -61,9 +43,9 @@
         }
         body {
             font-family: var(--font-body);
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            color: var(--text-primary);
-            line-height: 1.7;
+            background-color: var(--paper-new);
+            color: var(--ink-light);
+            line-height: 1.8;
             display: flex;
             flex-direction: column;
         }
@@ -203,16 +185,16 @@
             height: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.12);
         }
-        .node-critical { background: #e74c3c; }
-        .node-major { background: #e67e22; }
-        .node-normal { background: #bdc3c7; }
+        .node-critical { background: var(--seal); }
+        .node-major { background: var(--ink-mid); }
+        .node-normal { background: var(--ink-light); }
 
         /* ===== Sidebar（右侧面板）===== */
         .story-sidebar {
             width: 240px;
             flex-shrink: 0;
-            background: #fcfbf9;
-            border-left: 1px solid var(--border-light);
+            background: var(--paper-aged);
+            border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -332,15 +314,14 @@
         /* Story Content */
         .story-content {
             flex: 1;
-            background: var(--surface-card);
+            background: var(--paper-new);
+            border: 1px solid var(--border);
             border-radius: var(--radius-lg);
             padding: 32px;
             margin-bottom: 12px;
-            box-shadow: var(--shadow-medium);
             min-height: 0;
             overflow-y: auto;
             scroll-behavior: smooth;
-            border: 1px solid var(--border-light);
         }
         .story-text {
             font-size: 1.05rem;
@@ -483,20 +464,18 @@
             transition: all var(--transition-normal);
         }
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-            color: var(--text-inverse);
-            box-shadow: var(--shadow-glow);
+            background: var(--ink-heavy);
+            color: var(--paper-new);
+            border: none;
+            border-radius: 4px;
+            padding: 14px 32px;
+            font-size: 15px;
+            font-weight: 500;
         }
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(201, 168, 108, 0.4);
-        }
-        .btn-primary:active {
-            transform: translateY(0) scale(0.96);
-        }
+        .btn-primary:hover { background: var(--ink-black); }
+        .btn-primary:active { transform: scale(0.96); }
         .btn-primary:disabled {
-            background: var(--border-medium);
-            box-shadow: none;
+            background: var(--border-dark);
             cursor: not-allowed;
             transform: none;
         }
@@ -692,11 +671,6 @@
                 </div>
             </div>
             <div id="storyStatus" class="story-status" aria-live="polite"></div>
-
-            <!-- Options (hidden, managed by JS) -->
-            <div id="optionsSection" style="display:none;">
-                <div class="options-list" id="optionsList"></div>
-            </div>
         </div>
 
         <!-- Timeline strip -->
@@ -744,8 +718,6 @@
             narrative: '',
             history: []
         };
-        let currentOptions = [];
-        let selectedOption = -1;
         let isLoading = false;
 
         // Sidebar & structured metadata state
@@ -934,11 +906,6 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             // Display all history if exists
             if (currentStory.history.length > 0) {
                 displayFullStory();
-                const lastSegment = currentStory.history[currentStory.history.length - 1];
-                if (lastSegment.options) {
-                    currentOptions = lastSegment.options;
-                    displayOptions(currentOptions);
-                }
             } else {
                 generateOpening();
             }
@@ -989,11 +956,9 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                     const displayText = stripStructuredMeta(cleanResult);
                     const segment = {
                         content: displayText,
-                        options: parseOptions(cleanResult)
+                        timestamp: Date.now()
                     };
                     currentStory.history.push(segment);
-                    currentOptions = segment.options;
-                    displayOptions(currentOptions);
                     appendNewMeta(cleanResult);
                     saveStoryData();
                     autoSave();
@@ -1004,33 +969,6 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             }
 
             setLoadingState(false);
-        }
-
-        // Parse options from content
-        function parseOptions(content) {
-            const options = [];
-            const lines = content.split('\n');
-
-            for (const line of lines) {
-                const match = line.match(/^[A-E][\.、:：]\s*(.+)/);
-                if (match) {
-                    options.push({
-                        title: match[1].trim(),
-                        desc: ''
-                    });
-                }
-            }
-
-            if (options.length < 2) {
-                options.length = 0;
-                options.push(
-                    { title: '直面冲突', desc: '迎难而上' },
-                    { title: '迂回周旋', desc: '智取为上' },
-                    { title: '暂时退避', desc: '留得青山' }
-                );
-            }
-
-            return options.slice(0, 4);
         }
 
         // Render text to HTML paragraphs
@@ -1063,21 +1001,6 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             storyEl.scrollTop = storyEl.scrollHeight;
         }
 
-        // Display options
-        function displayOptions(options) {
-            const letters = ['A', 'B', 'C', 'D', 'E'];
-            const optionsHtml = options.map((opt, i) => `
-                <div class="option-item ${selectedOption === i ? 'selected' : ''}" onclick="selectOption(${i})">
-                        <span class="option-letter">${letters[i]}</span>
-                        <div class="option-text">
-                        <div class="option-title">${escapeHTML(opt.title)}</div>
-                        ${opt.desc ? `<div class="option-desc">${escapeHTML(opt.desc)}</div>` : ''}
-                    </div>
-                </div>
-            `).join('');
-            document.getElementById('optionsList').innerHTML = optionsHtml;
-        }
-
         // Show loading appended below existing content
         function showLoading() {
             const prevHtml = currentStory.history.map(h => textToHtml(h.content)).join('<hr class="story-divider">');
@@ -1090,61 +1013,6 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             `;
             const storyEl = document.querySelector('.story-content');
             storyEl.scrollTop = storyEl.scrollHeight;
-        }
-
-        // Select option
-        function selectOption(index) {
-            if (!currentOptions[index]) return;
-            selectedOption = index;
-            document.getElementById('customInput').value = '';
-            displayOptions(currentOptions);
-            document.getElementById('continueHint').textContent = '已选择：' + currentOptions[index].title;
-        }
-
-        // Refresh options
-        async function refreshOptions() {
-            if (isLoading) return;
-            setLoadingState(true, '正在生成新的选项...');
-
-            const config = getApiConfig();
-            if (!config.apiKey) {
-                showToast('请先在首页设置 API Key');
-                setLoadingState(false);
-                return;
-            }
-
-            const pref = localStorage.getItem('user_preference') || '';
-            const lastContent = currentStory.history[currentStory.history.length - 1]?.content || '';
-
-            const prompt = `${pref}
-根据以下剧情，在结尾生成3个新的不同走向选项：
-
-${lastContent}
-
-要求：每个选项要有差异性，指向不同剧情走向，15字以内。`;
-
-            const systemPrompt = renderPrompt(systemPrompts.options, {
-                storyContext: lastContent,
-                protagonist: currentStory.protagonist,
-                tags: currentStory.worldTags.join('、')
-            });
-
-            try {
-                const result = await callDeepSeek(prompt, systemPrompt);
-                if (result) {
-                    currentOptions = parseOptions(result);
-                    currentStory.history[currentStory.history.length - 1].options = currentOptions;
-                    selectedOption = -1;
-                    displayOptions(currentOptions);
-                    document.getElementById('continueHint').textContent = '输入剧情方向，或直接点击继续';
-                    saveStoryData();
-                }
-            } catch (error) {
-                console.error('刷新选项失败:', error);
-                showToast('刷新选项失败，请稍后再试');
-            }
-
-            setLoadingState(false);
         }
 
         // Continue story
@@ -1202,12 +1070,9 @@ ${storySoFar}
                     const displayText = stripStructuredMeta(cleanResult);
                     const segment = {
                         content: displayText,
-                        options: parseOptions(cleanResult)
+                        timestamp: Date.now()
                     };
                     currentStory.history.push(segment);
-                    currentOptions = segment.options;
-                    displayOptions(currentOptions);
-                    selectedOption = -1;
                     document.getElementById('customInput').value = '';
                     document.getElementById('continueHint').textContent = '输入剧情方向，或直接点击继续';
                     appendNewMeta(cleanResult);
