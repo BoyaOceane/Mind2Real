@@ -1530,9 +1530,11 @@ ${storySoFar}
                 html += '<div class="ch-item"><span class="ch-avatar">主</span><span class="ch-name">' + escapeHTML(currentStory.protagonist) + '</span><span class="ch-rel">主角</span></div>';
             }
             characterCards.forEach(c => {
-                const ini = c.name ? c.name[0] : '?';
-                const tagLabel = c.tag || c.relation || '';
-                html += '<div class="ch-item"><span class="ch-avatar">' + escapeHTML(ini) + '</span><span class="ch-name">' + escapeHTML(c.name) + '</span><span class="ch-rel">' + escapeHTML(tagLabel) + '</span></div>';
+                if (c.tag !== '主角') {
+                    const ini = c.name ? c.name[0] : '?';
+                    const tagLabel = c.tag || c.relation || '';
+                    html += '<div class="ch-item"><span class="ch-avatar">' + escapeHTML(ini) + '</span><span class="ch-name">' + escapeHTML(c.name) + '</span><span class="ch-rel">' + escapeHTML(tagLabel) + '</span></div>';
+                }
             });
             list.innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.78rem;">暂无角色</div>';
         }
