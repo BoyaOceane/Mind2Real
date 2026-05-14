@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提示词管理 - 即墨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8f6f2;
+            --bg-secondary: #eee8df;
+            --bg-tertiary: #e3dbd0;
+            --surface-card: rgba(255, 255, 255, 0.92);
+            --surface-card-soft: rgba(255, 255, 255, 0.78);
+            --surface-overlay: rgba(45, 42, 38, 0.6);
+            --text-primary: #1f1d1a;
+            --text-secondary: #5c554c;
+            --text-muted: #8e867d;
+            --text-inverse: #ffffff;
+            --accent-primary: #c4971e;
+            --accent-secondary: #a8800d;
+            --accent-tertiary: #7a5f2e;
+            --accent-world: #3d7a9e;
+            --accent-protagonist: #9e5a3d;
+            --accent-narrative: #5a7a4e;
+            --success: #5a8a50;
+            --warning: #c88a3a;
+            --error: #b85555;
+            --info: #5b7aaa;
+            --border-light: #e0d9cf;
+            --border-medium: #ccc0ae;
+            --border-dark: #a89882;
+            --shadow-soft: 0 2px 12px rgba(100, 80, 50, 0.07), 0 4px 20px rgba(100, 80, 50, 0.05);
+            --shadow-medium: 0 4px 16px rgba(100, 80, 50, 0.10), 0 8px 30px rgba(100, 80, 50, 0.08);
+            --shadow-strong: 0 8px 24px rgba(100, 80, 50, 0.14), 0 14px 40px rgba(100, 80, 50, 0.10);
+            --shadow-glow: 0 4px 18px rgba(196, 151, 30, 0.35);
+            --topbar-bg: #2c2825;
+            --topbar-text: #e8e2d8;
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+            --font-display: 'Ma Shan Zheng', cursive;
+            --font-body: 'Noto Serif SC', 'Songti SC', serif;
+            --font-code: 'Consolas', 'Monaco', monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            line-height: 1.7;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: var(--topbar-bg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 100;
+        }
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: var(--space-sm) var(--space-md);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: var(--radius-full);
+            color: var(--topbar-text);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .top-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            color: var(--topbar-text);
+            letter-spacing: 2px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-lg);
+        }
+        .blocks-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+
+        /* Prompt Block */
+        .prompt-block {
+            background: var(--surface-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-medium);
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+        .prompt-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md) var(--space-lg);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .prompt-block-title {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        .prompt-block-title.world { color: var(--accent-world); }
+        .prompt-block-title.protagonist { color: var(--accent-protagonist); }
+        .prompt-block-title.story { color: var(--accent-primary); }
+        .prompt-block-title.narrative { color: var(--accent-narrative); }
+        .prompt-block-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        .btn {
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: 1px solid var(--border-medium);
+            background: var(--surface-card);
+            color: var(--text-primary);
+        }
+        .btn:hover {
+            background: var(--bg-tertiary);
+        }
+        .btn-edit {
+            background: var(--accent-primary);
+            color: var(--text-inverse);
+            border-color: var(--accent-secondary);
+        }
+        .btn-edit:hover {
+            background: var(--accent-secondary);
+        }
+        .btn-save {
+            background: var(--success);
+            color: var(--text-inverse);
+            border-color: #4a7a40;
+        }
+        .btn-save:hover {
+            background: #4a7a40;
+        }
+        .btn-reset {
+            background: var(--surface-card);
+            color: var(--warning);
+            border-color: var(--warning);
+        }
+        .btn-reset:hover {
+            background: var(--warning);
+            color: var(--text-inverse);
+        }
+        .prompt-block-body {
+            padding: var(--space-lg);
+        }
+        .prompt-display {
+            display: block;
+        }
+        .prompt-edit {
+            display: none;
+        }
+        .prompt-display pre {
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: var(--bg-primary);
+            padding: var(--space-md);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            max-height: 300px;
+            overflow-y: auto;
+            color: var(--text-secondary);
+        }
+        .prompt-edit textarea {
+            width: 100%;
+            min-height: 200px;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            padding: var(--space-md);
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--accent-primary);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            resize: vertical;
+            box-shadow: var(--shadow-glow);
+        }
+        .prompt-edit textarea:focus {
+            outline: none;
+            border-color: var(--accent-secondary);
+        }
+        .edit-actions {
+            display: flex;
+            gap: var(--space-sm);
+            margin-top: var(--space-md);
+            justify-content: flex-end;
+        }
+        .status-bar {
+            padding: var(--space-sm) var(--space-lg);
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-light);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-left">
+            <a href="index.html" class="back-btn">
+                <span>&larr;</span>
+                <span>返回</span>
+            </a>
+        </div>
+        <h1 class="top-title">提示词管理</h1>
+        <div style="width: 80px;"></div>
+    </div>
+
+    <div class="main-content">
+        <div class="blocks-container">
+            <!-- 世界观生成 -->
+            <div class="prompt-block" id="block-world">
+                <div class="prompt-block-header">
+                    <h2 class="prompt-block-title world">世界观生成</h2>
+                    <div class="prompt-block-actions">
+                        <button class="btn btn-edit" onclick="toggleEdit('world')">编辑</button>
+                        <button class="btn btn-reset" onclick="resetBlock('world', 'worldPrompt')">恢复默认</button>
+                    </div>
+                </div>
+                <div class="prompt-block-body">
+                    <div class="prompt-display" id="display-world">
+                        <pre></pre>
+                    </div>
+                    <div class="prompt-edit" id="edit-world">
+                        <textarea id="textarea-world" placeholder="请输入世界观生成提示词..."></textarea>
+                        <div class="edit-actions">
+                            <button class="btn" onclick="toggleEdit('world')">取消</button>
+                            <button class="btn btn-save" onclick="saveBlock('world', 'worldPrompt')">保存</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-bar">
+                    <span id="status-world"></span>
+                    <span id="updatedAt-world"></span>
+                </div>
+            </div>
+
+            <!-- 主角生成 -->
+            <div class="prompt-block" id="block-protagonist">
+                <div class="prompt-block-header">
+                    <h2 class="prompt-block-title protagonist">主角生成</h2>
+                    <div class="prompt-block-actions">
+                        <button class="btn btn-edit" onclick="toggleEdit('protagonist')">编辑</button>
+                        <button class="btn btn-reset" onclick="resetBlock('protagonist', 'protagonistPrompt')">恢复默认</button>
+                    </div>
+                </div>
+                <div class="prompt-block-body">
+                    <div class="prompt-display" id="display-protagonist">
+                        <pre></pre>
+                    </div>
+                    <div class="prompt-edit" id="edit-protagonist">
+                        <textarea id="textarea-protagonist" placeholder="请输入主角生成提示词..."></textarea>
+                        <div class="edit-actions">
+                            <button class="btn" onclick="toggleEdit('protagonist')">取消</button>
+                            <button class="btn btn-save" onclick="saveBlock('protagonist', 'protagonistPrompt')">保存</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-bar">
+                    <span id="status-protagonist"></span>
+                    <span id="updatedAt-protagonist"></span>
+                </div>
+            </div>
+
+            <!-- 故事续写 -->
+            <div class="prompt-block" id="block-story">
+                <div class="prompt-block-header">
+                    <h2 class="prompt-block-title story">故事续写</h2>
+                    <div class="prompt-block-actions">
+                        <button class="btn btn-edit" onclick="toggleEdit('story')">编辑</button>
+                        <button class="btn btn-reset" onclick="resetBlock('story', 'storySystemPrompt')">恢复默认</button>
+                    </div>
+                </div>
+                <div class="prompt-block-body">
+                    <div class="prompt-display" id="display-story">
+                        <pre></pre>
+                    </div>
+                    <div class="prompt-edit" id="edit-story">
+                        <textarea id="textarea-story" placeholder="请输入故事续写提示词..."></textarea>
+                        <div class="edit-actions">
+                            <button class="btn" onclick="toggleEdit('story')">取消</button>
+                            <button class="btn btn-save" onclick="saveBlock('story', 'storySystemPrompt')">保存</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-bar">
+                    <span id="status-story"></span>
+                    <span id="updatedAt-story"></span>
+                </div>
+            </div>
+
+            <!-- 叙事风格 -->
+            <div class="prompt-block" id="block-narrative">
+                <div class="prompt-block-header">
+                    <h2 class="prompt-block-title narrative">叙事风格</h2>
+                    <div class="prompt-block-actions">
+                        <button class="btn btn-edit" onclick="toggleEdit('narrative')">编辑</button>
+                        <button class="btn btn-reset" onclick="resetBlock('narrative', 'narrativeStylePrompt')">恢复默认</button>
+                    </div>
+                </div>
+                <div class="prompt-block-body">
+                    <div class="prompt-display" id="display-narrative">
+                        <pre></pre>
+                    </div>
+                    <div class="prompt-edit" id="edit-narrative">
+                        <textarea id="textarea-narrative" placeholder="请输入叙事风格提示词..."></textarea>
+                        <div class="edit-actions">
+                            <button class="btn" onclick="toggleEdit('narrative')">取消</button>
+                            <button class="btn btn-save" onclick="saveBlock('narrative', 'narrativeStylePrompt')">保存</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="status-bar">
+                    <span id="status-narrative"></span>
+                    <span id="updatedAt-narrative"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default prompts
+        const defaultPrompts = {
+            worldPrompt: `你是世界构建专家，擅长根据用户需求创造独特的世界背景。
+
+【核心能力】
+1. 深度挖掘用户意图，将模糊想法转化为具体世界观设定
+2. 创造有层次感的世界，既有宏观框架又有微观细节
+3. 确保世界逻辑自洽，设定之间相互呼应
+4. 融入文化底蕴，创造有辨识度的世界
+
+【世界观要素】
+- 世界名称与由来
+- 基本设定（金手指、规则体系）
+- 主要势力与关系
+- 历史背景与传说
+- 地理环境与社会结构
+- 悬念与伏笔
+
+【输出要求】
+- 结构清晰，分点描述
+- 语言简洁有画面感
+- 突出世界特色与亮点
+- 为故事展开留有空间`,
+            protagonistPrompt: `你是角色设计专家，擅长塑造有深度的主角。
+
+【核心能力】
+1. 根据用户需求设计符合故事调性的主角
+2. 创造有层次感的人物设定
+3. 确保人设与世界观相契合
+4. 设计成长弧线与发展空间
+
+【角色要素】
+- 基础信息：姓名、性别、年龄、外貌
+- 性格特质：核心性格与矛盾面
+- 能力设定：普通能力与特殊能力（金手指）
+- 背景故事：来历与动机
+- 人物关系：与其他角色的互动
+- 成长空间：角色发展方向
+
+【输出要求】
+- 人物形象鲜明有记忆点
+- 设定之间相互呼应
+- 留有成长与变化空间
+- 与故事类型相契合`,
+            storySystemPrompt: `你是专业网文作家。核心理念：用户是灵魂，AI是笔。用户不需要会写，只需要会选。AI负责把用户的选择，用专业的方式落到纸上。
+
+【AI核心能力】
+1. 考据隐身：虚构设定锚定真实知识体系，只驱动底层逻辑
+2. 结构守护：伏笔不漏，人设不塌，时间线不出bug
+3. 多领域即时调度：需要什么知识调什么知识，不中断写作流
+4. 多维并行推演：同时推演主角、对手、旁观者、环境、伏笔五条线
+5. 文风瞬时适配：根据设定自动匹配叙事温度和留白比例
+6. 持续输出零衰减：保持一致性，保持产出节奏
+
+【故事机制】
+第一步：世界观与金手指已生成
+第二步：以第三人称开篇，直接进入冲突。用户在阅读中进入世界
+第三步：每个关键节点，提供多个选项，每个选项指向不同剧情走向
+第四步：用户选择后，沿选定方向推进叙事
+第五步：新的节点，新的选项，形成持续的分支叙事
+
+【写作八条铁律】
+1. 钩子：首句必须有异常、不安或未解之谜
+2. 感受优先：情绪在前，用动作和对话暗示，不直接描写心理
+3. 节奏控制：每千字必须有情绪转折或情节推高。平静段落必须有暗流
+4. 规则要演：每引入设定，必须立刻有角色因此改变命运。空讲设定等于没写
+5. 行动即人设：不给角色贴性格标签。只写他在关键时刻做了什么选择
+6. 爽点兑现：每章至少兑现一种底层爽感——翻身、解密、占有、自由、活下来、守护
+7. 语言透明：删优先级：形容词 > 可改成动作的心理描写 > 炫技句子
+8. 考据隐身：所有真实参照只驱动底层逻辑，不在正文里站到前台
+9. 克制数字：除非剧情必须体现精确技术参数（如破解密码、医疗数据），否则不堆砌具体数值。用感官和动作代替测量——写"水滴悬在半空，缓缓往上爬了一截"，不写"停滞了四秒，朝上移动了大约三厘米"
+10. 句尾完整：每段必须在句号处结束，不得在逗号、从句、从属结构处截断。如果字数限制在流中到达，停在最后一个完整句子的句号处。
+
+【输出要求】
+第三人称开场，直接进入冲突。文字直白有张力，画面感强。结尾停在关键节点，提供有差异性的选项。
+
+【字数限制 - 严格】
+- 每次输出正文严格控制在252字以内（不含打点部分）
+- 如果一句话在252字处还没说完，必须把这句话完整说完后再停止
+- 剧情打点不计入252字限制，放在正文之后
+
+【剧情打点 - 智能标记】
+在生成剧情的同时，请根据剧情内容智能判断并标记关键节点。
+
+1. 【提纲节点】识别剧情中的关键转折点、高潮、悬念设置点：
+   - 类型：转折 / 高潮 / 悬念 / 铺垫 / 揭示
+   - 重要性：critical(重点剧情，红色) / major(较重要，橙色) / normal(普通，灰色)
+   - 一句话总结（15字以内）
+
+2. 【线索节点】识别线索的状态变化点，每条线索是一条独立时间线：
+   - 线索名
+   - 状态变化：伏笔→展开 / 展开→揭示 / 揭示→闭合 等
+   - 一句话描述
+   - 重要性
+
+3. 【人物节点】识别新人物出场：
+   - 人物ID（唯一标识，如 char_001）
+   - 人物名
+   - 首次出场位置（章节序号）
+   - 人物标签：主角 / 配角 / 反派 / 中立
+   - 一句话简述
+
+4. 【关系边】识别已有节点之间的关系变化：
+   - 源人物ID
+   - 目标人物ID
+   - 关系类型：敌对 / 盟友 / 主仆 / 血缘 / 师徒 / 爱慕 / 竞争 等
+   - 关系强度（1-5分，随剧情变化可更新）
+   - 首次建立关系的场景描述
+
+输出格式（在正文结束后另起一行）：
+【剧情打点】
+[提纲节点]
+转折 | critical | 主角发现密室暗门
+悬念 | major | 神秘人留下警告信
+
+[线索节点]
+古宅秘宝 | 伏笔→展开 | 地图碎片出现 | major
+
+[人物节点]
+char_001 | 李管家 | 1 | 配角 | 古宅管家，知道秘密
+
+[关系边]
+char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接`,
+            narrativeStylePrompt: `你是叙事风格专家，擅长根据不同类型的故事匹配最佳叙事方式。
+
+【核心能力】
+1. 理解不同叙事风格的特点与适用场景
+2. 根据故事类型选择合适的叙事温度
+3. 调整留白比例与节奏把控
+4. 确保叙事风格与故事调性一致
+
+【叙事风格类型】
+- 古典雅致：文笔优美，意境深远，适合古风仙侠
+- 现代爽利：节奏明快，冲突激烈，适合都市异能
+- 悬疑紧张：气氛凝重，细节丰富，适合推理探秘
+- 轻松幽默：对话活泼，节奏轻快，适合轻松日常
+
+【叙事要素】
+- 叙事视角：第一人称 / 第三人称
+- 叙事节奏：快节奏 / 慢节奏 / 张弛结合
+- 情感温度：热血 / 温情 / 冷峻 / 中立
+- 语言风格：华丽 / 朴素 / 幽默 / 庄严
+
+【输出要求】
+- 明确风格定位
+- 说明风格特点
+- 给出具体示例或描述
+- 与故事类型相匹配`
+        };
+
+        // Load prompts from localStorage or use defaults
+        function loadPrompts() {
+            const saved = localStorage.getItem('prompt_config');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Failed to parse prompt_config:', e);
+                }
+            }
+            return null;
+        }
+
+        // Save prompts to localStorage
+        function savePrompts(prompts) {
+            prompts.updatedAt = new Date().toLocaleString('zh-CN');
+            localStorage.setItem('prompt_config', JSON.stringify(prompts));
+        }
+
+        // Get prompt by key
+        function getPrompt(key) {
+            const saved = loadPrompts();
+            if (saved && saved[key]) {
+                return saved[key];
+            }
+            return defaultPrompts[key] || '';
+        }
+
+        // Toggle edit mode for a block
+        function toggleEdit(blockName) {
+            const displayEl = document.getElementById('display-' + blockName);
+            const editEl = document.getElementById('edit-' + blockName);
+            const textarea = document.getElementById('textarea-' + blockName);
+
+            if (displayEl.style.display === 'none') {
+                // Cancel editing
+                displayEl.style.display = 'block';
+                editEl.style.display = 'none';
+            } else {
+                // Enter edit mode
+                textarea.value = getPrompt(getKey(blockName));
+                displayEl.style.display = 'none';
+                editEl.style.display = 'block';
+                textarea.focus();
+            }
+        }
+
+        // Get localStorage key from block name
+        function getKey(blockName) {
+            const keyMap = {
+                'world': 'worldPrompt',
+                'protagonist': 'protagonistPrompt',
+                'story': 'storySystemPrompt',
+                'narrative': 'narrativeStylePrompt'
+            };
+            return keyMap[blockName] || blockName + 'Prompt';
+        }
+
+        // Save block content to localStorage
+        function saveBlock(blockName, key) {
+            const textarea = document.getElementById('textarea-' + blockName);
+            const value = textarea.value.trim();
+
+            if (!value) {
+                showStatus(blockName, '内容不能为空', 'error');
+                return;
+            }
+
+            const prompts = loadPrompts() || {};
+            prompts[key] = value;
+            savePrompts(prompts);
+
+            // Update display
+            const displayEl = document.getElementById('display-' + blockName);
+            const editEl = document.getElementById('edit-' + blockName);
+            displayEl.querySelector('pre').textContent = value;
+            displayEl.style.display = 'block';
+            editEl.style.display = 'none';
+
+            showStatus(blockName, '已保存', 'success');
+            updateUpdatedAt(blockName);
+        }
+
+        // Reset block to default
+        function resetBlock(blockName, key) {
+            if (!confirm('确定要恢复默认提示词吗？当前修改将丢失。')) {
+                return;
+            }
+
+            const prompts = loadPrompts() || {};
+            prompts[key] = defaultPrompts[key];
+            savePrompts(prompts);
+
+            // Update display
+            const displayEl = document.getElementById('display-' + blockName);
+            displayEl.querySelector('pre').textContent = defaultPrompts[key];
+
+            showStatus(blockName, '已恢复默认', 'success');
+            updateUpdatedAt(blockName);
+        }
+
+        // Show status message
+        function showStatus(blockName, message, type) {
+            const statusEl = document.getElementById('status-' + blockName);
+            statusEl.textContent = message;
+            statusEl.style.color = type === 'error' ? 'var(--error)' : type === 'success' ? 'var(--success)' : 'var(--text-muted)';
+
+            setTimeout(() => {
+                statusEl.textContent = '';
+            }, 3000);
+        }
+
+        // Update updatedAt display
+        function updateUpdatedAt(blockName) {
+            const saved = loadPrompts();
+            if (saved && saved.updatedAt) {
+                document.getElementById('updatedAt-' + blockName).textContent = '更新于: ' + saved.updatedAt;
+            }
+        }
+
+        // Initialize page
+        function init() {
+            // Set display content
+            document.querySelector('#display-world pre').textContent = getPrompt('worldPrompt');
+            document.querySelector('#display-protagonist pre').textContent = getPrompt('protagonistPrompt');
+            document.querySelector('#display-story pre').textContent = getPrompt('storySystemPrompt');
+            document.querySelector('#display-narrative pre').textContent = getPrompt('narrativeStylePrompt');
+
+            // Update all updatedAt displays
+            ['world', 'protagonist', 'story', 'narrative'].forEach(blockName => {
+                updateUpdatedAt(blockName);
+            });
+        }
+
+        // Run on page load
+        init();
+    </script>
+</body>
+</html>
