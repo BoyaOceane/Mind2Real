@@ -675,6 +675,7 @@
         let storyOutline = [];
         let storyClues = [];
         let characterCards = [];
+        let characterRelations = [];
         let currentSidebarTab = 'outline';
         let protagonistStyle = ''; // 'chinese' or 'western'
         let personalityFramework = {}; // chineseCategories or westernCategories
@@ -732,26 +733,34 @@
    - 一句话描述
    - 重要性
 
-3. 【人物节点】识别新人物出场或人物关系变化：
+3. 【人物节点】识别新人物出场：
+   - 人物ID（唯一标识，如 char_001）
    - 人物名
-   - 事件：首次出场 / 关系变化
-   - 与已有角色的关系（如：与主角：主仆 / 与XX：朋友）
-   - 一句话描述
+   - 首次出场位置（章节序号）
+   - 人物标签：主角 / 配角 / 反派 / 中立
+   - 一句话简述
+
+4. 【关系边】识别已有节点之间的关系变化：
+   - 源人物ID
+   - 目标人物ID
+   - 关系类型：敌对 / 盟友 / 主仆 / 血缘 / 师徒 / 爱慕 / 竞争 等
+   - 关系强度（1-5分，随剧情变化可更新）
+   - 首次建立关系的场景描述
 
 输出格式（在正文结束后另起一行）：
 【剧情打点】
 [提纲节点]
 转折 | critical | 主角发现密室暗门
 悬念 | major | 神秘人留下警告信
-...
 
 [线索节点]
 古宅秘宝 | 伏笔→展开 | 地图碎片出现 | major
-...
 
 [人物节点]
-李管家 | 首次出场 | 与主角：主仆 | 古宅管家，知道秘密
-...`,
+char_001 | 李管家 | 1 | 配角 | 古宅管家，知道秘密
+
+[关系边]
+char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接`,
             options: `你是选项设计专家。用户不需要会写，只需要会选。每个选项指向不同的剧情走向。
 
 【选项要求】
@@ -1333,7 +1342,7 @@ ${storySoFar}
 
         // Parse plot points from new 【剧情打点】format
         function parsePlotPoints(fullText) {
-            const points = { outline: [], clues: [], characters: [] };
+            const points = { outline: [], clues: [], characters: [], relations: [] };
             const section = extractSection(fullText, '【剧情打点】', ['【提纲节点】', '【线索追踪】', '【人物卡】']);
             if (!section) return points;
 
@@ -1344,6 +1353,7 @@ ${storySoFar}
                 if (line === '[提纲节点]') { currentSub = 'outline'; return; }
                 if (line === '[线索节点]') { currentSub = 'clues'; return; }
                 if (line === '[人物节点]') { currentSub = 'characters'; return; }
+                if (line === '[关系边]') { currentSub = 'relations'; return; }
 
                 const parts = line.split('|').map(s => s.trim());
                 if (currentSub === 'outline' && parts.length >= 3) {
@@ -1361,12 +1371,23 @@ ${storySoFar}
                         importance: parts[3] || 'normal',
                         _new: true
                     });
-                } else if (currentSub === 'characters' && parts.length >= 3) {
+                } else if (currentSub === 'characters' && parts.length >= 4) {
                     points.characters.push({
-                        name: parts[0],
-                        event: parts[1],
-                        relation: parts[2],
-                        desc: parts[3] || ''
+                        id: parts[0],
+                        name: parts[1],
+                        firstAppear: parseInt(parts[2]) || 0,
+                        tag: parts[3],
+                        desc: parts[4] || '',
+                        _new: true
+                    });
+                } else if (currentSub === 'relations' && parts.length >= 4) {
+                    points.relations.push({
+                        source: parts[0],
+                        target: parts[1],
+                        type: parts[2],
+                        strength: parseInt(parts[3]) || 1,
+                        scene: parts[4] || '',
+                        _new: true
                     });
                 }
             });
@@ -1435,12 +1456,21 @@ ${storySoFar}
             }
             if (plotPoints.characters.length > 0) {
                 plotPoints.characters.forEach(newChar => {
-                    const exist = characterCards.find(c => c.name === newChar.name);
-                    if (!exist) { characterCards.push({ ...newChar, new: true }); }
+                    const exist = characterCards.find(c => c.id === newChar.id);
+                    if (!exist) { characterCards.push({ ...newChar, _new: true }); }
                 });
                 renderChars();
                 renderRelationGraph();
-                setTimeout(() => { characterCards.forEach(c => delete c.new); }, 3500);
+                setTimeout(() => { characterCards.forEach(c => delete c._new); }, 3500);
+                hasNewData = true;
+            }
+            if (plotPoints.relations.length > 0) {
+                plotPoints.relations.forEach(newRel => {
+                    const exist = characterRelations.find(r => r.source === newRel.source && r.target === newRel.target);
+                    if (!exist) { characterRelations.push({ ...newRel, _new: true }); }
+                });
+                renderRelationGraph();
+                setTimeout(() => { characterRelations.forEach(r => delete r._new); }, 3500);
                 hasNewData = true;
             }
             if (!hasNewData) {
@@ -1501,7 +1531,8 @@ ${storySoFar}
             }
             characterCards.forEach(c => {
                 const ini = c.name ? c.name[0] : '?';
-                html += '<div class="ch-item"><span class="ch-avatar">' + escapeHTML(ini) + '</span><span class="ch-name">' + escapeHTML(c.name) + '</span><span class="ch-rel">' + escapeHTML(c.relation || '') + '</span></div>';
+                const tagLabel = c.tag || c.relation || '';
+                html += '<div class="ch-item"><span class="ch-avatar">' + escapeHTML(ini) + '</span><span class="ch-name">' + escapeHTML(c.name) + '</span><span class="ch-rel">' + escapeHTML(tagLabel) + '</span></div>';
             });
             list.innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.78rem;">暂无角色</div>';
         }
@@ -1543,31 +1574,61 @@ ${storySoFar}
             const list = document.getElementById('charsList');
             if (!list) return;
 
-            const all = [];
-            if (currentStory.protagonist) all.push({ name: currentStory.protagonist, isP: true });
-            characterCards.forEach(c => all.push({ name: c.name, isP: false, rel: c.relation || '' }));
+            // Build node map by id
+            const nodeMap = {};
+            if (currentStory.protagonist) {
+                nodeMap['protagonist'] = { id: 'protagonist', name: currentStory.protagonist, isP: true };
+            }
+            characterCards.forEach(c => {
+                if (c.id) nodeMap[c.id] = { id: c.id, name: c.name, isP: false, tag: c.tag || '' };
+            });
+
+            // Build relation lines
+            const relLines = characterRelations.filter(r => nodeMap[r.source] && nodeMap[r.target]);
 
             let html = '';
-            if (all.length >= 2) {
-                const w = 200, h = Math.min(300, all.length * 40 + 20);
-                const r = all.length > 1 ? (h - 20) / (all.length - 1) : 0;
-                let svg = '<svg width="' + w + '" height="' + h + '" style="overflow:visible;">';
-                all.forEach((a, i) => {
-                    const x = a.isP ? 20 : 100;
-                    const y = 10 + r * i;
-                    if (i > 0) {
-                        const py = 10 + r * (i - 1);
-                        svg += '<path d="M' + (all[i - 1].isP ? 20 : 100) + ',' + py + ' C' + (all[i - 1].isP ? 60 : 60) + ',' + (py + y) / 2 + ' ' + (a.isP ? 60 : 60) + ',' + (py + y) / 2 + ' ' + x + ',' + y + '" stroke="#d9d2c4" stroke-width="1" fill="none" />';
+            if (Object.keys(nodeMap).length >= 2) {
+                const centerX = 24, centerY = 150, radius = 80;
+                const nodes = Object.values(nodeMap);
+                const n = nodes.length;
+
+                // Position nodes: protagonist in center, others in circle
+                const nodePos = {};
+                nodes.forEach((node, i) => {
+                    if (node.isP) {
+                        nodePos[node.id] = { x: centerX, y: centerY };
+                    } else {
+                        const angle = (2 * Math.PI * (i - 1)) / Math.max(n - 1, 1) - Math.PI / 2;
+                        nodePos[node.id] = {
+                            x: centerX + radius * Math.cos(angle),
+                            y: centerY + radius * Math.sin(angle)
+                        };
                     }
-                    const rr = a.isP ? 7 : 5;
-                    const fill = a.isP ? '#c4971e' : '#8e867d';
-                    svg += '<circle cx="' + x + '" cy="' + y + '" r="' + rr + '" fill="' + fill + '" stroke="#fff" stroke-width="1.5" />';
-                    svg += '<text x="' + (a.isP ? 30 : 112) + '" y="' + (y + 4) + '" font-size="10" fill="#5c554c" font-family="inherit">' + escapeHTML(a.name) + '</text>';
+                });
+
+                let svg = '<svg width="200" height="300" style="overflow:visible;">';
+                // Draw relation lines first (behind nodes)
+                relLines.forEach(r => {
+                    const s = nodePos[r.source];
+                    const t = nodePos[r.target];
+                    if (s && t) {
+                        const strength = r.strength || 1;
+                        svg += '<line x1="' + s.x + '" y1="' + s.y + '" x2="' + t.x + '" y2="' + t.y + '" stroke="#d9d2c4" stroke-width="' + strength + '" />';
+                    }
+                });
+                // Draw nodes
+                nodes.forEach(node => {
+                    const pos = nodePos[node.id];
+                    const rr = node.isP ? 8 : 5;
+                    const fill = node.isP ? '#c4971e' : '#8e867d';
+                    svg += '<circle cx="' + pos.x + '" cy="' + pos.y + '" r="' + rr + '" fill="' + fill + '" stroke="#fff" stroke-width="1.5" />';
+                    svg += '<text x="' + (pos.x + (node.isP ? 12 : 8)) + '" y="' + (pos.y + 4) + '" font-size="10" fill="#5c554c" font-family="inherit">' + escapeHTML(node.name) + '</text>';
                 });
                 svg += '</svg>';
                 html += '<div class="ch-graph">' + svg + '</div>';
-            } else if (all.length === 1) {
-                html += '<div class="ch-graph"><svg width="200" height="40"><circle cx="20" cy="20" r="7" fill="#c4971e" stroke="#fff" stroke-width="2"/><text x="34" y="24" font-size="10" fill="#5c554c" font-family="inherit">' + escapeHTML(all[0].name) + '</text></svg></div>';
+            } else if (Object.keys(nodeMap).length === 1) {
+                const node = Object.values(nodeMap)[0];
+                html += '<div class="ch-graph"><svg width="200" height="40"><circle cx="20" cy="20" r="7" fill="#c4971e" stroke="#fff" stroke-width="2"/><text x="34" y="24" font-size="10" fill="#5c554c" font-family="inherit">' + escapeHTML(node.name) + '</text></svg></div>';
             }
 
             // Append or replace graph in charsList
