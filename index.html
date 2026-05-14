@@ -1,590 +1,1110 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>即墨 · 设计系统</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300..900&family=Noto+Sans+SC:wght@300..700&display=swap" rel="stylesheet">
+  <title>即墨 · 创作入口</title>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* ============================================================
-       即墨 · 设计系统总览
-       宣纸色为境 · 墨分五色 · 朱砂为印
-    ============================================================ */
-
     :root {
-      /* 宣纸底色系 */
-      --paper-new:   oklch(98% 0.006 95);
-      --paper-aged:  oklch(96% 0.010 92);
-      --paper-dark:  oklch(92% 0.014 88);
-      /* 墨分五色 */
-      --ink-light:   oklch(65% 0.018 85);
-      --ink-mid:     oklch(40% 0.024 80);
-      --ink-heavy:   oklch(20% 0.030 70);
-      --ink-black:   oklch(15% 0.032 60);
-      /* 朱砂唯一点缀 */
-      --seal:        oklch(48% 0.16 28);
-      --seal-dark:   oklch(38% 0.18 22);
-      /* 边框 */
-      --border:       oklch(82% 0.008 90);
-      --border-dark:  oklch(60% 0.012 82);
-
-      --font-display: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif;
-      --font-body:    'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
-
-      --space-xs:  8px;
-      --space-sm:  16px;
-      --space-md:  24px;
-      --space-lg:  48px;
-      --space-xl:  80px;
+      --bg-primary: #f8f6f2;
+      --bg-secondary: #eee8df;
+      --bg-tertiary: #e3dbd0;
+      --surface-card: rgba(255, 255, 255, 0.92);
+      --text-primary: #1f1d1a;
+      --text-secondary: #5c554c;
+      --text-muted: #8e867d;
+      --text-inverse: #ffffff;
+      --accent-primary: #c4971e;
+      --accent-secondary: #a8800d;
+      --accent-tertiary: #7a5f2e;
+      --accent-world: #3d7a9e;
+      --accent-protagonist: #9e5a3d;
+      --accent-narrative: #5a7a4e;
+      --border-light: #e0d9cf;
+      --border-medium: #ccc0ae;
+      --border-dark: #a89882;
+      --shadow-soft: 0 2px 12px rgba(100, 80, 50, 0.07), 0 4px 20px rgba(100, 80, 50, 0.05);
+      --shadow-medium: 0 4px 16px rgba(100, 80, 50, 0.10), 0 8px 30px rgba(100, 80, 50, 0.08);
+      --shadow-strong: 0 8px 24px rgba(100, 80, 50, 0.14), 0 14px 40px rgba(100, 80, 50, 0.10);
+      --topbar-bg: #2c2825;
+      --topbar-text: #e8e2d8;
+      --space-xs: 6px;
+      --space-sm: 12px;
+      --space-md: 20px;
+      --space-lg: 32px;
+      --space-xl: 48px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --transition-fast: 0.15s ease;
+      --transition-normal: 0.3s ease;
+      --font-display: 'Ma Shan Zheng', cursive;
+      --font-body: 'Noto Serif SC', 'Songti SC', serif;
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 16px; }
     body {
       font-family: var(--font-body);
-      background-color: var(--paper-new);
-      color: var(--ink-light);
-      line-height: 1.8;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ---- 顶部 Hero ---- */
-    .hero {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      padding: var(--space-xl) var(--space-lg);
-      position: relative;
-      overflow: hidden;
     }
-    /* 淡淡的水墨晕染背景 */
-    .hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 40% at 80% 50%, oklch(92% 0.014 88 / 0.4) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 60% at 20% 80%, oklch(96% 0.010 92 / 0.5) 0%, transparent 60%);
-      pointer-events: none;
+
+    /* ===== TOP BAR ===== */
+    .top-bar {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      background: var(--topbar-bg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 100;
     }
-    .hero-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      width: 100%;
-      position: relative;
-    }
-    .hero-eyebrow {
-      font-size: 12px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--seal);
-      font-weight: 600;
-      margin-bottom: var(--space-md);
-    }
-    .hero-title {
+    .top-title {
       font-family: var(--font-display);
-      font-size: clamp(64px, 12vw, 140px);
-      font-weight: 700;
-      color: var(--ink-heavy);
-      line-height: 0.9;
-      letter-spacing: -0.03em;
-    }
-    .hero-title span {
-      color: var(--seal);
-    }
-    .hero-subtitle {
-      margin-top: var(--space-lg);
-      font-family: var(--font-display);
-      font-size: clamp(18px, 2.5vw, 26px);
-      color: var(--ink-mid);
-      font-weight: 400;
-      line-height: 1.6;
-      max-width: 540px;
-    }
-    .hero-tagline {
-      margin-top: var(--space-sm);
-      font-size: 14px;
-      color: var(--ink-mid);
-      opacity: 0.7;
+      font-size: 1.6rem;
+      color: var(--topbar-text);
       letter-spacing: 0.05em;
     }
-    .hero-actions {
-      margin-top: var(--space-xl);
+    .top-right {
       display: flex;
-      gap: var(--space-sm);
-      flex-wrap: wrap;
+      gap: 10px;
     }
-
-    /* ---- 按钮 ---- */
-    .btn-primary {
+    .top-btn {
+      padding: 8px 16px;
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: all var(--transition-normal);
+      background: rgba(255,255,255,0.10);
+      color: var(--topbar-text);
+      text-decoration: none;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: var(--ink-heavy);
-      color: var(--paper-new);
-      border: none;
-      border-radius: 4px;
-      padding: 14px 32px;
-      font-family: var(--font-body);
-      font-size: 15px;
-      font-weight: 500;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
+      gap: 6px;
     }
-    .btn-primary:hover { background: var(--ink-black); transform: translateY(-2px); }
+    .top-btn:hover {
+      background: rgba(255,255,255,0.22);
+      color: #fff;
+      border-color: rgba(255,255,255,0.38);
+    }
+    .top-btn:active { transform: scale(0.95); }
 
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: transparent;
-      color: var(--ink-heavy);
-      border: 1.5px solid var(--border-dark);
-      border-radius: 4px;
-      padding: 13px 32px;
-      font-family: var(--font-body);
-      font-size: 15px;
-      text-decoration: none;
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s, transform 0.15s;
-    }
-    .btn-secondary:hover { border-color: var(--ink-heavy); transform: translateY(-2px); }
-
-    /* ---- 色板展示 ---- */
-    .section-dark {
-      background: var(--paper-aged);
-      padding: var(--space-xl) var(--space-lg);
-    }
-    .section-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .section-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--seal);
-      margin-bottom: var(--space-sm);
-    }
-    .section-title {
-      font-family: var(--font-display);
-      font-size: clamp(28px, 4vw, 44px);
-      font-weight: 600;
-      color: var(--ink-heavy);
-      line-height: 1.2;
-      margin-bottom: var(--space-sm);
-    }
-    .section-desc {
-      font-size: 16px;
-      color: var(--ink-mid);
-      max-width: 560px;
-      line-height: 1.7;
-      margin-bottom: var(--space-lg);
-    }
-
-    /* 色板 */
-    .palette-row {
-      display: flex;
-      gap: var(--space-md);
-      flex-wrap: wrap;
-    }
-    .color-card {
+    /* ===== MAIN LAYOUT ===== */
+    .main {
       flex: 1;
-      min-width: 160px;
-      max-width: 200px;
-    }
-    .color-swatch-large {
-      height: 100px;
-      border-radius: 4px 4px 0 0;
-    }
-    .color-info {
-      background: var(--paper-new);
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 4px 4px;
-      padding: 12px 14px;
-    }
-    .color-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--ink-heavy);
-    }
-    .color-val {
-      font-size: 11px;
-      color: var(--ink-mid);
-      font-family: monospace;
-      margin-top: 3px;
-    }
-
-    /* ---- 字体展示 ---- */
-    .type-section { padding: var(--space-xl) var(--space-lg); }
-    .type-row {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: var(--space-lg);
-      align-items: baseline;
-      padding: var(--space-lg) 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .type-row:last-child { border-bottom: none; }
-    .type-meta { font-size: 12px; color: var(--ink-mid); }
-    .type-meta strong { display: block; font-size: 14px; color: var(--ink-heavy); margin-bottom: 4px; }
-    .type-display-sample {
-      font-family: var(--font-display);
-      font-size: clamp(28px, 5vw, 52px);
-      font-weight: 700;
-      color: var(--ink-heavy);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-    }
-    .type-body-sample {
-      font-family: var(--font-body);
-      font-size: 18px;
-      color: var(--ink-light);
-      line-height: 1.9;
-    }
-
-    /* ---- 阅读示例 ---- */
-    .reading-example {
-      background: var(--paper-new);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: var(--space-lg);
-      max-width: 640px;
-      margin: 0 auto;
-    }
-    .reading-example-title {
-      font-family: var(--font-display);
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--ink-heavy);
-      margin-bottom: var(--space-md);
-    }
-    .reading-example-body {
-      font-family: var(--font-body);
-      font-size: 17px;
-      color: var(--ink-light);
-      line-height: 2;
-    }
-    .reading-example-body p + p { margin-top: 1.4em; }
-    .reading-example-meta {
-      margin-top: var(--space-md);
-      font-size: 12px;
-      color: var(--ink-mid);
-      letter-spacing: 0.05em;
-    }
-
-    /* ---- 组件预览 ---- */
-    .component-row {
-      display: flex;
-      gap: var(--space-lg);
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .component-item {
       display: flex;
       flex-direction: column;
-      gap: var(--space-xs);
-    }
-    .component-label {
-      font-size: 11px;
-      color: var(--ink-mid);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    /* 按钮样式复刻 */
-    .ds-btn-primary {
-      background: var(--ink-heavy);
-      color: var(--paper-new);
-      border: none;
-      border-radius: 4px;
-      padding: 10px 24px;
-      font-family: var(--font-body);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-    .ds-btn-secondary {
-      background: transparent;
-      color: var(--ink-heavy);
-      border: 1.5px solid var(--border-dark);
-      border-radius: 4px;
-      padding: 9px 24px;
-      font-family: var(--font-body);
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .ds-tag {
-      display: inline-block;
-      background: var(--paper-dark);
-      color: var(--ink-mid);
-      border-radius: 3px;
-      padding: 3px 10px;
-      font-size: 12px;
-    }
-    .ds-tag-seal {
-      background: oklch(48% 0.16 28 / 0.12);
-      color: var(--seal-dark);
+      align-items: center;
+      padding: 40px 20px 120px;
+      gap: var(--space-lg);
+      max-width: 860px;
+      margin: 0 auto;
+      width: 100%;
     }
 
-    /* 引用块 */
-    .ds-blockquote {
-      border-left: 3px solid var(--seal);
-      padding: var(--space-sm) var(--space-md);
-      background: var(--paper-aged);
-      border-radius: 0 4px 4px 0;
+    /* ===== CARDS ===== */
+    .card {
+      width: 100%;
+      background: var(--surface-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-soft);
+      transition: box-shadow var(--transition-normal);
+    }
+    .card:hover { box-shadow: var(--shadow-medium); }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-md);
+    }
+    .card-title {
       font-family: var(--font-display);
-      font-size: 18px;
-      color: var(--ink-mid);
+      font-size: 1.2rem;
+      color: var(--text-primary);
+    }
+    .card-title-icon {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    .card-title-icon.world { background: var(--accent-world); }
+    .card-title-icon.protagonist { background: var(--accent-protagonist); }
+    .card-title-icon.narrative { background: var(--accent-narrative); }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 32px;
+      align-items: center;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+    .tag.active {
+      background: rgba(196, 151, 30, 0.12);
+      border-color: rgba(196, 151, 30, 0.4);
+      color: var(--accent-secondary);
+    }
+    .tag-empty {
+      color: var(--text-muted);
+      font-size: 0.82rem;
       font-style: italic;
     }
 
-    /* ---- 导航卡片 ---- */
-    .nav-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: var(--space-md);
-      margin-top: var(--space-lg);
+    .card-footer {
+      margin-top: var(--space-md);
+      display: flex;
+      gap: var(--space-sm);
+      align-items: center;
+      flex-wrap: wrap;
     }
-    .nav-card {
-      background: var(--paper-new);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: var(--space-md);
-      text-decoration: none;
-      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-      display: block;
+
+    /* ===== GOLDEN FINGER INPUT ===== */
+    .golden-finger-wrap {
+      margin-top: var(--space-sm);
     }
-    .nav-card:hover {
-      border-color: var(--seal);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px oklch(20% 0.030 70 / 0.08);
-    }
-    .nav-card-eyebrow {
-      font-size: 11px;
-      color: var(--seal);
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: var(--space-xs);
-    }
-    .nav-card-title {
-      font-family: var(--font-display);
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--ink-heavy);
+    .golden-finger-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
       margin-bottom: 6px;
     }
-    .nav-card-desc {
-      font-size: 14px;
-      color: var(--ink-mid);
-      line-height: 1.6;
+    .golden-finger-input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+      resize: none;
     }
-    .nav-card-arrow {
-      margin-top: var(--space-sm);
-      color: var(--seal);
-      font-size: 14px;
+    .golden-finger-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.15);
     }
 
-    /* ---- Footer ---- */
-    footer {
-      padding: var(--space-lg) var(--space-lg);
+    /* ===== BUTTONS ===== */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.88rem;
+      transition: all var(--transition-normal);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-custom {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border-medium);
+    }
+    .btn-custom:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    .btn-generate {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      color: var(--text-inverse);
+      box-shadow: 0 3px 12px rgba(196, 151, 30, 0.3);
+    }
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 16px rgba(196, 151, 30, 0.38);
+    }
+    .btn-generate:active { transform: translateY(0) scale(0.97); }
+
+    /* ===== BOTTOM CTA ===== */
+    .bottom-cta {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      justify-content: center;
+      z-index: 90;
+    }
+    .btn-start {
+      padding: 14px 48px;
+      font-size: 1rem;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      color: var(--text-inverse);
+      border: none;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      box-shadow: 0 4px 18px rgba(196, 151, 30, 0.38);
+      transition: all var(--transition-normal);
+    }
+    .btn-start:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(196, 151, 30, 0.45);
+    }
+    .btn-start:active { transform: translateY(0) scale(0.97); }
+
+    /* ===== TAG SELECTION PANEL (Modal/Slide) ===== */
+    .tag-panel-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(45, 42, 38, 0.55);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .tag-panel-overlay.open {
+      display: flex;
+    }
+    .tag-panel {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 680px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-strong);
+      overflow: hidden;
+    }
+    .tag-panel-header {
+      padding: var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .tag-panel-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--text-primary);
+    }
+    .tag-panel-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg-secondary);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .tag-panel-close:hover { background: var(--bg-tertiary); }
+    .tag-panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-md) var(--space-lg);
+    }
+    .tag-panel-footer {
+      padding: var(--space-md) var(--space-lg);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-sm);
+      flex-shrink: 0;
+    }
+
+    .tag-dim {
+      margin-bottom: var(--space-md);
+    }
+    .tag-dim:last-child { margin-bottom: 0; }
+    .tag-dim-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+    .tag-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag-option {
+      padding: 6px 14px;
+      border: 1.5px solid var(--border-light);
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+    }
+    .tag-option:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    .tag-option.selected {
+      background: rgba(196, 151, 30, 0.10);
+      border-color: var(--accent-primary);
+      color: var(--accent-secondary);
+      font-weight: 600;
+    }
+    .tag-option input { display: none; }
+
+    .btn-reset {
+      background: transparent;
+      border: 1.5px solid var(--border-medium);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      transition: all var(--transition-fast);
+    }
+    .btn-reset:hover { border-color: var(--text-secondary); color: var(--text-secondary); }
+    .btn-confirm {
+      background: var(--accent-primary);
+      border: none;
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      transition: all var(--transition-fast);
+    }
+    .btn-confirm:hover { background: var(--accent-secondary); }
+
+    /* ===== API PANEL ===== */
+    .api-panel-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(45, 42, 38, 0.55);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .api-panel-overlay.open { display: flex; }
+    .api-panel {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-strong);
+    }
+    .api-panel-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin-bottom: var(--space-md);
+      color: var(--text-primary);
+    }
+    .api-input-wrap {
+      position: relative;
+    }
+    .api-input {
+      width: 100%;
+      padding: 12px 44px 12px 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+    }
+    .api-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.15);
+    }
+    .api-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 4px;
+    }
+    .api-toggle:hover { color: var(--text-secondary); }
+    .api-save-btn {
+      width: 100%;
+      margin-top: var(--space-md);
+      padding: 12px;
+      background: var(--accent-primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+    .api-save-btn:hover { background: var(--accent-secondary); }
+
+    /* ===== HISTORY PANEL ===== */
+    .history-panel-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(45, 42, 38, 0.55);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .history-panel-overlay.open { display: flex; }
+    .history-panel {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 560px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-strong);
+      overflow: hidden;
+    }
+    .history-panel-header {
+      padding: var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .history-panel-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--text-primary);
+    }
+    .history-panel-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg-secondary);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .history-panel-close:hover { background: var(--bg-tertiary); }
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-sm);
+    }
+    .history-empty {
       text-align: center;
-      border-top: 1px solid var(--border);
+      padding: 48px 20px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
     }
-    footer p {
-      font-size: 13px;
-      color: var(--ink-mid);
-      opacity: 0.7;
+    .history-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: 1px solid transparent;
+    }
+    .history-item:hover {
+      background: var(--bg-secondary);
+      border-color: var(--border-light);
+    }
+    .history-item-left { flex: 1; min-width: 0; }
+    .history-item-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .history-item-delete {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      transition: all var(--transition-fast);
+    }
+    .history-item-delete:hover {
+      background: rgba(184, 85, 85, 0.12);
+      color: #b85555;
     }
 
-    /* ---- 响应式 ---- */
-    @media (max-width: 768px) {
-      .hero { min-height: 80vh; padding: var(--space-lg) var(--space-md); }
-      .type-row { grid-template-columns: 1fr; gap: var(--space-sm); }
-      .palette-row { gap: var(--space-sm); }
-      .color-card { min-width: 140px; }
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 100px;
+      transform: translate(-50%, 16px);
+      padding: 10px 20px;
+      background: rgba(45, 42, 38, 0.92);
+      color: #fff;
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-strong);
+      font-size: 0.88rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-normal), transform var(--transition-normal);
+      z-index: 300;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-dark); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      .main { padding: 24px 16px 120px; }
+      .card { padding: var(--space-md); }
+      .tag-panel { max-height: 90vh; }
+      .history-panel { max-height: 90vh; }
     }
   </style>
 </head>
 <body>
 
-<!-- Hero -->
-<section class="hero">
-  <div class="hero-inner">
-    <div class="hero-eyebrow">Design System v2.0 · 2026</div>
-    <h1 class="hero-title">即<span>墨</span></h1>
-    <p class="hero-subtitle">宣纸色为境 · 墨分五色 · 朱砂为印<br>专为小说生成阅读场景设计，强对比度与留白为核心理念。</p>
-    <p class="hero-tagline"> Rice-paper tones · Ink hierarchy · Vermillion accent</p>
-    <div class="hero-actions">
-      <a href="docs/design-system-v2.html" class="btn-primary">设计规范文档 →</a>
-      <a href="story.html" class="btn-secondary">打开故事生成器</a>
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-title">即墨</div>
+  <div class="top-right">
+    <button class="top-btn" onclick="openHistory()">历史记录</button>
+    <button class="top-btn" onclick="openApi()">API设置</button>
+    <a href="admin.html" class="top-btn">提示词管理</a>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- CARD 1: 世界背景 -->
+  <div class="card" id="cardWorld">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="card-title-icon world"></span>世界背景
+      </div>
+      <button class="btn btn-custom" onclick="openTagPanel('world')">自定义</button>
+    </div>
+    <div class="card-tags" id="worldTagsDisplay">
+      <span class="tag-empty">点击"自定义"选择世界背景</span>
     </div>
   </div>
-</section>
 
-<!-- 色彩系统 -->
-<section class="section-dark">
-  <div class="section-inner">
-    <div class="section-label">01 · 色彩</div>
-    <h2 class="section-title">宣纸色系</h2>
-    <p class="section-desc">以宣纸底色为背景，墨分五色为层次，朱砂印为唯一点缀。克制、留白、强对比。</p>
-
-    <div class="palette-row">
-      <div class="color-card">
-        <div class="color-swatch-large" style="background: oklch(98% 0.006 95);"></div>
-        <div class="color-info">
-          <div class="color-name">生宣</div>
-          <div class="color-val">oklch(98% 0.006 95)</div>
-        </div>
+  <!-- CARD 2: 主角设定 -->
+  <div class="card" id="cardProtagonist">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="card-title-icon protagonist"></span>主角设定
       </div>
-      <div class="color-card">
-        <div class="color-swatch-large" style="background: oklch(96% 0.010 92);"></div>
-        <div class="color-info">
-          <div class="color-name">熟宣</div>
-          <div class="color-val">oklch(96% 0.010 92)</div>
-        </div>
-      </div>
-      <div class="color-card">
-        <div class="color-swatch-large" style="background: oklch(20% 0.030 70);"></div>
-        <div class="color-info">
-          <div class="color-name">重墨</div>
-          <div class="color-val">oklch(20% 0.030 70)</div>
-        </div>
-      </div>
-      <div class="color-card">
-        <div class="color-swatch-large" style="background: oklch(40% 0.024 80);"></div>
-        <div class="color-info">
-          <div class="color-name">中墨</div>
-          <div class="color-val">oklch(40% 0.024 80)</div>
-        </div>
-      </div>
-      <div class="color-card">
-        <div class="color-swatch-large" style="background: oklch(65% 0.018 85);"></div>
-        <div class="color-info">
-          <div class="color-name">淡墨</div>
-          <div class="color-val">oklch(65% 0.018 85)</div>
-        </div>
-      </div>
-      <div class="color-card">
-        <div class="color-swatch-large" style="background: oklch(48% 0.16 28);"></div>
-        <div class="color-info">
-          <div class="color-name">朱砂印</div>
-          <div class="color-val">oklch(48% 0.16 28)</div>
-        </div>
-      </div>
+      <button class="btn btn-custom" onclick="openTagPanel('protagonist')">自定义</button>
+    </div>
+    <div class="card-tags" id="protagonistTagsDisplay">
+      <span class="tag-empty">点击"自定义"选择主角设定</span>
+    </div>
+    <div class="golden-finger-wrap">
+      <div class="golden-finger-label">金手指（主角的特殊能力/优势）</div>
+      <textarea class="golden-finger-input" id="goldenFingerInput" rows="2" placeholder="描述主角的金手指，例如：过目不忘、能看到他人好感度等..."></textarea>
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-generate" onclick="generateProtagonist()">生成主角</button>
+      <span style="font-size:0.78rem;color:var(--text-muted);" id="protagonistHint">（金手指归属主角设定）</span>
     </div>
   </div>
-</section>
 
-<!-- 字体系统 -->
-<section class="type-section">
-  <div class="section-inner">
-    <div class="section-label">02 · 字体</div>
-    <h2 class="section-title">字体层级</h2>
-    <p class="section-desc">宋体衬线用于标题，黑体用于正文，楷体用于古文引用。三层分离，确保阅读舒适度。</p>
-
-    <div style="margin-top: var(--space-lg);">
-      <div class="type-row">
-        <div class="type-meta">
-          <strong>Display — 宋体衬线</strong>
-          标题 · 大字号 · 重墨色
-        </div>
-        <div class="type-display-sample">天地玄黄 宇宙洪荒</div>
+  <!-- CARD 3: 叙事风格 -->
+  <div class="card" id="cardNarrative">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="card-title-icon narrative"></span>叙事风格
       </div>
-      <div class="type-row">
-        <div class="type-meta">
-          <strong>Body — 雅黑/思源</strong>
-          正文阅读 · 17px起 · 淡墨色
-        </div>
-        <div class="type-body-sample">
-          秋风清，秋月明，落叶聚还散，寒鸦栖复惊。相思相见知何日，此时此夜难为情。
-        </div>
-      </div>
+      <button class="btn btn-custom" onclick="openTagPanel('narrative')">自定义</button>
+    </div>
+    <div class="card-tags" id="narrativeTagsDisplay">
+      <span class="tag-empty">点击"自定义"选择叙事风格（5维度各1个）</span>
     </div>
   </div>
-</section>
 
-<!-- 阅读排版 -->
-<section class="section-dark">
-  <div class="section-inner">
-    <div class="section-label">03 · 阅读排版</div>
-    <h2 class="section-title">正文排版规范</h2>
-    <p class="section-desc">小说阅读场景的核心：强对比度、充足行高、合理行长。</p>
+</div>
 
-    <div class="reading-example">
-      <div class="reading-example-title">第一章 · 烽火戏诸侯</div>
-      <div class="reading-example-body">
-        <p>夜色渐深，江面泛起薄雾。画舫缓缓行驶，船头挂着两盏红灯笼，光晕落在水面上，随波纹一圈圈散开。</p>
-        <p>林霜坐在窗边，手指轻轻敲着桐木桌面，似乎在等什么。桌上摊开一本旧册，纸页已经泛黄，边角卷起了毛边。</p>
-      </div>
-      <div class="reading-example-meta">17px · 行高 2.0 · 字重 400 · 宋体标题</div>
+<!-- BOTTOM CTA -->
+<div class="bottom-cta">
+  <button class="btn-start" onclick="startCreating()">开始创作</button>
+</div>
+
+<!-- TAG SELECTION PANEL -->
+<div class="tag-panel-overlay" id="tagPanelOverlay">
+  <div class="tag-panel">
+    <div class="tag-panel-header">
+      <div class="tag-panel-title" id="tagPanelTitle">选择标签</div>
+      <button class="tag-panel-close" onclick="closeTagPanel()">&#x2715;</button>
+    </div>
+    <div class="tag-panel-body" id="tagPanelBody"></div>
+    <div class="tag-panel-footer">
+      <button class="btn-reset" onclick="resetTags()">恢复默认</button>
+      <button class="btn-confirm" onclick="confirmTags()">确定</button>
     </div>
   </div>
-</section>
+</div>
 
-<!-- 组件概览 -->
-<section class="type-section">
-  <div class="section-inner">
-    <div class="section-label">04 · 组件系统</div>
-    <h2 class="section-title">核心组件</h2>
-    <p class="section-desc">墨色为主，宣纸色为底，朱砂为唯一点缀。克制是核心原则。</p>
-
-    <div style="margin-top: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-md);">
-      <div class="component-row">
-        <div class="component-item">
-          <div class="component-label">Primary</div>
-          <button class="ds-btn-primary">开始创作</button>
-        </div>
-        <div class="component-item">
-          <div class="component-label">Secondary</div>
-          <button class="ds-btn-secondary">了解更多</button>
-        </div>
-        <div class="component-item">
-          <div class="component-label">Tags</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <span class="ds-tag">古风</span>
-            <span class="ds-tag ds-tag-seal">武侠</span>
-          </div>
-        </div>
-      </div>
-      <div class="ds-blockquote">
-        「山不在高，有仙则名。水不在深，有龙则灵。」
-      </div>
+<!-- API SETTINGS PANEL -->
+<div class="api-panel-overlay" id="apiPanelOverlay">
+  <div class="api-panel">
+    <div class="api-panel-title">DeepSeek API 设置</div>
+    <div class="api-input-wrap">
+      <input type="password" class="api-input" id="apiKeyInput" placeholder="请输入 DeepSeek API Key">
+      <button class="api-toggle" onclick="toggleApiKey()">显示</button>
     </div>
+    <button class="api-save-btn" onclick="saveApiKey()">保存</button>
   </div>
-</section>
+</div>
 
-<!-- 导航 -->
-<section class="section-dark">
-  <div class="section-inner">
-    <div class="section-label">Explore</div>
-    <h2 class="section-title">深入探索</h2>
-    <div class="nav-cards">
-      <a href="docs/design-system-v2.html" class="nav-card">
-        <div class="nav-card-eyebrow">Documentation</div>
-        <div class="nav-card-title">完整设计规范</div>
-        <div class="nav-card-desc">色彩、字体、间距、组件、阅读排版的完整技术规范文档。</div>
-        <div class="nav-card-arrow">→</div>
-      </a>
-      <a href="story.html" class="nav-card">
-        <div class="nav-card-eyebrow">Product</div>
-        <div class="nav-card-title">故事生成器</div>
-        <div class="nav-card-desc">即墨核心产品——AI 驱动的沉浸式小说生成工具。</div>
-        <div class="nav-card-arrow">→</div>
-      </a>
+<!-- HISTORY PANEL -->
+<div class="history-panel-overlay" id="historyPanelOverlay">
+  <div class="history-panel">
+    <div class="history-panel-header">
+      <div class="history-panel-title">历史记录</div>
+      <button class="history-panel-close" onclick="closeHistory()">&#x2715;</button>
     </div>
+    <div class="history-list" id="historyList"></div>
   </div>
-</section>
+</div>
 
-<footer>
-  <p>即墨设计系统 v2.0 · 宣纸色为境 · 墨分五色 · 朱砂为印</p>
-</footer>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== STATE ====================
+const state = {
+  world: {
+    selected: {}  // dimKey -> tagName
+  },
+  protagonist: {
+    selected: {}  // dimKey -> tagName
+  },
+  narrative: {
+    selected: {}  // dimKey -> tagName
+  }
+};
+
+let currentPanel = null; // 'world' | 'protagonist' | 'narrative'
+
+// ==================== TAG DATA ====================
+const worldDims = {
+  '物理规律': ['现实世界','规则世界','星际世界','平行世界','微观世界','数据世界','梦境世界'],
+  '时代位置': ['古代世界','近代世界','现代世界','近未来世界','远未来世界','末日世界','后末日世界'],
+  '技术路线': ['蒸汽朋克','赛博朋克','柴油朋克','原子朋克','生物朋克','丝绸朋克','石器朋克'],
+  '超自然力量': ['无魔世界','低魔世界','高魔世界','神话世界','克苏鲁世界','灵异世界'],
+  '文明形态': ['部落世界','城邦世界','帝国世界','封建世界','资本世界','共产世界','无政府世界','蜂巢世界'],
+  '存在状态': ['物质世界','精神世界','模拟世界','书中世界','死后世界','转生世界'],
+  '异化方向': ['废土世界','异星世界','深海世界','地下世界','浮空世界','巨构世界']
+};
+
+const protagonistChineseDims = {
+  '气质底色': ['天生领头者','柔韧适应者','热情感染型','外冷内热型','稳重可靠型','细腻滋养型','杀伐果断型','精致挑剔型','自由奔放型','神秘直觉型'],
+  '能量状态': ['主动进攻型','以守为攻型','极端偏执型'],
+  '处事风格': ['规矩守成型','野心攻击型','温和包容型','孤僻奇才型','踏实积累型','洒脱挥霍型','随遇而安型','毒舌叛逆型','独立自尊型','冲动义气型'],
+  '人格面具': ['天生领袖范','机灵多变型','热心操劳型','刚毅果断型','乐天知足型','亦正亦邪型','稳重守成型','温柔策划型','贪多求全型','直言惹祸型','公正调和型','爱管闲事型','敢爱敢恨型','破旧立新型'],
+  '内在驱动': ['自我实现驱动','财富积累驱动','事业成就驱动','情感关系驱动','自由漂泊驱动']
+};
+
+const protagonistWesternDims = {
+  '性格内核': ['高神经质','低神经质','高宜人性','低宜人性','高尽责性','低尽责性','高外向性','低外向性','高开放性','低开放性','自恋型','马基雅维利型','精神病态型','完美主义','冲动型','回避型','偏执型'],
+  '内在驱动': ['成就驱动','权力驱动','亲和驱动','认知驱动','生存驱动'],
+  '关系模式': ['安全型','焦虑型','回避型依恋','紊乱型'],
+  '心理防线': ['升华型','幽默型','利他型','合理化','置换型','投射型','否认型','退行型'],
+  '创伤印记': ['童年忽视','背叛创伤','幸存者愧疚','代际创伤','创伤后成长'],
+  '自我认知': ['高自尊','低自尊','内控型','外控型','自我清晰','自我混乱']
+};
+
+const narrativeDims = {
+  '主体聚焦': ['人民叙事','英雄叙事','底层叙事','精英叙事'],
+  '认知视角': ['全知视角','限知视角','外视角'],
+  '时态视角': ['回溯性叙事','共时性叙事'],
+  '叙述可靠性': ['不可靠叙述','复调叙事'],
+  '结构形式': ['元叙事','非线性叙事','碎片化叙事','反转叙事']
+};
+
+// ==================== TAG PANEL ====================
+function openTagPanel(type) {
+  currentPanel = type;
+  const overlay = document.getElementById('tagPanelOverlay');
+  const body = document.getElementById('tagPanelBody');
+  const title = document.getElementById('tagPanelTitle');
+
+  const titles = { world: '世界背景', protagonist: '主角设定', narrative: '叙事风格' };
+  title.textContent = titles[type];
+
+  body.innerHTML = buildTagPanelHTML(type);
+
+  // Pre-select current tags
+  const s = state[type].selected;
+  for (const [dim, tag] of Object.entries(s)) {
+    const radio = body.querySelector(`input[name="${dim}"][value="${tag}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  overlay.classList.add('open');
+}
+
+function closeTagPanel() {
+  document.getElementById('tagPanelOverlay').classList.remove('open');
+  currentPanel = null;
+}
+
+function buildTagPanelHTML(type) {
+  let dims;
+  if (type === 'world') {
+    dims = worldDims;
+  } else if (type === 'protagonist') {
+    dims = protagonistChineseDims;
+  } else {
+    dims = narrativeDims;
+  }
+
+  let html = '';
+  for (const [dim, tags] of Object.entries(dims)) {
+    html += `<div class="tag-dim">
+      <div class="tag-dim-label">${dim}</div>
+      <div class="tag-options">`;
+    for (const tag of tags) {
+      html += `<label class="tag-option">
+        <input type="radio" name="${dim}" value="${tag}" onchange="onTagRadioChange(this)">
+        ${tag}
+      </label>`;
+    }
+    html += `</div></div>`;
+  }
+  return html;
+}
+
+function onTagRadioChange(radio) {
+  const name = radio.name;
+  const options = document.querySelectorAll(`input[name="${name}"]`);
+  options.forEach(opt => {
+    opt.closest('.tag-option').classList.toggle('selected', opt.checked);
+  });
+}
+
+function resetTags() {
+  state[currentPanel] = { selected: {} };
+  document.querySelectorAll('#tagPanelBody input[type="radio"]').forEach(r => {
+    r.checked = false;
+    r.closest('.tag-option').classList.remove('selected');
+  });
+}
+
+function confirmTags() {
+  const s = state[currentPanel].selected;
+  // Collect checked radios by name
+  const checked = document.querySelectorAll('#tagPanelBody input[type="radio"]:checked');
+  checked.forEach(radio => {
+    s[radio.name] = radio.value;
+  });
+  renderCard(currentPanel);
+  closeTagPanel();
+}
+
+function renderCard(type) {
+  const s = state[type].selected;
+  const entries = Object.entries(s);
+  let containerId;
+  if (type === 'world') containerId = 'worldTagsDisplay';
+  else if (type === 'protagonist') containerId = 'protagonistTagsDisplay';
+  else containerId = 'narrativeTagsDisplay';
+
+  const container = document.getElementById(containerId);
+  if (entries.length === 0) {
+    const placeholders = {
+      world: '点击"自定义"选择世界背景',
+      protagonist: '点击"自定义"选择主角设定',
+      narrative: '点击"自定义"选择叙事风格（5维度各1个）'
+    };
+    container.innerHTML = `<span class="tag-empty">${placeholders[type]}</span>`;
+  } else {
+    container.innerHTML = entries.map(([dim, tag]) =>
+      `<span class="tag active" title="${dim}">${tag}</span>`
+    ).join('');
+  }
+}
+
+// ==================== GENERATE PROTAGONIST ====================
+function generateProtagonist() {
+  const s = state.protagonist.selected;
+  if (Object.keys(s).length < 4) {
+    showToast('请先在"自定义"中选择至少4个维度标签');
+    return;
+  }
+  showToast('主角已生成');
+}
+
+// ==================== API PANEL ====================
+function openApi() {
+  const panel = document.getElementById('apiPanelOverlay');
+  const input = document.getElementById('apiKeyInput');
+  input.value = localStorage.getItem('deepseek_api_key') || '';
+  input.type = 'password';
+  panel.classList.add('open');
+}
+
+function closeApi() {
+  document.getElementById('apiPanelOverlay').classList.remove('open');
+}
+
+function toggleApiKey() {
+  const input = document.getElementById('apiKeyInput');
+  const btn = document.querySelector('.api-toggle');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '隐藏';
+  } else {
+    input.type = 'password';
+    btn.textContent = '显示';
+  }
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) {
+    showToast('请输入有效的 API Key');
+    return;
+  }
+  localStorage.setItem('deepseek_api_key', key);
+  showToast('API Key 已保存');
+  closeApi();
+}
+
+// Click outside to close
+document.getElementById('apiPanelOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeApi();
+});
+
+// ==================== HISTORY PANEL ====================
+function openHistory() {
+  const panel = document.getElementById('historyPanelOverlay');
+  renderHistoryList();
+  panel.classList.add('open');
+}
+
+function closeHistory() {
+  document.getElementById('historyPanelOverlay').classList.remove('open');
+}
+
+function renderHistoryList() {
+  const list = document.getElementById('historyList');
+  let history;
+  try {
+    history = JSON.parse(localStorage.getItem('story_history') || '[]');
+  } catch (e) { history = []; }
+
+  if (history.length === 0) {
+    list.innerHTML = '<div class="history-empty">暂无历史记录</div>';
+    return;
+  }
+
+  list.innerHTML = history.map((item, idx) => `
+    <div class="history-item" onclick="loadHistory(${idx})">
+      <div class="history-item-left">
+        <div class="history-item-title">${escapeHTML(item.title || '无标题')}</div>
+        <div class="history-item-meta">${item.date || ''} · ${item.content ? item.content.length : 0}字</div>
+      </div>
+      <button class="history-item-delete" onclick="event.stopPropagation(); deleteHistory(${idx})">&#x2715;</button>
+    </div>
+  `).join('');
+}
+
+function loadHistory(idx) {
+  let history;
+  try {
+    history = JSON.parse(localStorage.getItem('story_history') || '[]');
+  } catch (e) { return; }
+  const item = history[idx];
+  if (!item) return;
+
+  // Write to current_story_session and navigate
+  const session = {
+    worldTitle: item.worldTitle || '未知世界',
+    worldTags: [],
+    protagonist: item.protagonist || '未知主角',
+    protagonistTags: [],
+    goldenFinger: '',
+    narrative: '',
+    history: [],
+    storyOutline: [],
+    storyClues: [],
+    characterCards: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  // Try to reconstruct history content
+  if (item.content) {
+    session.history = [{ content: item.content, options: [] }];
+  }
+
+  localStorage.setItem('current_story_session', JSON.stringify(session));
+  window.location.href = 'story.html';
+}
+
+function deleteHistory(idx) {
+  let history;
+  try {
+    history = JSON.parse(localStorage.getItem('story_history') || '[]');
+  } catch (e) { return; }
+  history.splice(idx, 1);
+  localStorage.setItem('story_history', JSON.stringify(history));
+  renderHistoryList();
+  showToast('已删除');
+}
+
+// Click outside to close
+document.getElementById('historyPanelOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeHistory();
+});
+
+// ==================== START CREATING ====================
+function startCreating() {
+  const w = state.world.selected;
+  const p = state.protagonist.selected;
+  const n = state.narrative.selected;
+
+  if (Object.keys(w).length === 0) {
+    showToast('请先配置世界背景');
+    return;
+  }
+  if (Object.keys(p).length < 4) {
+    showToast('请先完整配置主角设定（至少4个维度）');
+    return;
+  }
+  if (Object.keys(n).length < 5) {
+    showToast('请先完整配置叙事风格（5个维度）');
+    return;
+  }
+
+  // Collect tags
+  const worldTags = Object.entries(w).map(([, t]) => t);
+  const protagonistTags = Object.entries(p).map(([, t]) => t);
+  const narrativeTags = Object.entries(n).map(([, t]) => t);
+
+  const goldenFinger = document.getElementById('goldenFingerInput').value.trim() || '无';
+
+  const session = {
+    worldTitle: Object.values(w)[0] || '未知世界',
+    worldDesc: worldTags.join(' / '),
+    worldTags,
+    protagonist: '待生成主角',
+    protagonistTags,
+    goldenFinger,
+    narrative: narrativeTags.join(' / '),
+    narrativeDetail: n,
+    history: [],
+    storyOutline: [],
+    storyClues: [],
+    characterCards: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  localStorage.setItem('current_story_session', JSON.stringify(session));
+  window.location.href = 'story.html';
+}
+
+// ==================== TOAST ====================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ==================== ESCAPE HTML ====================
+function escapeHTML(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+// ==================== CLOSE PANELS ON ESC ====================
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeTagPanel();
+    closeApi();
+    closeHistory();
+  }
+});
+
+// ==================== INIT ====================
+// Tag panel overlay click outside to close
+document.getElementById('tagPanelOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeTagPanel();
+});
+</script>
 
 </body>
 </html>
