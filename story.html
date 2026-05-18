@@ -1220,7 +1220,7 @@ ${storySoFar}
                         'Authorization': `Bearer ${config.apiKey}`
                     },
                     body: JSON.stringify({
-                        model: 'deepseek-v4-pro',
+                        model: config.model,
                         messages: [
                             { role: 'system', content: systemPrompt },
                             { role: 'user', content: prompt }
@@ -1269,7 +1269,7 @@ ${storySoFar}
         function getApiConfig() {
             return {
                 apiKey: localStorage.getItem('deepseek_api_key') || '',
-                model: localStorage.getItem('deepseek_model') || 'flash'
+                model: localStorage.getItem('deepseek_model') || 'deepseek-v4-pro'
             };
         }
 
