@@ -4,56 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>即墨 · 创作入口</title>
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300..900&family=Noto+Sans+SC:wght@300..700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-primary: #f8f6f2;
-      --bg-secondary: #eee8df;
-      --bg-tertiary: #e3dbd0;
-      --surface-card: rgba(255, 255, 255, 0.92);
-      --text-primary: #1f1d1a;
-      --text-secondary: #5c554c;
-      --text-muted: #8e867d;
-      --text-inverse: #ffffff;
-      --accent-primary: #c4971e;
-      --accent-secondary: #a8800d;
-      --accent-tertiary: #7a5f2e;
-      --accent-world: #3d7a9e;
-      --accent-protagonist: #9e5a3d;
-      --accent-narrative: #5a7a4e;
-      --border-light: #e0d9cf;
-      --border-medium: #ccc0ae;
-      --border-dark: #a89882;
-      --shadow-soft: 0 2px 12px rgba(100, 80, 50, 0.07), 0 4px 20px rgba(100, 80, 50, 0.05);
-      --shadow-medium: 0 4px 16px rgba(100, 80, 50, 0.10), 0 8px 30px rgba(100, 80, 50, 0.08);
-      --shadow-strong: 0 8px 24px rgba(100, 80, 50, 0.14), 0 14px 40px rgba(100, 80, 50, 0.10);
-      --topbar-bg: #2c2825;
-      --topbar-text: #e8e2d8;
-      --space-xs: 6px;
-      --space-sm: 12px;
-      --space-md: 20px;
-      --space-lg: 32px;
-      --space-xl: 48px;
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
+      /* 宣纸底色系 */
+      --paper-new: oklch(98% 0.006 95);
+      --paper-aged: oklch(96% 0.010 92);
+      --paper-dark: oklch(92% 0.014 88);
+      /* 墨分五色 */
+      --ink-light: oklch(65% 0.018 85);
+      --ink-mid: oklch(40% 0.024 80);
+      --ink-heavy: oklch(20% 0.030 70);
+      --ink-black: oklch(15% 0.032 60);
+      /* 朱砂唯一点缀 */
+      --seal: oklch(48% 0.16 28);
+      --seal-dark: oklch(38% 0.18 22);
+      /* 边框 */
+      --border: oklch(82% 0.008 90);
+      --border-dark: oklch(60% 0.012 82);
+
+      --font-display: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif;
+      --font-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+
+      --space-xs: 8px;
+      --space-sm: 16px;
+      --space-md: 24px;
+      --space-lg: 48px;
+      --space-xl: 80px;
+
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
       --radius-full: 9999px;
       --transition-fast: 0.15s ease;
       --transition-normal: 0.3s ease;
-      --font-display: 'Ma Shan Zheng', cursive;
-      --font-body: 'Noto Serif SC', 'Songti SC', serif;
+      --shadow-soft: 0 2px 12px oklch(20% 0.030 70 / 0.07), 0 4px 20px oklch(20% 0.030 70 / 0.05);
+      --shadow-medium: 0 4px 16px oklch(20% 0.030 70 / 0.10), 0 8px 30px oklch(20% 0.030 70 / 0.08);
+      --shadow-strong: 0 8px 24px oklch(20% 0.030 70 / 0.14), 0 14px 40px oklch(20% 0.030 70 / 0.10);
+      --topbar-bg: #2c2825;
+      --topbar-text: #e8e2d8;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 16px; }
     body {
       font-family: var(--font-body);
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      background: var(--paper-new);
+      color: var(--ink-light);
       line-height: 1.7;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ===== TOP BAR ===== */
@@ -115,24 +117,18 @@
     /* ===== CARDS ===== */
     .card {
       width: 100%;
-      background: var(--surface-card);
-      border: 1px solid var(--border-light);
+      background: var(--paper-new);
+      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: var(--space-lg);
       box-shadow: var(--shadow-soft);
       transition: box-shadow var(--transition-normal);
     }
     .card:hover { box-shadow: var(--shadow-medium); }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--space-md);
-    }
     .card-title {
       font-family: var(--font-display);
       font-size: 1.2rem;
-      color: var(--text-primary);
+      color: var(--ink-heavy);
     }
     .card-title-icon {
       display: inline-block;
@@ -142,9 +138,9 @@
       margin-right: 10px;
       vertical-align: middle;
     }
-    .card-title-icon.world { background: var(--accent-world); }
-    .card-title-icon.protagonist { background: var(--accent-protagonist); }
-    .card-title-icon.narrative { background: var(--accent-narrative); }
+    .card-title-icon.world { background: var(--accent-world, var(--ink-mid)); }
+    .card-title-icon.protagonist { background: var(--accent-protagonist, var(--seal)); }
+    .card-title-icon.narrative { background: var(--accent-narrative, var(--ink-light)); }
 
     .card-tags {
       display: flex;
@@ -158,19 +154,19 @@
       align-items: center;
       gap: 4px;
       padding: 4px 12px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-light);
+      background: var(--paper-dark);
+      border: 1px solid var(--border);
       border-radius: var(--radius-full);
       font-size: 0.82rem;
-      color: var(--text-secondary);
+      color: var(--ink-mid);
     }
     .tag.active {
-      background: rgba(196, 151, 30, 0.12);
-      border-color: rgba(196, 151, 30, 0.4);
-      color: var(--accent-secondary);
+      background: oklch(48% 0.16 28 / 0.12);
+      border-color: var(--seal);
+      color: var(--seal-dark);
     }
     .tag-empty {
-      color: var(--text-muted);
+      color: var(--ink-mid);
       font-size: 0.82rem;
       font-style: italic;
     }
@@ -197,17 +193,17 @@
       padding: 10px 14px;
       font-size: 0.88rem;
       font-family: inherit;
-      border: 1px solid var(--border-medium);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      background: var(--paper-new);
+      color: var(--ink-heavy);
       transition: all var(--transition-fast);
       resize: none;
     }
     .golden-finger-input:focus {
       outline: none;
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.15);
+      border-color: var(--seal);
+      box-shadow: 0 0 0 3px oklch(48% 0.16 28 / 0.15);
     }
 
     /* ===== BUTTONS ===== */
@@ -225,23 +221,29 @@
     }
     .btn-custom {
       background: transparent;
-      color: var(--text-secondary);
-      border: 1.5px solid var(--border-medium);
+      color: var(--ink-mid);
+      border: 1.5px solid var(--border-dark);
     }
     .btn-custom:hover {
-      border-color: var(--accent-primary);
-      color: var(--accent-primary);
+      border-color: var(--ink-heavy);
+      color: var(--ink-heavy);
     }
     .btn-generate {
-      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-      color: var(--text-inverse);
-      box-shadow: 0 3px 12px rgba(196, 151, 30, 0.3);
+      background: var(--ink-heavy);
+      color: var(--paper-new);
+      box-shadow: 0 3px 12px oklch(20% 0.030 70 / 0.3);
     }
     .btn-generate:hover {
+      background: var(--ink-black);
       transform: translateY(-2px);
-      box-shadow: 0 5px 16px rgba(196, 151, 30, 0.38);
+      box-shadow: 0 5px 16px oklch(20% 0.030 70 / 0.38);
     }
     .btn-generate:active { transform: translateY(0) scale(0.97); }
+    .btn-generate:disabled {
+      background: var(--border-dark);
+      cursor: not-allowed;
+      transform: none;
+    }
 
     /* ===== BOTTOM CTA ===== */
     .bottom-cta {
@@ -250,10 +252,10 @@
       left: 0;
       right: 0;
       padding: 16px 20px;
-      background: rgba(255,255,255,0.95);
+      background: oklch(98% 0.006 95 / 0.95);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid var(--border-light);
+      border-top: 1px solid var(--border);
       display: flex;
       justify-content: center;
       z-index: 90;
@@ -261,19 +263,20 @@
     .btn-start {
       padding: 14px 48px;
       font-size: 1rem;
-      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-      color: var(--text-inverse);
+      background: var(--ink-heavy);
+      color: var(--paper-new);
       border: none;
       border-radius: var(--radius-full);
       cursor: pointer;
       font-family: inherit;
       font-weight: 600;
-      box-shadow: 0 4px 18px rgba(196, 151, 30, 0.38);
+      box-shadow: 0 4px 18px oklch(20% 0.030 70 / 0.38);
       transition: all var(--transition-normal);
     }
     .btn-start:hover {
+      background: var(--ink-black);
       transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(196, 151, 30, 0.45);
+      box-shadow: 0 8px 24px oklch(20% 0.030 70 / 0.45);
     }
     .btn-start:active { transform: translateY(0) scale(0.97); }
 
@@ -282,7 +285,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(45, 42, 38, 0.55);
+      background: oklch(20% 0.030 70 / 0.55);
       z-index: 200;
       align-items: center;
       justify-content: center;
@@ -292,7 +295,7 @@
       display: flex;
     }
     .tag-panel {
-      background: var(--bg-primary);
+      background: var(--paper-new);
       border-radius: var(--radius-lg);
       width: 100%;
       max-width: 680px;
@@ -304,7 +307,7 @@
     }
     .tag-panel-header {
       padding: var(--space-md) var(--space-lg);
-      border-bottom: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -313,23 +316,23 @@
     .tag-panel-title {
       font-family: var(--font-display);
       font-size: 1.1rem;
-      color: var(--text-primary);
+      color: var(--ink-heavy);
     }
     .tag-panel-close {
       width: 32px;
       height: 32px;
       border: none;
-      background: var(--bg-secondary);
+      background: var(--paper-aged);
       border-radius: 50%;
       cursor: pointer;
       font-size: 1.1rem;
-      color: var(--text-secondary);
+      color: var(--ink-mid);
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all var(--transition-fast);
     }
-    .tag-panel-close:hover { background: var(--bg-tertiary); }
+    .tag-panel-close:hover { background: var(--paper-dark); }
     .tag-panel-body {
       flex: 1;
       overflow-y: auto;
@@ -337,7 +340,7 @@
     }
     .tag-panel-footer {
       padding: var(--space-md) var(--space-lg);
-      border-top: 1px solid var(--border-light);
+      border-top: 1px solid var(--border);
       display: flex;
       justify-content: flex-end;
       gap: var(--space-sm);
@@ -350,7 +353,7 @@
     .tag-dim:last-child { margin-bottom: 0; }
     .tag-dim-label {
       font-size: 0.78rem;
-      color: var(--text-muted);
+      color: var(--ink-mid);
       margin-bottom: 10px;
       font-weight: 600;
       letter-spacing: 0.06em;
@@ -362,30 +365,52 @@
     }
     .tag-option {
       padding: 6px 14px;
-      border: 1.5px solid var(--border-light);
+      border: 1.5px solid var(--border);
       border-radius: var(--radius-full);
       font-size: 0.82rem;
       cursor: pointer;
       transition: all var(--transition-fast);
-      background: var(--bg-primary);
-      color: var(--text-secondary);
+      background: var(--paper-new);
+      color: var(--ink-mid);
     }
     .tag-option:hover {
-      border-color: var(--accent-primary);
-      color: var(--accent-primary);
+      border-color: var(--seal);
+      color: var(--seal-dark);
     }
     .tag-option.selected {
-      background: rgba(196, 151, 30, 0.10);
-      border-color: var(--accent-primary);
-      color: var(--accent-secondary);
+      background: oklch(48% 0.16 28 / 0.10);
+      border-color: var(--seal);
+      color: var(--seal-dark);
       font-weight: 600;
     }
     .tag-option input { display: none; }
 
+    .tag-style-choice {
+      display: flex;
+      gap: var(--space-md);
+      justify-content: center;
+      padding: var(--space-lg) 0;
+    }
+    .tag-style-btn {
+      padding: 16px 32px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      background: var(--paper-new);
+      color: var(--ink-heavy);
+      transition: all var(--transition-normal);
+    }
+    .tag-style-btn:hover {
+      border-color: var(--seal);
+      background: oklch(48% 0.16 28 / 0.08);
+    }
+
     .btn-reset {
       background: transparent;
-      border: 1.5px solid var(--border-medium);
-      color: var(--text-muted);
+      border: 1.5px solid var(--border-dark);
+      color: var(--ink-mid);
       padding: 8px 16px;
       border-radius: var(--radius-full);
       cursor: pointer;
@@ -393,11 +418,11 @@
       font-size: 0.82rem;
       transition: all var(--transition-fast);
     }
-    .btn-reset:hover { border-color: var(--text-secondary); color: var(--text-secondary); }
+    .btn-reset:hover { border-color: var(--ink-heavy); color: var(--ink-heavy); }
     .btn-confirm {
-      background: var(--accent-primary);
+      background: var(--ink-heavy);
       border: none;
-      color: #fff;
+      color: var(--paper-new);
       padding: 8px 20px;
       border-radius: var(--radius-full);
       cursor: pointer;
@@ -405,14 +430,14 @@
       font-size: 0.82rem;
       transition: all var(--transition-fast);
     }
-    .btn-confirm:hover { background: var(--accent-secondary); }
+    .btn-confirm:hover { background: var(--ink-black); }
 
     /* ===== API PANEL ===== */
     .api-panel-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(45, 42, 38, 0.55);
+      background: oklch(20% 0.030 70 / 0.55);
       z-index: 200;
       align-items: center;
       justify-content: center;
@@ -420,7 +445,7 @@
     }
     .api-panel-overlay.open { display: flex; }
     .api-panel {
-      background: var(--bg-primary);
+      background: var(--paper-new);
       border-radius: var(--radius-lg);
       width: 100%;
       max-width: 440px;
@@ -431,7 +456,7 @@
       font-family: var(--font-display);
       font-size: 1.1rem;
       margin-bottom: var(--space-md);
-      color: var(--text-primary);
+      color: var(--ink-heavy);
     }
     .api-input-wrap {
       position: relative;
@@ -441,16 +466,16 @@
       padding: 12px 44px 12px 14px;
       font-size: 0.9rem;
       font-family: inherit;
-      border: 1px solid var(--border-medium);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      background: var(--paper-new);
+      color: var(--ink-heavy);
       transition: all var(--transition-fast);
     }
     .api-input:focus {
       outline: none;
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.15);
+      border-color: var(--seal);
+      box-shadow: 0 0 0 3px oklch(48% 0.16 28 / 0.15);
     }
     .api-toggle {
       position: absolute;
@@ -460,17 +485,17 @@
       background: none;
       border: none;
       cursor: pointer;
-      color: var(--text-muted);
+      color: var(--ink-mid);
       font-size: 0.85rem;
       padding: 4px;
     }
-    .api-toggle:hover { color: var(--text-secondary); }
+    .api-toggle:hover { color: var(--ink-heavy); }
     .api-save-btn {
       width: 100%;
       margin-top: var(--space-md);
       padding: 12px;
-      background: var(--accent-primary);
-      color: #fff;
+      background: var(--ink-heavy);
+      color: var(--paper-new);
       border: none;
       border-radius: var(--radius-md);
       cursor: pointer;
@@ -479,14 +504,14 @@
       font-weight: 600;
       transition: all var(--transition-fast);
     }
-    .api-save-btn:hover { background: var(--accent-secondary); }
+    .api-save-btn:hover { background: var(--ink-black); }
 
     /* ===== HISTORY PANEL ===== */
     .history-panel-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(45, 42, 38, 0.55);
+      background: oklch(20% 0.030 70 / 0.55);
       z-index: 200;
       align-items: center;
       justify-content: center;
@@ -494,7 +519,7 @@
     }
     .history-panel-overlay.open { display: flex; }
     .history-panel {
-      background: var(--bg-primary);
+      background: var(--paper-new);
       border-radius: var(--radius-lg);
       width: 100%;
       max-width: 560px;
@@ -506,7 +531,7 @@
     }
     .history-panel-header {
       padding: var(--space-md) var(--space-lg);
-      border-bottom: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -515,23 +540,23 @@
     .history-panel-title {
       font-family: var(--font-display);
       font-size: 1.1rem;
-      color: var(--text-primary);
+      color: var(--ink-heavy);
     }
     .history-panel-close {
       width: 32px;
       height: 32px;
       border: none;
-      background: var(--bg-secondary);
+      background: var(--paper-aged);
       border-radius: 50%;
       cursor: pointer;
       font-size: 1.1rem;
-      color: var(--text-secondary);
+      color: var(--ink-mid);
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all var(--transition-fast);
     }
-    .history-panel-close:hover { background: var(--bg-tertiary); }
+    .history-panel-close:hover { background: var(--paper-dark); }
     .history-list {
       flex: 1;
       overflow-y: auto;
@@ -540,7 +565,7 @@
     .history-empty {
       text-align: center;
       padding: 48px 20px;
-      color: var(--text-muted);
+      color: var(--ink-mid);
       font-size: 0.88rem;
     }
     .history-item {
@@ -554,14 +579,14 @@
       border: 1px solid transparent;
     }
     .history-item:hover {
-      background: var(--bg-secondary);
-      border-color: var(--border-light);
+      background: var(--paper-aged);
+      border-color: var(--border);
     }
     .history-item-left { flex: 1; min-width: 0; }
     .history-item-title {
       font-size: 0.9rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--ink-heavy);
       margin-bottom: 4px;
       white-space: nowrap;
       overflow: hidden;
@@ -569,7 +594,7 @@
     }
     .history-item-meta {
       font-size: 0.75rem;
-      color: var(--text-muted);
+      color: var(--ink-mid);
     }
     .history-item-delete {
       flex-shrink: 0;
@@ -577,7 +602,7 @@
       height: 28px;
       border: none;
       background: transparent;
-      color: var(--text-muted);
+      color: var(--ink-mid);
       cursor: pointer;
       border-radius: 50%;
       display: flex;
@@ -587,8 +612,8 @@
       transition: all var(--transition-fast);
     }
     .history-item-delete:hover {
-      background: rgba(184, 85, 85, 0.12);
-      color: #b85555;
+      background: oklch(48% 0.16 28 / 0.12);
+      color: var(--seal-dark);
     }
 
     /* ===== TOAST ===== */
@@ -598,7 +623,7 @@
       bottom: 100px;
       transform: translate(-50%, 16px);
       padding: 10px 20px;
-      background: rgba(45, 42, 38, 0.92);
+      background: oklch(20% 0.030 70 / 0.92);
       color: #fff;
       border-radius: var(--radius-full);
       box-shadow: var(--shadow-strong);
@@ -616,8 +641,8 @@
     /* ===== SCROLLBAR ===== */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--border-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--ink-mid); }
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 600px) {
@@ -634,6 +659,7 @@
 <div class="top-bar">
   <div class="top-title">即墨</div>
   <div class="top-right">
+    <button class="top-btn" onclick="oneClickGenerate()" style="background: var(--seal); border-color: var(--seal);">一键生成</button>
     <button class="top-btn" onclick="openHistory()">历史记录</button>
     <button class="top-btn" onclick="openApi()">API设置</button>
     <a href="admin.html" class="top-btn">提示词管理</a>
@@ -745,6 +771,7 @@ const state = {
     selected: {}  // dimKey -> tagName
   },
   protagonist: {
+    style: '',    // 'chinese' | 'western' | ''
     selected: {}  // dimKey -> tagName
   },
   narrative: {
@@ -770,7 +797,9 @@ const protagonistChineseDims = {
   '能量状态': ['主动进攻型','以守为攻型','极端偏执型'],
   '处事风格': ['规矩守成型','野心攻击型','温和包容型','孤僻奇才型','踏实积累型','洒脱挥霍型','随遇而安型','毒舌叛逆型','独立自尊型','冲动义气型'],
   '人格面具': ['天生领袖范','机灵多变型','热心操劳型','刚毅果断型','乐天知足型','亦正亦邪型','稳重守成型','温柔策划型','贪多求全型','直言惹祸型','公正调和型','爱管闲事型','敢爱敢恨型','破旧立新型'],
-  '内在驱动': ['自我实现驱动','财富积累驱动','事业成就驱动','情感关系驱动','自由漂泊驱动']
+  '内在驱动': ['自我实现驱动','财富积累驱动','事业成就驱动','情感关系驱动','自由漂泊驱动'],
+  '人生轨迹': ['稳扎稳打上升型','先苦后甜奋斗型','是非缠身体质','怀才不遇苦闷型','左手进右手出型'],
+  '命运课题': ['天生好命型','强势掌控型','贵人相助型','执念深重型']
 };
 
 const protagonistWesternDims = {
@@ -800,6 +829,13 @@ function openTagPanel(type) {
   const titles = { world: '世界背景', protagonist: '主角设定', narrative: '叙事风格' };
   title.textContent = titles[type];
 
+  // Protagonist: show style choice first if not selected
+  if (type === 'protagonist' && !state.protagonist.style) {
+    body.innerHTML = buildStyleChoiceHTML('protagonist');
+    overlay.classList.add('open');
+    return;
+  }
+
   body.innerHTML = buildTagPanelHTML(type);
 
   // Pre-select current tags
@@ -817,14 +853,33 @@ function closeTagPanel() {
   currentPanel = null;
 }
 
+function buildStyleChoiceHTML(type) {
+  if (type === 'protagonist') {
+    return `<div class="tag-style-choice">
+      <button class="tag-style-btn" onclick="selectProtagonistStyle('chinese')">中式主角</button>
+      <button class="tag-style-btn" onclick="selectProtagonistStyle('western')">西式主角</button>
+    </div>`;
+  }
+  return '';
+}
+
+function selectProtagonistStyle(style) {
+  state.protagonist.style = style;
+  // Reset selected tags when switching style
+  state.protagonist.selected = {};
+  const body = document.getElementById('tagPanelBody');
+  body.innerHTML = buildTagPanelHTML('protagonist');
+}
+
 function buildTagPanelHTML(type) {
   let dims;
   if (type === 'world') {
     dims = worldDims;
   } else if (type === 'protagonist') {
-    dims = protagonistChineseDims;
+    dims = state.protagonist.style === 'western' ? protagonistWesternDims : protagonistChineseDims;
   } else {
-    dims = narrativeDims;
+    // narrative: single-select across all dims
+    return buildNarrativePanelHTML();
   }
 
   let html = '';
@@ -843,6 +898,36 @@ function buildTagPanelHTML(type) {
   return html;
 }
 
+function buildNarrativePanelHTML() {
+  // narrative: single tag selection across all 5 dims
+  const dims = narrativeDims;
+  const selected = Object.values(state.narrative.selected)[0] || '';
+
+  let html = `<div class="tag-dim">
+    <div class="tag-dim-label">叙事风格（单选）</div>
+    <div class="tag-options">`;
+  for (const [, tags] of Object.entries(dims)) {
+    for (const tag of tags) {
+      const isSelected = selected === tag ? ' selected' : '';
+      const isChecked = selected === tag ? ' checked' : '';
+      html += `<label class="tag-option${isSelected}">
+        <input type="radio" name="narrative" value="${tag}"${isChecked} onchange="onNarrativeRadioChange(this)">
+        ${tag}
+      </label>`;
+    }
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function onNarrativeRadioChange(radio) {
+  // Single select: uncheck all others
+  document.querySelectorAll('input[name="narrative"]').forEach(opt => {
+    opt.checked = (opt === radio);
+    opt.closest('.tag-option').classList.toggle('selected', opt === radio);
+  });
+}
+
 function onTagRadioChange(radio) {
   const name = radio.name;
   const options = document.querySelectorAll(`input[name="${name}"]`);
@@ -852,7 +937,13 @@ function onTagRadioChange(radio) {
 }
 
 function resetTags() {
-  state[currentPanel] = { selected: {} };
+  if (currentPanel === 'protagonist') {
+    state.protagonist.selected = {};
+  } else if (currentPanel === 'narrative') {
+    state.narrative.selected = {};
+  } else {
+    state[currentPanel].selected = {};
+  }
   document.querySelectorAll('#tagPanelBody input[type="radio"]').forEach(r => {
     r.checked = false;
     r.closest('.tag-option').classList.remove('selected');
@@ -860,6 +951,17 @@ function resetTags() {
 }
 
 function confirmTags() {
+  if (currentPanel === 'narrative') {
+    // narrative: single tag
+    const checked = document.querySelector('#tagPanelBody input[name="narrative"]:checked');
+    if (checked) {
+      state.narrative.selected = { '叙事风格': checked.value };
+    }
+    renderCard('narrative');
+    closeTagPanel();
+    return;
+  }
+
   const s = state[currentPanel].selected;
   // Collect checked radios by name
   const checked = document.querySelectorAll('#tagPanelBody input[type="radio"]:checked');
@@ -883,24 +985,21 @@ function renderCard(type) {
     const placeholders = {
       world: '点击"自定义"选择世界背景',
       protagonist: '点击"自定义"选择主角设定',
-      narrative: '点击"自定义"选择叙事风格（5维度各1个）'
+      narrative: '点击"自定义"选择叙事风格'
     };
     container.innerHTML = `<span class="tag-empty">${placeholders[type]}</span>`;
   } else {
-    container.innerHTML = entries.map(([dim, tag]) =>
+    // For protagonist, show style indicator + tags
+    let html = '';
+    if (type === 'protagonist' && state.protagonist.style) {
+      const styleLabel = state.protagonist.style === 'chinese' ? '中式' : '西式';
+      html = `<span class="tag active" style="background: var(--seal); color: var(--paper-new); border-color: var(--seal);">${styleLabel}</span>`;
+    }
+    html += entries.map(([dim, tag]) =>
       `<span class="tag active" title="${dim}">${tag}</span>`
     ).join('');
+    container.innerHTML = html;
   }
-}
-
-// ==================== GENERATE PROTAGONIST ====================
-function generateProtagonist() {
-  const s = state.protagonist.selected;
-  if (Object.keys(s).length < 4) {
-    showToast('请先在"自定义"中选择至少4个维度标签');
-    return;
-  }
-  showToast('主角已生成');
 }
 
 // ==================== API PANEL ====================
@@ -1032,35 +1131,42 @@ function startCreating() {
   const w = state.world.selected;
   const p = state.protagonist.selected;
   const n = state.narrative.selected;
+  const style = state.protagonist.style;
 
   if (Object.keys(w).length === 0) {
     showToast('请先配置世界背景');
     return;
   }
-  if (Object.keys(p).length < 4) {
-    showToast('请先完整配置主角设定（至少4个维度）');
+  if (!style) {
+    showToast('请先配置主角设定（选择风格）');
     return;
   }
-  if (Object.keys(n).length < 5) {
-    showToast('请先完整配置叙事风格（5个维度）');
+  const requiredTags = style === 'chinese' ? 7 : 6;
+  if (Object.keys(p).length < requiredTags) {
+    showToast(`请先完整配置主角设定（${requiredTags}个维度）`);
+    return;
+  }
+  if (Object.keys(n).length === 0) {
+    showToast('请先选择叙事风格');
     return;
   }
 
   // Collect tags
   const worldTags = Object.entries(w).map(([, t]) => t);
   const protagonistTags = Object.entries(p).map(([, t]) => t);
-  const narrativeTags = Object.entries(n).map(([, t]) => t);
+  const narrativeTag = Object.values(n)[0];
 
-  const goldenFinger = document.getElementById('goldenFingerInput').value.trim() || '无';
+  const goldenFinger = document.getElementById('goldenFingerInput').value.trim() || state.world.generatedGolden || '无';
 
   const session = {
-    worldTitle: Object.values(w)[0] || '未知世界',
-    worldDesc: worldTags.join(' / '),
+    worldTitle: state.world.generatedTitle || Object.values(w)[0] || '未知世界',
+    worldDesc: state.world.generatedDesc || worldTags.join(' / '),
     worldTags,
-    protagonist: '待生成主角',
+    protagonist: state.protagonist.generatedName || '待生成主角',
     protagonistTags,
+    protagonistStyle: style,
     goldenFinger,
-    narrative: narrativeTags.join(' / '),
+    narrative: narrativeTag,
     narrativeDetail: n,
     history: [],
     storyOutline: [],
@@ -1074,7 +1180,315 @@ function startCreating() {
   window.location.href = 'story.html';
 }
 
-// ==================== TOAST ====================
+// ==================== API ====================
+function getApiConfig() {
+  return {
+    apiKey: localStorage.getItem('deepseek_api_key') || '',
+    model: localStorage.getItem('deepseek_model') || 'deepseek-v4-pro'
+  };
+}
+
+async function callDeepSeek(prompt, systemPrompt, onChunk) {
+  const config = getApiConfig();
+  if (!config.apiKey) return null;
+
+  try {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.apiKey}`
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 300,
+        temperature: 0.8,
+        stream: true
+      })
+    });
+
+    if (!response.ok) throw new Error('API error');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let result = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data);
+            const content = parsed.choices?.[0]?.delta?.content || '';
+            if (content) {
+              result += content;
+              if (onChunk) onChunk(result);
+            }
+          } catch (e) {}
+        }
+      }
+    }
+    return result;
+  } catch (error) {
+    console.error('DeepSeek API错误:', error);
+    return null;
+  }
+}
+
+// ==================== GENERATE PROTAGONIST ====================
+let isGeneratingProtagonist = false;
+
+function generateProtagonist() {
+  const style = state.protagonist.style;
+  const s = state.protagonist.selected;
+
+  if (!style) {
+    showToast('请先选择主角风格（中式/西式）');
+    return;
+  }
+
+  const required = style === 'chinese' ? 7 : 6;
+  if (Object.keys(s).length < required) {
+    showToast(`请先完整配置主角设定（${required}个维度）`);
+    return;
+  }
+
+  if (isGeneratingProtagonist) return;
+  isGeneratingProtagonist = true;
+
+  const tags = Object.entries(s).map(([k, v]) => `${k}:${v}`).join('、');
+  const styleLabel = style === 'chinese' ? '中式' : '西式';
+  const prompt = `根据以下${styleLabel}主角性格标签，生成一个简短的主角名字和简介。
+
+标签：${tags}
+
+请直接输出，格式如下（不要有任何其他内容）：
+名字：[名字]
+简介：[20字以内的简介]
+
+例如：
+名字：林霜
+简介：冷面杀手，外冷内热型人格
+
+名字：`;
+
+
+  callDeepSeek(prompt, '你是一个主角设定生成助手。每次只生成一个主角名字和简介。', (text) => {
+    // streaming feedback if needed
+  }).then(result => {
+    if (result) {
+      const nameMatch = result.match(/名字[：:]\s*(.+)/);
+      const descMatch = result.match(/简介[：:]\s*(.+)/);
+      if (nameMatch) {
+        const name = nameMatch[1].trim();
+        const desc = descMatch ? descMatch[1].trim() : '';
+        // Store generated protagonist name
+        state.protagonist.generatedName = name;
+        state.protagonist.generatedDesc = desc;
+        // Update display
+        const container = document.getElementById('protagonistTagsDisplay');
+        const styleLabel = state.protagonist.style === 'chinese' ? '中式' : '西式';
+        let html = `<span class="tag active" style="background: var(--seal); color: var(--paper-new); border-color: var(--seal);">${styleLabel}</span>`;
+        html += Object.entries(s).map(([dim, tag]) =>
+          `<span class="tag active" title="${dim}">${tag}</span>`
+        ).join('');
+        html += `<span class="tag active" style="background: var(--ink-heavy); color: var(--paper-new);">${name}</span>`;
+        container.innerHTML = html;
+        showToast('主角已生成');
+      } else {
+        showToast('生成主角失败，请重试');
+      }
+    } else {
+      showToast('API调用失败，请检查API Key');
+    }
+    isGeneratingProtagonist = false;
+  }).catch(err => {
+    console.error(err);
+    showToast('生成主角失败');
+    isGeneratingProtagonist = false;
+  });
+}
+
+// ==================== ONE CLICK GENERATE ====================
+let isOneClickGenerating = false;
+
+function oneClickGenerate() {
+  if (isOneClickGenerating) return;
+
+  const config = getApiConfig();
+  if (!config.apiKey) {
+    showToast('请先设置 API Key');
+    openApi();
+    return;
+  }
+
+  isOneClickGenerating = true;
+  showToast('正在生成...');
+
+  // Step 1: Randomly select tags
+  const style = Math.random() < 0.5 ? 'chinese' : 'western';
+  state.protagonist.style = style;
+
+  // World tags: one from each category
+  const worldSelected = {};
+  for (const [dim, tags] of Object.entries(worldDims)) {
+    const randomTag = tags[Math.floor(Math.random() * tags.length)];
+    worldSelected[dim] = randomTag;
+  }
+  state.world.selected = worldSelected;
+  renderCard('world');
+
+  // Narrative: single random tag
+  const allNarrativeTags = Object.values(narrativeDims).flat();
+  const randomNarrative = allNarrativeTags[Math.floor(Math.random() * allNarrativeTags.length)];
+  state.narrative.selected = { '叙事风格': randomNarrative };
+  renderCard('narrative');
+
+  // Protagonist tags: one from each dimension
+  const dims = style === 'chinese' ? protagonistChineseDims : protagonistWesternDims;
+  const protoSelected = {};
+  for (const [dim, tags] of Object.entries(dims)) {
+    const randomTag = tags[Math.floor(Math.random() * tags.length)];
+    protoSelected[dim] = randomTag;
+  }
+  state.protagonist.selected = protoSelected;
+  renderCard('protagonist');
+
+  // Step 2: Generate world description + golden finger + narrative
+  const worldTags = Object.values(worldSelected).join('、');
+  const narrativeTag = randomNarrative;
+  const styleLabel = style === 'chinese' ? '中式' : '西式';
+
+  const worldPrompt = `根据以下随机标签，生成一个小说世界背景设定。
+
+世界标签：${worldTags}
+叙事风格：${narrativeTag}
+主角风格：${styleLabel}
+
+请直接输出，格式如下（不要有任何其他内容）：
+世界名称：[简短的世界名称，4-8字]
+世界观描述：[50字以内的世界观描述]
+金手指：[主角的特殊能力，20字以内]
+叙事风格描述：[20字以内的叙事风格描述]
+
+例如：
+世界名称：星际迷局
+世界观描述：人类已征服银河系，但边境殖民地与中心星区矛盾日益加深
+金手指：能够感知他人情绪波动
+叙事风格描述：悬疑推进，细节暗示`;
+
+  const systemPrompt = '你是一个世界背景生成助手。每次只生成一个世界设定。';
+
+  callDeepSeek(worldPrompt, systemPrompt, null).then(result => {
+    if (result) {
+      const titleMatch = result.match(/世界名称[：:]\s*(.+)/);
+      const descMatch = result.match(/世界观描述[：:]\s*(.+)/);
+      const goldenMatch = result.match(/金手指[：:]\s*(.+)/);
+      const narrativeMatch = result.match(/叙事风格描述[：:]\s*(.+)/);
+
+      if (titleMatch) {
+        const title = titleMatch[1].trim();
+        const desc = descMatch ? descMatch[1].trim() : '';
+        const golden = goldenMatch ? goldenMatch[1].trim() : '';
+        const narrativeDesc = narrativeMatch ? narrativeMatch[1].trim() : '';
+
+        // Update world card display
+        const worldContainer = document.getElementById('worldTagsDisplay');
+        let html = `<span class="tag active" style="background: var(--ink-heavy); color: var(--paper-new);">${title}</span>`;
+        html += Object.entries(worldSelected).map(([, tag]) =>
+          `<span class="tag active">${tag}</span>`
+        ).join('');
+        html += `<span class="tag active" title="世界观">${desc}</span>`;
+        if (golden) html += `<span class="tag active" title="金手指">金手指：${golden}</span>`;
+        worldContainer.innerHTML = html;
+
+        // Store generated data
+        state.world.generatedTitle = title;
+        state.world.generatedDesc = desc;
+        state.world.generatedGolden = golden;
+        state.world.generatedNarrativeDesc = narrativeDesc;
+        document.getElementById('goldenFingerInput').value = golden;
+
+        // Step 3: Generate protagonist based on world
+        generateProtagonistForWorld(title, desc, golden, narrativeDesc, style, protoSelected);
+      } else {
+        showToast('生成世界背景失败，请重试');
+        isOneClickGenerating = false;
+      }
+    } else {
+      showToast('API调用失败，请检查API Key');
+      isOneClickGenerating = false;
+    }
+  }).catch(err => {
+    console.error(err);
+    showToast('生成失败');
+    isOneClickGenerating = false;
+  });
+}
+
+function generateProtagonistForWorld(worldTitle, worldDesc, goldenFinger, narrativeDesc, style, selectedTags) {
+  const tags = Object.entries(selectedTags).map(([, v]) => v).join('、');
+  const styleLabel = style === 'chinese' ? '中式' : '西式';
+
+  const prompt = `根据以下世界观设定，生成一个符合这个世界的主角名字和简介。
+
+世界名称：${worldTitle}
+世界观：${worldDesc}
+金手指：${goldenFinger}
+叙事风格：${narrativeDesc}
+主角风格：${styleLabel}主角
+性格标签：${tags}
+
+请直接输出，格式如下（不要有任何其他内容）：
+名字：[名字]
+简介：[20字以内的简介，符合上述世界观设定]
+
+例如：
+名字：沈夜
+简介：星际赏金猎人，能感知他人情绪波动，冷静果决`;
+
+  const systemPrompt = '你是一个主角设定生成助手。每次只生成一个主角名字和简介。';
+
+  callDeepSeek(prompt, systemPrompt, null).then(result => {
+    if (result) {
+      const nameMatch = result.match(/名字[：:]\s*(.+)/);
+      const descMatch = result.match(/简介[：:]\s*(.+)/);
+      if (nameMatch) {
+        const name = nameMatch[1].trim();
+        const desc = descMatch ? descMatch[1].trim() : '';
+        state.protagonist.generatedName = name;
+        state.protagonist.generatedDesc = desc;
+
+        const container = document.getElementById('protagonistTagsDisplay');
+        let html = `<span class="tag active" style="background: var(--seal); color: var(--paper-new); border-color: var(--seal);">${styleLabel}</span>`;
+        html += Object.entries(selectedTags).map(([, tag]) =>
+          `<span class="tag active">${tag}</span>`
+        ).join('');
+        html += `<span class="tag active" style="background: var(--ink-heavy); color: var(--paper-new);">${name}</span>`;
+        container.innerHTML = html;
+        showToast('一键生成完成');
+      } else {
+        showToast('生成主角失败');
+      }
+    } else {
+      showToast('API调用失败');
+    }
+    isOneClickGenerating = false;
+  }).catch(err => {
+    console.error(err);
+    showToast('生成失败');
+    isOneClickGenerating = false;
+  });
+}
+
 function showToast(msg) {
   const toast = document.getElementById('toast');
   toast.textContent = msg;
