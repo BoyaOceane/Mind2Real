@@ -505,6 +505,22 @@
       transition: all var(--transition-fast);
     }
     .api-save-btn:hover { background: var(--ink-black); }
+    .api-test-btn {
+      width: 100%;
+      margin-top: var(--space-sm);
+      padding: 10px;
+      background: transparent;
+      color: var(--ink-mid);
+      border: 1.5px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      transition: all var(--transition-fast);
+    }
+    .api-test-btn:hover { border-color: var(--seal); color: var(--seal-dark); }
+    .api-test-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .api-test-btn.testing { color: var(--seal); }
 
     /* ===== HISTORY PANEL ===== */
     .history-panel-overlay {
@@ -747,6 +763,7 @@
       <button class="api-toggle" onclick="toggleApiKey()">显示</button>
     </div>
     <button class="api-save-btn" onclick="saveApiKey()">保存</button>
+    <button class="api-test-btn" id="apiTestBtn" onclick="testApiKey()">测试连接</button>
   </div>
 </div>
 
@@ -1036,6 +1053,33 @@ function saveApiKey() {
   localStorage.setItem('deepseek_api_key', key);
   showToast('API Key 已保存');
   closeApi();
+}
+
+async function testApiKey() {
+  const btn = document.getElementById('apiTestBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.classList.add('testing');
+  btn.textContent = '测试中...';
+
+  const prompt = '你好';
+  const systemPrompt = '你是一个简单的测试助手，请回复"API连接成功"。';
+
+  try {
+    const result = await callDeepSeek(prompt, systemPrompt, null);
+    if (result && result.includes('API连接成功')) {
+      showToast('API 连接成功');
+    } else {
+      showToast('API 连接异常，请检查 Key');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('API 连接失败');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('testing');
+    btn.textContent = '测试连接';
+  }
 }
 
 // Click outside to close
