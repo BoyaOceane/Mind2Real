@@ -1278,7 +1278,14 @@ async function callDeepSeek(prompt, systemPrompt, onChunk) {
       })
     });
 
-    if (!response.ok) throw new Error('API error');
+    if (!response.ok) {
+      let errMsg = `HTTP ${response.status}`;
+      try {
+        const errData = await response.json();
+        errMsg = errData.error?.message || errData.error?.type || errMsg;
+      } catch {}
+      throw new Error(errMsg);
+    }
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let result = '';
