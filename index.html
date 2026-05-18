@@ -1305,9 +1305,14 @@ function startCreating() {
 
 // ==================== API ====================
 function getApiConfig() {
+  let model = localStorage.getItem('deepseek_model') || 'deepseek-v4-flash';
+  // Normalize model name
+  if (model === 'flash') model = 'deepseek-v4-flash';
+  else if (model === 'pro') model = 'deepseek-v4-pro';
+  else if (!model.startsWith('deepseek-')) model = 'deepseek-v4-flash';
   return {
     apiKey: localStorage.getItem('deepseek_api_key') || '',
-    model: localStorage.getItem('deepseek_model') || 'deepseek-v4-flash'
+    model
   };
 }
 
