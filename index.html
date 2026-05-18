@@ -1080,7 +1080,7 @@ async function testApiKey() {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'deepseek-v4-flash',
         messages: [
           { role: 'user', content: 'hi' }
         ],
@@ -1251,7 +1251,7 @@ function startCreating() {
 function getApiConfig() {
   return {
     apiKey: localStorage.getItem('deepseek_api_key') || '',
-    model: localStorage.getItem('deepseek_model') || 'deepseek-v4-pro'
+    model: localStorage.getItem('deepseek_model') || 'deepseek-v4-flash'
   };
 }
 
