@@ -1497,32 +1497,26 @@ function oneClickGenerate() {
   const narrativeTag = randomNarrative;
   const styleLabel = style === 'chinese' ? '中式' : '西式';
 
-  const worldPrompt = `根据以下随机标签，生成一个小说世界背景设定。
+  const worldPrompt = `生成一个小说世界背景。
 
-世界标签：${worldTags}
-叙事风格：${narrativeTag}
-主角风格：${styleLabel}
+标签：${worldTags}
+叙事：${narrativeTag}
+风格：${styleLabel}主角
 
-请直接输出，格式如下（不要有任何其他内容）：
-世界名称：[简短的世界名称，4-8字]
-世界观描述：[50字以内的世界观描述]
-金手指：[主角的特殊能力，20字以内]
-叙事风格描述：[20字以内的叙事风格描述]
-
-例如：
-世界名称：星际迷局
-世界观描述：人类已征服银河系，但边境殖民地与中心星区矛盾日益加深
-金手指：能够感知他人情绪波动
-叙事风格描述：悬疑推进，细节暗示`;
+输出格式（只输出这4行，不要其他内容）：
+世界名称：X
+世界观：X
+金手指：X
+叙事：X`;
 
   const systemPrompt = '你是一个世界背景生成助手。每次只生成一个世界设定。';
 
   callDeepSeek(worldPrompt, systemPrompt, null).then(result => {
     if (result) {
       const titleMatch = result.match(/世界名称[：:]\s*(.+)/);
-      const descMatch = result.match(/世界观描述[：:]\s*(.+)/);
+      const descMatch = result.match(/世界观[：:]\s*(.+)/);
       const goldenMatch = result.match(/金手指[：:]\s*(.+)/);
-      const narrativeMatch = result.match(/叙事风格描述[：:]\s*(.+)/);
+      const narrativeMatch = result.match(/叙事[：:]\s*(.+)/);
 
       if (titleMatch) {
         const title = titleMatch[1].trim();
