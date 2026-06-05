@@ -22,6 +22,35 @@
             /* 边框 */
             --border: oklch(82% 0.008 90);
             --border-dark: oklch(60% 0.012 82);
+            /* 语义别名 — 指向宣纸/墨色体系 */
+            --bg-primary: var(--paper-new);
+            --bg-secondary: var(--paper-aged);
+            --bg-tertiary: var(--paper-dark);
+            --surface-card: rgba(255, 255, 255, 0.92);
+            --surface-card-soft: rgba(255, 255, 255, 0.78);
+            --surface-overlay: rgba(45, 42, 38, 0.6);
+            --text-primary: var(--ink-black);
+            --text-secondary: var(--ink-mid);
+            --text-muted: var(--ink-light);
+            --text-inverse: #ffffff;
+            --accent-primary: var(--seal);
+            --accent-secondary: var(--seal-dark);
+            --accent-tertiary: oklch(55% 0.12 25);
+            --accent-world: oklch(50% 0.10 230);
+            --accent-protagonist: oklch(50% 0.10 40);
+            --accent-narrative: oklch(50% 0.10 140);
+            --success: #5a8a50;
+            --warning: #c88a3a;
+            --error: #b85555;
+            --info: #5b7aaa;
+            --border-light: var(--border);
+            --border-medium: var(--border-dark);
+            --topbar-bg: #2c2825;
+            --topbar-text: #e8e2d8;
+            --shadow-soft: 0 2px 12px rgba(100, 80, 50, 0.07), 0 4px 20px rgba(100, 80, 50, 0.05);
+            --shadow-medium: 0 4px 16px rgba(100, 80, 50, 0.10), 0 8px 30px rgba(100, 80, 50, 0.08);
+            --shadow-strong: 0 8px 24px rgba(100, 80, 50, 0.14), 0 14px 40px rgba(100, 80, 50, 0.10);
+            --shadow-glow: 0 4px 18px rgba(196, 151, 30, 0.35);
             /* 字体 */
             --font-display: 'Noto Serif SC', serif;
             --font-body: 'Noto Sans SC', sans-serif;
@@ -35,6 +64,12 @@
             --radius-sm: 4px;
             --radius-md: 6px;
             --radius-lg: 8px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+            /* 过渡 */
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -92,18 +127,21 @@
         }
         .top-right {
             display: flex;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: flex-end;
         }
         .top-btn {
-            padding: var(--space-sm) var(--space-md);
+            padding: 6px 12px;
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: var(--radius-full);
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-family: inherit;
             transition: all var(--transition-normal);
             background: rgba(255,255,255,0.1);
             color: var(--topbar-text);
+            white-space: nowrap;
         }
         .top-btn:hover {
             background: rgba(255,255,255,0.22);
@@ -122,6 +160,49 @@
         }
         .btn-save { background: rgba(90,138,80,0.95); border-color: rgba(90,138,80,0.6); }
         .btn-export { background: rgba(196,151,30,0.85); border-color: rgba(196,151,30,0.5); }
+
+        /* World Banner */
+        .world-banner {
+            padding: var(--space-sm) var(--space-md);
+            margin-bottom: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            flex-shrink: 0;
+        }
+        .world-banner-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .world-name {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .world-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-full);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+        .character-info {
+            display: flex;
+            gap: 16px;
+            margin-top: 6px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
 
         /* Main Area */
         .main-area {
@@ -742,7 +823,7 @@
 6. 持续输出零衰减：保持一致性，保持产出节奏
 
 【故事机制】
-第一步：世界观与金手指已生成
+第一步：世界观已生成
 第二步：以第三人称开篇，直接进入冲突。用户在阅读中进入世界
 第三步：每个关键节点，提供多个选项，每个选项指向不同剧情走向
 第四步：用户选择后，沿选定方向推进叙事
@@ -759,6 +840,66 @@
 8. 考据隐身：所有真实参照只驱动底层逻辑，不在正文里站到前台
 9. 克制数字：除非剧情必须体现精确技术参数（如破解密码、医疗数据），否则不堆砌具体数值。用感官和动作代替测量——写"水滴悬在半空，缓缓往上爬了一截"，不写"停滞了四秒，朝上移动了大约三厘米"
 10. 句尾完整：每段必须在句号处结束，不得在逗号、从句、从属结构处截断。如果字数限制在流中到达，停在最后一个完整句子的句号处。
+
+【读者心理钩子 — 压抑→释放机制】
+每段剧情必须至少触发一种读者心理需求。先制造压抑端，再兑现释放端。压抑越深，释放越爽。
+
+1. 正义需求：被冤枉/功劳被窃取 → 真相大白/恶人打脸 → 越是不公越想看"还我公道"
+2. 安全需求：面临危险/倒计时压力 → 化险为夷/绝处逢生 → 害怕失去→紧张→得救→爽
+3. 求知需求：谜题未解/伏笔未收 → 真相揭晓/伏笔回收 → 未知→好奇→满足
+4. 归属需求：被孤立/被背叛/被误解 → 被接纳/被信任/和解 → 孤独→心疼→暖心
+5. 道德需求：两难选择/被迫做坏事 → 找到第三条路/自我救赎 → 纠结→代入→释然
+6. 掌控需求：失控/被玩弄/命运被安排 → 反杀/掌控局面/逆天改命 → 无力→焦虑→解气
+7. 优越需求：恶人嚣张/好人吃亏 → 恶人遭报/好人逆袭 → 愤怒→爽快
+8. 共情需求：痛苦/失去至亲/希望破灭 → 获得慰藉/希望重燃 → 难过→心疼→温暖
+
+【情绪维度 - 让读者"抓心"】
+- 压抑端先于释放端：让读者在"难受"里多待一会儿（被冤枉→等两章才洗清）
+- 希望假动作：给读者希望，然后立刻拿走（以为找到证人了，结果证人是假的）
+- 情绪反差：上一秒笑，下一秒哭（刚告白成功，下一秒收到噩耗）
+- 延迟满足：读者想要的爽点延后给（恶人被打脸不是现在，是三十章后）
+- 情感对照：用一件事反衬另一件事（女主被怀疑，男二无条件相信）
+- 无声的疼：不写哭喊，写细节（把手机扣在桌上、把面碗留在水池里）
+- 迟来的好：已经不需要了，对方才给（"对不起"——"没关系，我不需要了"）
+
+【情节维度 - 让读者停不下来】
+- 核心冲突：角色想要A，但现实给B（想留在家乡照顾母亲，但offer在外地）
+- 层层加码：问题不是一次解决，而是一个接一个（被冤枉→证据被毁→证人失踪）
+- 倒计时/时间压力：必须在X时间内完成某事（三天后婚礼、七天后还债）
+- 两难选择：选A伤B，选B伤A（救母亲还是救恋人）
+- 代价明确：做出选择要付出什么（说出真相会失去爱人、保持沉默会失去自我）
+- 意外援军：最没想到的人出手相助（宿敌递来关键证据）
+- 功亏一篑：差一点就成功了，然后功亏一篑（找到证据了，但被抢走了）
+- 反转：读者以为的"真相"是错的（以为的好人其实是幕后黑手）
+
+【细节维度 - 让世界真实可感】
+- 感官细节：看/听/闻/触/尝（消毒水的味道、旧书的霉味）
+- 习惯动作：角色紧张/开心时的小动作（紧张时转笔、开心时哼歌）
+- 道具象征：某个物品承载情感（一只旧手表、一条围巾、一盆快死的绿萝）
+- 环境投射：天气/光线反映角色情绪（下雨天分手、晴空万里时被骗）
+- 对话潜台词：嘴上说A，实际意思是B（"你来干什么"——"我想你了"）
+- 留白：不写出来的，比写出来的更重（对方正在输入……最后什么都没发）
+
+【角色核心创伤 - 10种类型】
+赋予每个角色1-2种核心创伤，决定行为模式和情感按钮：
+1. 被抛弃型：不相信自己值得被留下 → 要么过度黏人要么不敢靠近，总在对方离开前先分手
+2. 被忽视型：觉得自己的存在不重要 → 习惯性讨好他人，不知道怎么表达需求
+3. 被背叛型：认为信任是危险的 → 很难信任任何人，反复测试忠诚
+4. 被控制型：觉得自己没有权利做自己 → 要么极度顺从要么极度反叛
+5. 被虐待型：深层认为自己"是坏的，活该" → 自我价值感极低，对伤害忍耐度异常高
+6. 被孤立型：觉得自己不属于任何地方 → 对社交场合极度焦虑
+7. 目睹暴力型：认为世界是危险的，爱与伤害总同时出现 → 不知道健康关系什么样
+8. 过早承担型：没有童年，永远在照顾别人 → 不会示弱，不会求助，容易burnout
+9. 失去安全型：随时可能出事，不能放松 → 过度警觉，无法放松
+10. 身份否定型：真正的自己不配被爱，必须伪装 → 习惯性伪装成别人喜欢的样子
+
+【结构维度 - 让读者一直追】
+- 钩子开头：第一句话就让读者想知道"然后呢"
+- 章节断点：每段结束在"最想知道下文"的地方
+- 节奏变化：紧张的段落和舒缓的段落交替
+- 伏笔与回收：前面埋的，后面一定要挖
+- 情感节拍：压抑-释放-再压抑-更大释放
+- 爽点分布：小爽点每1-2段一次，大爽点每5-10段一次
 
 【输出要求】
 第三人称开场，直接进入冲突。文字直白有张力，画面感强。结尾停在关键节点，提供有差异性的选项。
@@ -952,6 +1093,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 });
 
                 if (result) {
+                    typewriterReset();
                     const cleanResult = ensureCompleteSentence(result);
                     const displayText = stripStructuredMeta(cleanResult);
                     const segment = {
@@ -959,13 +1101,18 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                         timestamp: Date.now()
                     };
                     currentStory.history.push(segment);
+                    displayFullStory();
                     appendNewMeta(cleanResult);
                     saveStoryData();
                     autoSave();
+                } else {
+                    typewriterReset();
+                    document.getElementById('storyText').innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted);">生成失败，请检查 API Key 后刷新重试</p>';
                 }
             } catch (error) {
                 console.error('生成开篇失败:', error);
-                document.getElementById('storyText').innerHTML = '<p>生成失败，请重试</p>';
+                typewriterReset();
+                document.getElementById('storyText').innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted);">生成失败，请重试</p>';
             }
 
             setLoadingState(false);
@@ -992,13 +1139,40 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 
         // Display story content: all previous history + current streaming text
         function displayStoryContent(newText) {
+            typewriterFeed(newText);
+        }
+
+        // ---- Typewriter engine (character-by-character display) ----
+        let _tw = { raf: null, text: '', pos: 0, speed: 1 };
+
+        function typewriterFeed(text) {
+            _tw.text = text;
+            if (!_tw.raf) _tw.raf = requestAnimationFrame(typewriterTick);
+        }
+
+        function typewriterTick() {
+            if (_tw.pos >= _tw.text.length) {
+                cancelAnimationFrame(_tw.raf);
+                _tw.raf = null;
+                return;
+            }
+            // Advance 1-2 chars per frame depending on speed
+            _tw.pos = Math.min(_tw.pos + _tw.speed, _tw.text.length);
+            const partial = _tw.text.slice(0, _tw.pos);
             const prevHtml = currentStory.history.map(h => textToHtml(h.content)).join('<hr class="story-divider">');
-            const newHtml = textToHtml(newText);
+            const newHtml = textToHtml(partial);
             const divider = currentStory.history.length > 0 ? '<hr class="story-divider">' : '';
             document.getElementById('storyText').innerHTML = prevHtml + divider + newHtml;
-            // Auto-scroll to bottom of new content
             const storyEl = document.querySelector('.story-content');
             storyEl.scrollTop = storyEl.scrollHeight;
+            _tw.raf = requestAnimationFrame(typewriterTick);
+        }
+
+        function typewriterReset() {
+            if (_tw.raf) { cancelAnimationFrame(_tw.raf);
+                _tw.raf = null; }
+            _tw.text = '';
+            _tw.pos = 0;
         }
 
         // Show loading appended below existing content
@@ -1066,6 +1240,7 @@ ${storySoFar}
                 });
 
                 if (result) {
+                    typewriterReset();
                     const cleanResult = ensureCompleteSentence(result);
                     const displayText = stripStructuredMeta(cleanResult);
                     const segment = {
@@ -1073,6 +1248,7 @@ ${storySoFar}
                         timestamp: Date.now()
                     };
                     currentStory.history.push(segment);
+                    displayFullStory();
                     document.getElementById('customInput').value = '';
                     document.getElementById('continueHint').textContent = '输入剧情方向，或直接点击继续';
                     appendNewMeta(cleanResult);
@@ -1081,6 +1257,7 @@ ${storySoFar}
                 }
             } catch (error) {
                 console.error('继续创作失败:', error);
+                typewriterReset();
                 showToast('继续创作失败，请稍后再试');
             }
 

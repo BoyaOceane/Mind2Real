@@ -43,15 +43,16 @@ AI 驱动的分支叙事故事生成器。用户通过配置世界观、主角�
 
 ## 设计文档
 
-- `docs/superpowers/specs/2026-05-14-jimo-design.md` — 功能设计文档（Q&A 审计确认版）
-- `docs/superpowers/plans/2026-05-14-jimo-poc-mvp.md` — 实现计划
-- `docs/plan/binary-whistling-reef.md` — 侧边栏详细设计
-- `docs/功能文档.md` — 原始功能文档
-- `docs/世界背景.md` — 世界观 Tag 参考
-- `docs/人物性格中式.md` — 中式主角 Tag 参考
-- `docs/人物性格西式.md` — 西式主角 Tag 参考
-- `docs/叙事方式.md` — 叙事风格 Tag 参考
-- `docs/八大准则.md` — 写作八条铁律
+- `docs/specs/2026-05-14-jimo-design.md` — 功能设计文档（Q&A 审计确认版）
+- `docs/specs/功能文档.md` — 原始功能文档
+- `docs/plans/2026-05-14-jimo-poc-mvp.md` — 实现计划
+- `docs/plans/binary-whistling-reef.md` — 侧边栏详细设计
+- `docs/plans/plan-index-redesign.md` — index 页面改造计划
+- `docs/reference/世界背景.md` — 世界观 Tag 参考
+- `docs/reference/人物性格中式.md` — 中式主角 Tag 参考
+- `docs/reference/人物性格西式.md` — 西式主角 Tag 参考
+- `docs/reference/叙事方式.md` — 叙事风格 Tag 参考
+- `docs/reference/八大准则.md` — 写作八条铁律
 
 ## 技术栈
 
