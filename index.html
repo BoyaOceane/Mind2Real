@@ -107,48 +107,92 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 20px 120px;
-      gap: var(--space-lg);
-      max-width: 860px;
+      padding: 24px 20px 40px;
+      max-width: 660px;
       margin: 0 auto;
       width: 100%;
     }
 
-    /* ===== CARDS ===== */
-    .card {
-      width: 100%;
-      background: var(--paper-new);
+    /* ===== TAB BAR ===== */
+    /* ===== TAB BOTTOM NAV ===== */
+    .tab-nav-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-md);
+      padding-top: var(--space-sm);
+      border-top: 1px solid var(--border);
+    }
+    .btn-nav {
+      padding: 8px 18px;
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-lg);
-      box-shadow: var(--shadow-soft);
-      transition: box-shadow var(--transition-normal);
+      border-radius: var(--radius-full);
+      background: var(--paper-new);
+      color: var(--ink-mid);
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
     }
-    .card:hover { box-shadow: var(--shadow-medium); }
-    .card-title {
-      font-family: var(--font-display);
-      font-size: 1.2rem;
-      color: var(--ink-heavy);
+    .btn-nav:hover {
+      border-color: var(--seal);
+      color: var(--seal);
     }
-    .card-title-icon {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      margin-right: 10px;
-      vertical-align: middle;
-    }
-    .card-title-icon.world { background: var(--accent-world, var(--ink-mid)); }
-    .card-title-icon.protagonist { background: var(--accent-protagonist, var(--seal)); }
-    .card-title-icon.narrative { background: var(--accent-narrative, var(--ink-light)); }
 
-    .card-tags {
+    .tab-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      padding: 0 20px;
+      background: var(--paper-aged);
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 14px 32px;
+      border: none;
+      background: transparent;
+      color: var(--ink-mid);
+      font-family: var(--font-display);
+      font-size: 1rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition-fast);
+      position: relative;
+      bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--ink-heavy); }
+    .tab-btn.active {
+      color: var(--seal);
+      border-bottom-color: var(--seal);
+    }
+    .tab-panel {
+      display: none;
+      width: 100%;
+    }
+    .tab-panel.active {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .tab-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .section-label {
+      font-size: 0.78rem;
+      color: var(--ink-mid);
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .tab-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       min-height: 32px;
       align-items: center;
     }
+
     .tag {
       display: inline-flex;
       align-items: center;
@@ -171,18 +215,6 @@
       font-style: italic;
     }
 
-    .card-footer {
-      margin-top: var(--space-md);
-      display: flex;
-      gap: var(--space-sm);
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    /* ===== GOLDEN FINGER INPUT ===== */
-    .golden-finger-wrap {
-      margin-top: var(--space-sm);
-    }
     .generated-info {
       margin-top: var(--space-sm);
       padding: var(--space-sm);
@@ -210,29 +242,6 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0; }
     }
-    .golden-finger-label {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .golden-finger-input {
-      width: 100%;
-      padding: 10px 14px;
-      font-size: 0.88rem;
-      font-family: inherit;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      background: var(--paper-new);
-      color: var(--ink-heavy);
-      transition: all var(--transition-fast);
-      resize: none;
-    }
-    .golden-finger-input:focus {
-      outline: none;
-      border-color: var(--seal);
-      box-shadow: 0 0 0 3px oklch(48% 0.16 28 / 0.15);
-    }
-
     /* ===== BUTTONS ===== */
     .btn {
       padding: 10px 20px;
@@ -255,6 +264,20 @@
       border-color: var(--ink-heavy);
       color: var(--ink-heavy);
     }
+    .btn-random {
+      background: transparent;
+      color: var(--seal);
+      border: 1.5px dashed var(--seal);
+      border-radius: var(--radius-full);
+      padding: 10px 20px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.88rem;
+      transition: all var(--transition-fast);
+    }
+    .btn-random:hover {
+      background: oklch(48% 0.16 28 / 0.10);
+    }
     .btn-generate {
       background: var(--ink-heavy);
       color: var(--paper-new);
@@ -272,21 +295,6 @@
       transform: none;
     }
 
-    /* ===== BOTTOM CTA ===== */
-    .bottom-cta {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 16px 20px;
-      background: oklch(98% 0.006 95 / 0.95);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: center;
-      z-index: 90;
-    }
     .btn-start {
       padding: 14px 48px;
       font-size: 1rem;
@@ -709,63 +717,75 @@
   </div>
 </div>
 
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="world" onclick="switchMainTab('world')">世界观</button>
+  <button class="tab-btn" data-tab="protagonist" onclick="switchMainTab('protagonist')">主角</button>
+  <button class="tab-btn" data-tab="narrative" onclick="switchMainTab('narrative')">写作视角</button>
+</div>
+
 <!-- MAIN CONTENT -->
 <div class="main">
 
-  <!-- CARD 1: 世界背景 -->
-  <div class="card" id="cardWorld">
-    <div class="card-header">
-      <div class="card-title">
-        <span class="card-title-icon world"></span>世界背景
+  <!-- TAB 1: 世界观 -->
+  <div class="tab-panel active" id="tabWorld">
+    <div class="tab-section">
+      <div class="section-label">选择 3 个世界标签</div>
+      <div class="tab-tags" id="worldTagsDisplay">
+        <span class="tag-empty">点击下方按钮选择世界背景标签</span>
       </div>
-      <button class="btn btn-custom" onclick="openTagPanel('world')">自定义</button>
+      <button class="btn btn-custom" onclick="openTagPanel('world')">选择标签</button>
+      <button class="btn btn-random" onclick="randomTags('world')">随机</button>
     </div>
-    <div class="card-tags" id="worldTagsDisplay">
-      <span class="tag-empty">点击"自定义"选择世界背景</span>
+    <div class="tab-section">
+      <button class="btn btn-generate" onclick="generateWorld()">生成世界观</button>
     </div>
     <div class="generated-info" id="worldGeneratedInfo"></div>
+    <div class="tab-nav-bottom">
+      <span></span>
+      <button class="btn btn-nav" onclick="switchMainTab('protagonist')">主角设定 →</button>
+    </div>
   </div>
 
-  <!-- CARD 2: 主角设定 -->
-  <div class="card" id="cardProtagonist">
-    <div class="card-header">
-      <div class="card-title">
-        <span class="card-title-icon protagonist"></span>主角设定
+  <!-- TAB 2: 主角 -->
+  <div class="tab-panel" id="tabProtagonist">
+    <div class="tab-section">
+      <div class="section-label">主角性格标签</div>
+      <div class="tab-tags" id="protagonistTagsDisplay">
+        <span class="tag-empty">选择主角性格维度</span>
       </div>
-      <button class="btn btn-custom" onclick="openTagPanel('protagonist')">自定义</button>
+      <button class="btn btn-custom" onclick="openTagPanel('protagonist')">选择标签</button>
+      <button class="btn btn-random" onclick="randomTags('protagonist')">随机</button>
     </div>
-    <div class="card-tags" id="protagonistTagsDisplay">
-      <span class="tag-empty">点击"自定义"选择主角设定</span>
+    <div class="tab-section">
+      <button class="btn btn-generate" onclick="generateProtagonist()">生成主角</button>
     </div>
     <div class="generated-info" id="protagonistGeneratedInfo"></div>
-    <div class="golden-finger-wrap">
-      <div class="golden-finger-label">金手指（主角的特殊能力/优势）</div>
-      <textarea class="golden-finger-input" id="goldenFingerInput" rows="2" placeholder="描述主角的金手指，例如：过目不忘、能看到他人好感度等..."></textarea>
-    </div>
-    <div class="card-footer">
-      <button class="btn btn-generate" onclick="generateProtagonist()">生成主角</button>
-      <span style="font-size:0.78rem;color:var(--text-muted);" id="protagonistHint">（金手指归属主角设定）</span>
+    <div class="tab-nav-bottom">
+      <button class="btn btn-nav" onclick="switchMainTab('world')">← 世界观</button>
+      <button class="btn btn-nav" onclick="switchMainTab('narrative')">写作视角 →</button>
     </div>
   </div>
 
-  <!-- CARD 3: 叙事风格 -->
-  <div class="card" id="cardNarrative">
-    <div class="card-header">
-      <div class="card-title">
-        <span class="card-title-icon narrative"></span>叙事风格
+  <!-- TAB 3: 写作视角 -->
+  <div class="tab-panel" id="tabNarrative">
+    <div class="tab-section">
+      <div class="section-label">选择写作视角</div>
+      <div class="tab-tags" id="narrativeTagsDisplay">
+        <span class="tag-empty">选择叙事视角</span>
       </div>
-      <button class="btn btn-custom" onclick="openTagPanel('narrative')">自定义</button>
+      <button class="btn btn-custom" onclick="openTagPanel('narrative')">选择视角</button>
+      <button class="btn btn-random" onclick="randomTags('narrative')">随机</button>
     </div>
-    <div class="card-tags" id="narrativeTagsDisplay">
-      <span class="tag-empty">点击"自定义"选择叙事风格（5维度各1个）</span>
+    <div class="tab-section">
+      <button class="btn btn-start" onclick="startCreating()">开始创作</button>
+    </div>
+    <div class="tab-nav-bottom">
+      <button class="btn btn-nav" onclick="switchMainTab('protagonist')">← 主角设定</button>
+      <span></span>
     </div>
   </div>
 
-</div>
-
-<!-- BOTTOM CTA -->
-<div class="bottom-cta">
-  <button class="btn-start" onclick="startCreating()">开始创作</button>
 </div>
 
 <!-- TAG SELECTION PANEL -->
@@ -833,17 +853,17 @@ const WRITING_SYSTEM = `【即墨写作系统 - 硬编码约束】
 const defaultPrompts = {
   worldPrompt: `你是世界背景生成专家。根据用户提供的标签，生成简洁的世界设定。
 
-【世界-角色-情节联动原则】
-- 世界设定需天然包含冲突土壤：阶层矛盾、资源争夺、规则不公、历史恩怨
-- 为角色的核心创伤提供合理来源：什么样的世界会造就"被抛弃的人"、"被背叛的人"？
-- 世界规则要"演"出来：每引入一条设定，立刻推演——谁会因此受益？谁会因此受害？
-- 感官锚点：世界不只是设定描述，要有气味、声音、温度（潮湿的青苔味、远处铁匠铺的叮当声）
+【世界底层逻辑 - 必须遵循】
+你生成的不是风景介绍，而是"这个世界为什么是这样的"。从给定标签出发，推演世界的底层规则：
+- 社会结构：谁在上谁在下？阶层是固化还是流动？
+- 权力来源：力量来自血统、资本、知识、还是暴力？
+- 资源分配：稀缺的是什么？谁控制它？人们如何获取？
+- 生存法则：在这个世界里，做什么能活下去，做什么会死？
+- 冲突土壤：世界设定需天然包含冲突——阶层矛盾、资源争夺、规则不公
+- 感官锚点：用气味、声音、温度让世界可感（潮湿的青苔味、远处铁匠铺的叮当声）
 
-【输出要求】
-- 100字以内的浓缩世界设定
-- 至少包含一个"天生冲突点"
-- 至少包含一个感官锚点
-- 直接输出，不要多余解释`,
+【格式】
+紧跟用户 prompt 中的"世界名称"和"底层逻辑"格式输出。底层逻辑控制在150字以内。直接输出，不要多余解释。`,
   protagonistPrompt: `你是角色设定专家。根据给定信息，生成一个简短的主角名字和简介。
 
 【角色维度 - 必须遵循】
@@ -881,7 +901,7 @@ const defaultPrompts = {
 - 创伤决定的是行为模式和情感按钮，不是角色的全部
 - 表层欲望 vs 深层需求的矛盾是角色弧光的基础
 
-格式：名字：X 简介：X`,
+格式：名字：X / 身份：X / 内在驱动：X / 简介：X（80字以内）`,
   narrativeStylePrompt: `你是叙事风格专家，擅长根据不同类型的故事匹配最佳叙事方式。
 
 【叙事风格类型】
@@ -949,6 +969,7 @@ const state = {
 };
 
 let currentPanel = null; // 'world' | 'protagonist' | 'narrative'
+let currentMainTab = 'world'; // tab bar state
 
 // ==================== TAG DATA ====================
 const worldDims = {
@@ -1141,6 +1162,41 @@ function confirmTags() {
   closeTagPanel();
 }
 
+function switchMainTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1)));
+  currentMainTab = tab;
+}
+
+function randomTags(type) {
+  if (type === 'world') {
+    const selected = {};
+    for (const [dim, tags] of Object.entries(worldDims)) {
+      selected[dim] = tags[Math.floor(Math.random() * tags.length)];
+    }
+    state.world.selected = selected;
+    renderCard('world');
+  } else if (type === 'protagonist') {
+    const styles = ['chinese', 'western'];
+    state.protagonist.style = styles[Math.floor(Math.random() * styles.length)];
+    const dims = state.protagonist.style === 'chinese' ? protagonistChineseDims : protagonistWesternDims;
+    const selected = {};
+    for (const [dim, tags] of Object.entries(dims)) {
+      selected[dim] = tags[Math.floor(Math.random() * tags.length)];
+    }
+    state.protagonist.selected = selected;
+    renderCard('protagonist');
+    // Show which style was picked
+    const styleLabel = state.protagonist.style === 'chinese' ? '中式' : '西式';
+    showToast('随机：' + styleLabel + '主角');
+  } else if (type === 'narrative') {
+    const allTags = Object.values(narrativeDims).flat();
+    const pick = allTags[Math.floor(Math.random() * allTags.length)];
+    state.narrative.selected = { '叙事风格': pick };
+    renderCard('narrative');
+  }
+}
+
 function renderCard(type) {
   const s = state[type].selected;
   const entries = Object.entries(s);
@@ -1152,19 +1208,24 @@ function renderCard(type) {
   const container = document.getElementById(containerId);
   if (entries.length === 0) {
     const placeholders = {
-      world: '点击"自定义"选择世界背景',
-      protagonist: '点击"自定义"选择主角设定',
-      narrative: '点击"自定义"选择叙事风格'
+      world: '选择世界背景标签',
+      protagonist: '选择主角性格维度',
+      narrative: '选择写作视角'
     };
     container.innerHTML = `<span class="tag-empty">${placeholders[type]}</span>`;
   } else {
-    // For protagonist, show style indicator + tags
+    let showEntries = entries;
+    if (type === 'world') {
+      // Show exactly 3 random tags
+      const shuffled = [...entries].sort(() => Math.random() - 0.5);
+      showEntries = shuffled.slice(0, 3);
+    }
     let html = '';
     if (type === 'protagonist' && state.protagonist.style) {
       const styleLabel = state.protagonist.style === 'chinese' ? '中式' : '西式';
       html = `<span class="tag active" style="background: var(--seal); color: var(--paper-new); border-color: var(--seal);">${styleLabel}</span>`;
     }
-    html += entries.map(([dim, tag]) =>
+    html += showEntries.map(([dim, tag]) =>
       `<span class="tag active" title="${dim}">${tag}</span>`
     ).join('');
     container.innerHTML = html;
@@ -1362,15 +1423,16 @@ function loadHistory(idx) {
   // Write to current_story_session and navigate
   const session = {
     worldTitle: item.worldTitle || '未知世界',
-    worldTags: [],
+    worldTags: item.worldTags || [],
     protagonist: item.protagonist || '未知主角',
-    protagonistTags: [],
-    goldenFinger: '',
-    narrative: '',
+    protagonistTags: item.protagonistTags || [],
+    goldenFinger: item.goldenFinger || '',
+    narrative: item.narrative || '',
     history: [],
-    storyOutline: [],
-    storyClues: [],
-    characterCards: [],
+    storyOutline: item.storyOutline || [],
+    storyClues: item.storyClues || [],
+    characterCards: item.characterCards || [],
+    characterRelations: item.characterRelations || [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -1430,8 +1492,6 @@ function startCreating() {
   const protagonistTags = Object.entries(p).map(([, t]) => t);
   const narrativeTag = Object.values(n)[0];
 
-  const goldenFinger = document.getElementById('goldenFingerInput').value.trim() || '无';
-
   const session = {
     worldTitle: state.world.generatedTitle || Object.values(w)[0] || '未知世界',
     worldDesc: state.world.generatedDesc || worldTags.join(' / '),
@@ -1439,7 +1499,7 @@ function startCreating() {
     protagonist: state.protagonist.generatedName || '待生成主角',
     protagonistTags,
     protagonistStyle: style,
-    goldenFinger,
+    goldenFinger: '',
     narrative: narrativeTag,
     narrativeDetail: n,
     history: [],
@@ -1484,7 +1544,6 @@ async function callDeepSeek(prompt, systemPrompt, onChunk) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 300,
         temperature: 0.8,
         stream: true
       })
@@ -1580,17 +1639,20 @@ function generateProtagonist() {
 
   const tags = Object.entries(s).map(([k, v]) => `${k}:${v}`).join('、');
   const styleLabel = style === 'chinese' ? '中式' : '西式';
-  const prompt = `根据以下${styleLabel}主角性格标签，生成一个简短的主角名字和简介。
+  const worldContext = state.world.generatedTitle
+    ? `世界名称：${state.world.generatedTitle}\n世界观：${state.world.generatedDesc || ''}`
+    : '';
 
-标签：${tags}
+  const prompt = `根据以下设定，生成一个${styleLabel}主角。背靠这个世界，立体地塑造这个人。
+
+${worldContext}
+性格标签：${tags}
 
 请直接输出，格式如下（不要有任何其他内容）：
 名字：[名字]
-简介：[20字以内的简介]
-
-例如：
-名字：林霜
-简介：冷面杀手，外冷内热型人格
+身份：[在这个世界里的位置和处境]
+内在驱动：[核心创伤如何驱动TA的行为]
+简介：[80字以内，有画面感的立体描述]
 
 名字：`;
 
@@ -1606,14 +1668,17 @@ function generateProtagonist() {
     typewriterReset();
     if (result) {
       const nameMatch = result.match(/名字[：:]\s*(.+)/);
-      const descMatch = result.match(/简介[：:]\s*(.+)/);
       if (nameMatch) {
         const name = nameMatch[1].trim();
-        const desc = descMatch ? descMatch[1].trim() : '';
+        const roleMatch = result.match(/身份[：:]\s*(.+)/);
+        const driveMatch = result.match(/内在驱动[：:]\s*(.+)/);
+        const descMatch = result.match(/简介[：:]\s*(.+)/);
+        const desc = [roleMatch, driveMatch, descMatch]
+          .filter(m => m).map(m => m[1].trim()).join(' / ');
         state.protagonist.generatedName = name;
-        state.protagonist.generatedDesc = desc;
+        state.protagonist.generatedDesc = desc || (descMatch ? descMatch[1].trim() : '');
         infoEl.classList.remove('streaming');
-        infoEl.innerHTML = `<div class="generated-name">${escapeHTML(name)}</div><div class="generated-desc">${escapeHTML(desc)}</div>`;
+        infoEl.innerHTML = `<div class="generated-name">${escapeHTML(name)}</div><div class="generated-desc">${escapeHTML(state.protagonist.generatedDesc)}</div>`;
         showToast('主角已生成');
       } else {
         showToast('生成主角失败，请重试');
@@ -1627,6 +1692,64 @@ function generateProtagonist() {
     console.error(err);
     showToast('生成主角失败');
     isGeneratingProtagonist = false;
+  });
+}
+
+// ==================== GENERATE WORLD (standalone) ====================
+let isGeneratingWorld = false;
+
+function generateWorld() {
+  const w = state.world.selected;
+  const allTags = Object.values(w);
+  if (allTags.length === 0) {
+    showToast('请先通过"自定义"选择世界背景标签');
+    return;
+  }
+  if (isGeneratingWorld) return;
+  isGeneratingWorld = true;
+
+  // Pick 3 random tags
+  const shuffled = [...allTags].sort(() => Math.random() - 0.5);
+  const pickedTags = shuffled.slice(0, 3).join('、');
+
+  const worldPromptContent = `根据以下3个标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
+
+标签：${pickedTags}
+
+输出格式（只输出这2行，不要其他内容）：
+世界名称：X
+底层逻辑：X（200字以内，必须完整说完最后一句话，不得在逗号或句中断开）`;
+
+  const worldInfoEl = document.getElementById('worldGeneratedInfo');
+  worldInfoEl.classList.add('streaming');
+  worldInfoEl.innerHTML = '<div class="generated-desc" id="worldTypewriterSolo" style="font-family:monospace;font-size:0.82rem;"></div>';
+  const twEl = document.getElementById('worldTypewriterSolo');
+
+  callDeepSeek(worldPromptContent, getPrompt('worldPrompt'), (text) => {
+    typewriterFeed(text, twEl);
+  }).then(result => {
+    typewriterReset();
+    if (result) {
+      const titleMatch = result.match(/世界名称[：:]\s*(.+)/);
+      const descMatch = result.match(/底层逻辑[：:]\s*(.+)/);
+      if (titleMatch) {
+        state.world.generatedTitle = titleMatch[1].trim();
+        state.world.generatedDesc = ensureCompleteSentence(descMatch ? descMatch[1].trim() : '');
+        worldInfoEl.classList.remove('streaming');
+        worldInfoEl.innerHTML = `<div class="generated-name">${escapeHTML(state.world.generatedTitle)}</div><div class="generated-desc">${escapeHTML(state.world.generatedDesc)}</div>`;
+        showToast('世界已生成');
+      } else {
+        showToast('生成世界失败，请重试');
+      }
+    } else {
+      showToast('API调用失败，请检查API Key');
+    }
+    isGeneratingWorld = false;
+  }).catch(err => {
+    typewriterReset();
+    console.error(err);
+    showToast('生成世界失败');
+    isGeneratingWorld = false;
   });
 }
 
@@ -1679,14 +1802,14 @@ function oneClickGenerate() {
   const worldTags = Object.values(worldSelected).join('、');
   const styleLabel = style === 'chinese' ? '中式' : '西式';
 
-  const worldPrompt = `生成一个小说世界背景。
+  const worldPrompt = `根据以下3个标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
 
 标签：${worldTags}
 风格：${styleLabel}主角
 
 输出格式（只输出这2行，不要其他内容）：
 世界名称：X
-世界观：X`;
+底层逻辑：X（200字以内，必须完整说完最后一句话，不得在逗号或句中断开）`;
 
   const systemPrompt = getPrompt('worldPrompt');
 
@@ -1701,7 +1824,7 @@ function oneClickGenerate() {
     typewriterReset();
     if (result) {
       const titleMatch = result.match(/世界名称[：:]\s*(.+)/);
-      const descMatch = result.match(/世界观[：:]\s*(.+)/);
+      const descMatch = result.match(/底层逻辑[：:]\s*(.+)/);
 
       if (titleMatch) {
         const title = titleMatch[1].trim();
@@ -1725,8 +1848,7 @@ function oneClickGenerate() {
         worldInfoEl.innerHTML = infoHtml;
 
         // Step 3: Generate protagonist based on world (金手指 from user input)
-        const userGoldenFinger = document.getElementById('goldenFingerInput').value.trim();
-        generateProtagonistForWorld(title, desc, userGoldenFinger, style, protoSelected);
+        generateProtagonistForWorld(title, desc, style, protoSelected);
       } else {
         showToast('生成世界背景失败，请重试');
         isOneClickGenerating = false;
@@ -1744,25 +1866,23 @@ function oneClickGenerate() {
   });
 }
 
-function generateProtagonistForWorld(worldTitle, worldDesc, goldenFinger, style, selectedTags) {
+function generateProtagonistForWorld(worldTitle, worldDesc, style, selectedTags) {
   const tags = Object.entries(selectedTags).map(([, v]) => v).join('、');
   const styleLabel = style === 'chinese' ? '中式' : '西式';
 
-  const prompt = `根据以下世界观设定，生成一个符合这个世界的主角名字和简介。
+  const prompt = `根据以下世界设定，生成一个${styleLabel}主角。背靠这个世界，立体地塑造这个人。
 
 世界名称：${worldTitle}
-世界观：${worldDesc}
-金手指：${goldenFinger}
-主角风格：${styleLabel}主角
+世界底层逻辑：${worldDesc}
 性格标签：${tags}
 
 请直接输出，格式如下（不要有任何其他内容）：
 名字：[名字]
-简介：[20字以内的简介，符合上述世界观设定]
+身份：[在这个世界里的位置和处境]
+内在驱动：[核心创伤如何驱动TA的行为]
+简介：[80字以内，有画面感的立体描述]
 
-例如：
-名字：沈夜
-简介：星际赏金猎人，能感知他人情绪波动，冷静果决`;
+名字：`;
 
   const systemPrompt = getPrompt('protagonistPrompt');
 
@@ -1777,14 +1897,17 @@ function generateProtagonistForWorld(worldTitle, worldDesc, goldenFinger, style,
     typewriterReset();
     if (result) {
       const nameMatch = result.match(/名字[：:]\s*(.+)/);
-      const descMatch = result.match(/简介[：:]\s*(.+)/);
       if (nameMatch) {
         const name = nameMatch[1].trim();
-        const desc = descMatch ? descMatch[1].trim() : '';
+        const roleMatch = result.match(/身份[：:]\s*(.+)/);
+        const driveMatch = result.match(/内在驱动[：:]\s*(.+)/);
+        const descMatch = result.match(/简介[：:]\s*(.+)/);
+        const desc = [roleMatch, driveMatch, descMatch]
+          .filter(m => m).map(m => m[1].trim()).join(' / ');
         state.protagonist.generatedName = name;
-        state.protagonist.generatedDesc = desc;
+        state.protagonist.generatedDesc = desc || (descMatch ? descMatch[1].trim() : '');
         protoInfoEl.classList.remove('streaming');
-        protoInfoEl.innerHTML = `<div class="generated-name">${escapeHTML(name)}</div><div class="generated-desc">${escapeHTML(desc)}</div>`;
+        protoInfoEl.innerHTML = `<div class="generated-name">${escapeHTML(name)}</div><div class="generated-desc">${escapeHTML(state.protagonist.generatedDesc)}</div>`;
         showToast('一键生成完成');
       } else {
         showToast('生成主角失败');
@@ -1810,6 +1933,13 @@ function showToast(msg) {
 }
 
 // ==================== ESCAPE HTML ====================
+function ensureCompleteSentence(text) {
+  if (!text) return text;
+  const lastPeriod = Math.max(text.lastIndexOf('。'), text.lastIndexOf('！'), text.lastIndexOf('？'));
+  if (lastPeriod > 0) return text.slice(0, lastPeriod + 1);
+  return text;
+}
+
 function escapeHTML(str) {
   return String(str ?? '').replace(/[&<>"']/g, c => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'

@@ -4,7 +4,16 @@ AI 驱动的分支叙事故事生成器。用户通过配置世界观、主角�
 
 ## 运行
 
-直接在浏览器中打开 `index.html`（点击即用，无需安装）
+必须通过本地 HTTP 服务器运行（`file://` 协议会阻止外部 API 请求）：
+
+```bash
+cd 即墨
+python3 -m http.server 8080
+```
+
+然后浏览器打开 `http://localhost:8080`
+
+> 没有 Python？其他方式：`npx serve .` / `php -S localhost:8080` / 用 VS Code Live Server 插件
 
 ## 页面
 

@@ -810,9 +810,8 @@
         let protagonistStyle = ''; // 'chinese' or 'western'
         let personalityFramework = {}; // chineseCategories or westernCategories
 
-        // System prompts (from index.html)
-        const systemPrompts = {
-            story: `你是专业网文作家。核心理念：用户是灵魂，AI是笔。用户不需要会写，只需要会选。AI负责把用户的选择，用专业的方式落到纸上。
+        // System prompts — read from localStorage (synced with admin.html)
+        const DEFAULT_STORY_PROMPT = `你是专业网文作家。核心理念：用户是灵魂，AI是笔。用户不需要会写，只需要会选。AI负责把用户的选择，用专业的方式落到纸上。
 
 【AI核心能力】
 1. 考据隐身：虚构设定锚定真实知识体系，只驱动底层逻辑
@@ -950,20 +949,18 @@
 char_001 | 李管家 | 1 | 配角 | 古宅管家，知道秘密
 
 [关系边]
-char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接`,
-            options: `你是选项设计专家。用户不需要会写，只需要会选。每个选项指向不同的剧情走向。
+char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接`;
 
-【选项要求】
-1. 差异化：每个选项指向完全不同的剧情走向，不是同一件事的不同说法
-2. 简洁：15字以内，一眼看懂
-3. 自洽：符合角色性格和当前情境
-4. 可持续：每个选项都能展开成完整的下一段叙事，不走进死胡同
-
-【输入变量】
-当前剧情：{{storyContext}}
-主角信息：{{protagonist}}
-相关标签：{{tags}}`
-        };
+        function getStoryPrompt() {
+            try {
+                const saved = localStorage.getItem('prompt_config');
+                if (saved) {
+                    const cfg = JSON.parse(saved);
+                    if (cfg.storySystemPrompt) return cfg.storySystemPrompt;
+                }
+            } catch (e) {}
+            return DEFAULT_STORY_PROMPT;
+        }
 
         // Render prompt variables
         function renderPrompt(template, vars) {
@@ -1066,10 +1063,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 return;
             }
 
-            const pref = localStorage.getItem('user_preference') || '';
-
-            const prompt = `${pref}
-世界背景：${currentStory.worldTitle}
+            const prompt = `世界背景：${currentStory.worldTitle}
 主角：${currentStory.protagonist}
 金手指：${currentStory.goldenFinger || '无'}
 叙事风格：${currentStory.narrative}
@@ -1080,7 +1074,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 3. 文字直白有张力，画面感强
 4. 结尾停在关键节点，提供3个选项`;
 
-            const systemPrompt = renderPrompt(systemPrompts.story, {
+            const systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
                 worldDesc: currentStory.worldDesc || '',
                 protagonist: currentStory.protagonist,
@@ -1094,15 +1088,14 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 
                 if (result) {
                     typewriterReset();
-                    const cleanResult = ensureCompleteSentence(result);
-                    const displayText = stripStructuredMeta(cleanResult);
+                    const displayText = ensureCompleteSentence(stripStructuredMeta(result));
                     const segment = {
                         content: displayText,
                         timestamp: Date.now()
                     };
                     currentStory.history.push(segment);
                     displayFullStory();
-                    appendNewMeta(cleanResult);
+                    appendNewMeta(result); // parse from FULL result (before sentence truncation)
                     saveStoryData();
                     autoSave();
                 } else {
@@ -1212,11 +1205,14 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 return;
             }
 
-            const pref = localStorage.getItem('user_preference') || '';
             const storySoFar = currentStory.history.map(h => h.content).join('\n\n');
 
-            const prompt = `${pref}
-用户选择：${userChoice}
+            const prompt = `用户选择：${userChoice}
+
+世界背景：${currentStory.worldTitle}
+主角：${currentStory.protagonist}
+金手指：${currentStory.goldenFinger || '无'}
+叙事风格：${currentStory.narrative}
 
 请继续故事，接续以下内容：
 ${storySoFar}
@@ -1227,7 +1223,7 @@ ${storySoFar}
 3. 文字直白有张力
 4. 结尾停在新的关键节点，提供3个选项`;
 
-            const systemPrompt = renderPrompt(systemPrompts.story, {
+            const systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
                 worldDesc: currentStory.worldDesc || '',
                 protagonist: currentStory.protagonist,
@@ -1241,8 +1237,7 @@ ${storySoFar}
 
                 if (result) {
                     typewriterReset();
-                    const cleanResult = ensureCompleteSentence(result);
-                    const displayText = stripStructuredMeta(cleanResult);
+                    const displayText = ensureCompleteSentence(stripStructuredMeta(result));
                     const segment = {
                         content: displayText,
                         timestamp: Date.now()
@@ -1251,7 +1246,7 @@ ${storySoFar}
                     displayFullStory();
                     document.getElementById('customInput').value = '';
                     document.getElementById('continueHint').textContent = '输入剧情方向，或直接点击继续';
-                    appendNewMeta(cleanResult);
+                    appendNewMeta(result); // parse from FULL result (before sentence truncation)
                     saveStoryData();
                     autoSave();
                 }
@@ -1280,7 +1275,11 @@ ${storySoFar}
                 date: new Date().toLocaleString('zh-CN'),
                 content,
                 worldTitle: currentStory.worldTitle,
-                protagonist: currentStory.protagonist
+                worldTags: currentStory.worldTags,
+                protagonist: currentStory.protagonist,
+                goldenFinger: currentStory.goldenFinger,
+                narrative: currentStory.narrative,
+                storyOutline, storyClues, characterCards, characterRelations
             };
 
             if (existIdx >= 0) {
@@ -1308,7 +1307,11 @@ ${storySoFar}
                 date: new Date().toLocaleString('zh-CN'),
                 content,
                 worldTitle: currentStory.worldTitle,
-                protagonist: currentStory.protagonist
+                worldTags: currentStory.worldTags,
+                protagonist: currentStory.protagonist,
+                goldenFinger: currentStory.goldenFinger,
+                narrative: currentStory.narrative,
+                storyOutline, storyClues, characterCards, characterRelations
             };
 
             if (existIdx >= 0) {
@@ -1444,9 +1447,13 @@ ${storySoFar}
         }
 
         function getApiConfig() {
+            let model = localStorage.getItem('deepseek_model') || 'deepseek-v4-pro';
+            if (model === 'flash') model = 'deepseek-v4-flash';
+            else if (model === 'pro') model = 'deepseek-v4-pro';
+            else if (!model.startsWith('deepseek-')) model = 'deepseek-v4-pro';
             return {
                 apiKey: localStorage.getItem('deepseek_api_key') || '',
-                model: localStorage.getItem('deepseek_model') || 'deepseek-v4-pro'
+                model
             };
         }
 

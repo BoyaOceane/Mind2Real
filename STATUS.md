@@ -1,14 +1,14 @@
 # 即墨 Execution Status
 
-> **Last updated:** 2026-06-06 — 打字机逐字渲染 + 金手指限主角卡片
-> **Active branches:** `main` HEAD `e65baa6` (fix: normalize model names in getApiConfig)
+> **Last updated:** 2026-06-06 — 代码审计 10 项逻辑修复
+> **Active branches:** `main` HEAD `a9f651b` (feat: 打字机逐字渲染 + 写作指南集成 + 文档体系初始化)
 > **Source:** index of phase execution records under this folder. Gate verdicts here are authoritative.
 
 ## Phase ledger
 
 | Phase | Plan | Execution record(s) | Implementation | Smoke gate | Notes |
 |-------|------|---------------------|----------------|------------|-------|
-| **P0 — MVP** | `docs/plans/2026-05-14-jimo-poc-mvp.md` | – | ✅ done (19 commits on `main`) | – | 三页面（创作/阅读/管理）均可用 |
+| **P0 — MVP** | `docs/plans/2026-05-14-jimo-poc-mvp.md` | `docs/records/2026-06-06-bugfix-audit.md` | ✅ done (20 commits on `main`) | – | 三页面均可用；10 项逻辑修复 |
 
 Legend: `✅ validated · ⚠ conditionally validated · ⏸ implementation done, gate open · ⏳ planned · ❌ blocked`
 
