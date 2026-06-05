@@ -1,7 +1,7 @@
 # 即墨 Execution Status
 
-> **Last updated:** 2026-06-06 — 代码审计 10 项逻辑修复
-> **Active branches:** `main` HEAD `a9f651b` (feat: 打字机逐字渲染 + 写作指南集成 + 文档体系初始化)
+> **Last updated:** 2026-06-06 — 剧情生成大改版：停止保留/偏好注入/八大准则/模型切换/侧边栏持久化
+> **Active branches:** `main` HEAD `0ad7bdf` (feat: 首页横向Tab改版 + 写作指南深度集成 + 10项逻辑修复)
 > **Source:** index of phase execution records under this folder. Gate verdicts here are authoritative.
 
 ## Phase ledger

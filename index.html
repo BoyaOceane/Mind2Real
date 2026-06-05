@@ -711,6 +711,7 @@
   <div class="top-title">即墨</div>
   <div class="top-right">
     <button class="top-btn" onclick="oneClickGenerate()" style="background: var(--seal); border-color: var(--seal);">一键生成</button>
+    <button class="top-btn" onclick="openPref()">偏好</button>
     <button class="top-btn" onclick="openHistory()">历史记录</button>
     <button class="top-btn" onclick="openApi()">API设置</button>
     <a href="admin.html" class="top-btn">提示词管理</a>
@@ -730,7 +731,7 @@
   <!-- TAB 1: 世界观 -->
   <div class="tab-panel active" id="tabWorld">
     <div class="tab-section">
-      <div class="section-label">选择 3 个世界标签</div>
+      <div class="section-label">选择世界标签</div>
       <div class="tab-tags" id="worldTagsDisplay">
         <span class="tag-empty">点击下方按钮选择世界背景标签</span>
       </div>
@@ -807,6 +808,13 @@
 <div class="api-panel-overlay" id="apiPanelOverlay">
   <div class="api-panel">
     <div class="api-panel-title">DeepSeek API 设置</div>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:0.78rem;color:var(--text-secondary);">模型版本</label>
+      <select id="apiModelSelect" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--paper-new);color:var(--ink-heavy);font-family:inherit;font-size:0.88rem;">
+        <option value="deepseek-v4-flash">deepseek-v4-flash（快速生成）★ 推荐</option>
+        <option value="deepseek-v4-pro">deepseek-v4-pro</option>
+      </select>
+    </div>
     <div class="api-input-wrap">
       <input type="password" class="api-input" id="apiKeyInput" placeholder="请输入 DeepSeek API Key">
       <button class="api-toggle" onclick="toggleApiKey()">显示</button>
@@ -814,6 +822,16 @@
     <button class="api-save-btn" onclick="saveApiKey()">保存</button>
     <button class="api-test-btn" id="apiTestBtn" onclick="testApiKey()">测试连接</button>
     <button class="api-test-btn" id="apiTestGenerateBtn" onclick="testApiGenerate()">测试生成</button>
+  </div>
+</div>
+
+<!-- PREFERENCE PANEL -->
+<div class="api-panel-overlay" id="prefPanelOverlay">
+  <div class="api-panel">
+    <div class="api-panel-title">用户偏好（全局写作风格）</div>
+    <textarea id="prefInput" rows="5" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--paper-new);color:var(--ink-heavy);font-family:inherit;font-size:0.9rem;resize:vertical;" placeholder="例如：我喜欢黑暗残酷的世界观，主角性格复杂有缺陷，叙事节奏快，不要言情线..."></textarea>
+    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">AI 将提取偏好的本质转化为写作约束，注入所有生成环节</p>
+    <button class="api-save-btn" onclick="savePref()">保存</button>
   </div>
 </div>
 
@@ -1170,10 +1188,14 @@ function switchMainTab(tab) {
 
 function randomTags(type) {
   if (type === 'world') {
+    const dims = Object.keys(worldDims);
+    // Pick 3 random dimensions, then 1 random tag from each
+    const shuffled = dims.sort(() => Math.random() - 0.5).slice(0, 3);
     const selected = {};
-    for (const [dim, tags] of Object.entries(worldDims)) {
+    shuffled.forEach(dim => {
+      const tags = worldDims[dim];
       selected[dim] = tags[Math.floor(Math.random() * tags.length)];
-    }
+    });
     state.world.selected = selected;
     renderCard('world');
   } else if (type === 'protagonist') {
@@ -1214,18 +1236,12 @@ function renderCard(type) {
     };
     container.innerHTML = `<span class="tag-empty">${placeholders[type]}</span>`;
   } else {
-    let showEntries = entries;
-    if (type === 'world') {
-      // Show exactly 3 random tags
-      const shuffled = [...entries].sort(() => Math.random() - 0.5);
-      showEntries = shuffled.slice(0, 3);
-    }
     let html = '';
     if (type === 'protagonist' && state.protagonist.style) {
       const styleLabel = state.protagonist.style === 'chinese' ? '中式' : '西式';
       html = `<span class="tag active" style="background: var(--seal); color: var(--paper-new); border-color: var(--seal);">${styleLabel}</span>`;
     }
-    html += showEntries.map(([dim, tag]) =>
+    html += entries.map(([dim, tag]) =>
       `<span class="tag active" title="${dim}">${tag}</span>`
     ).join('');
     container.innerHTML = html;
@@ -1238,12 +1254,37 @@ function openApi() {
   const input = document.getElementById('apiKeyInput');
   input.value = localStorage.getItem('deepseek_api_key') || '';
   input.type = 'password';
+  document.getElementById('apiModelSelect').value = getApiConfig().model;
   panel.classList.add('open');
 }
 
 function closeApi() {
   document.getElementById('apiPanelOverlay').classList.remove('open');
 }
+
+// ==================== USER PREFERENCE ====================
+function openPref() {
+  document.getElementById('prefInput').value = localStorage.getItem('user_preference') || '';
+  document.getElementById('prefPanelOverlay').classList.add('open');
+}
+function savePref() {
+  const v = document.getElementById('prefInput').value.trim();
+  localStorage.setItem('user_preference', v);
+  document.getElementById('prefPanelOverlay').classList.remove('open');
+  showToast(v ? '偏好已保存' : '偏好已清空');
+}
+function getPrefPrompt() {
+  const raw = localStorage.getItem('user_preference') || '';
+  if (!raw.trim()) return '';
+  return `【用户深层偏好 — 已转化为写作约束】
+${raw}
+
+请将以上偏好的本质提炼为本次创作的基调约束：风格倾向、节奏偏好、禁忌事项。不是照搬原文，而是理解其底层审美后融入写作。`;
+}
+// Close pref panel on overlay click
+document.getElementById('prefPanelOverlay').addEventListener('click', function(e) {
+  if (e.target === this) document.getElementById('prefPanelOverlay').classList.remove('open');
+});
 
 function toggleApiKey() {
   const input = document.getElementById('apiKeyInput');
@@ -1264,7 +1305,8 @@ function saveApiKey() {
     return;
   }
   localStorage.setItem('deepseek_api_key', key);
-  showToast('API Key 已保存');
+  localStorage.setItem('deepseek_model', document.getElementById('apiModelSelect').value);
+  showToast('API Key 和模型已保存');
   closeApi();
 }
 
@@ -1497,6 +1539,7 @@ function startCreating() {
     worldDesc: state.world.generatedDesc || worldTags.join(' / '),
     worldTags,
     protagonist: state.protagonist.generatedName || '待生成主角',
+    protagonistDesc: state.protagonist.generatedDesc || '',
     protagonistTags,
     protagonistStyle: style,
     goldenFinger: '',
@@ -1643,7 +1686,8 @@ function generateProtagonist() {
     ? `世界名称：${state.world.generatedTitle}\n世界观：${state.world.generatedDesc || ''}`
     : '';
 
-  const prompt = `根据以下设定，生成一个${styleLabel}主角。背靠这个世界，立体地塑造这个人。
+  const pref = getPrefPrompt();
+  const prompt = `${pref}根据以下设定，生成一个${styleLabel}主角。背靠这个世界，立体地塑造这个人。
 
 ${worldContext}
 性格标签：${tags}
@@ -1708,11 +1752,10 @@ function generateWorld() {
   if (isGeneratingWorld) return;
   isGeneratingWorld = true;
 
-  // Pick 3 random tags
-  const shuffled = [...allTags].sort(() => Math.random() - 0.5);
-  const pickedTags = shuffled.slice(0, 3).join('、');
+  const pickedTags = allTags.join('、');
 
-  const worldPromptContent = `根据以下3个标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
+  const pref = getPrefPrompt();
+  const worldPromptContent = `${pref}根据以下标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
 
 标签：${pickedTags}
 
@@ -1802,7 +1845,7 @@ function oneClickGenerate() {
   const worldTags = Object.values(worldSelected).join('、');
   const styleLabel = style === 'chinese' ? '中式' : '西式';
 
-  const worldPrompt = `根据以下3个标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
+  const worldPrompt = `${pref}根据以下标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
 
 标签：${worldTags}
 风格：${styleLabel}主角

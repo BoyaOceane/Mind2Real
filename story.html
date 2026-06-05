@@ -161,47 +161,70 @@
         .btn-save { background: rgba(90,138,80,0.95); border-color: rgba(90,138,80,0.6); }
         .btn-export { background: rgba(196,151,30,0.85); border-color: rgba(196,151,30,0.5); }
 
-        /* World Banner */
+        /* World Banner — collapsible */
         .world-banner {
-            padding: var(--space-sm) var(--space-md);
-            margin-bottom: 12px;
+            padding: 6px var(--space-md);
+            margin-bottom: 8px;
             background: var(--bg-secondary);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-md);
             flex-shrink: 0;
-        }
-        .world-banner-header {
             display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
+            flex-direction: column;
+            gap: 2px;
         }
-        .world-name {
-            font-family: var(--font-display);
-            font-size: 1rem;
-            font-weight: 600;
+        .banner-details { }
+        .banner-summary {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.88rem;
             color: var(--text-primary);
+            padding: 3px 0;
+            list-style: none;
+            user-select: none;
+        }
+        .banner-summary::-webkit-details-marker { display: none; }
+        .banner-summary::marker { display: none; }
+        .summary-arrow {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+        details[open] .summary-arrow { transform: rotate(90deg); }
+        .banner-body {
+            padding: 6px 0 6px 18px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
         }
         .world-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 4px;
+            margin-bottom: 4px;
         }
         .tag {
             display: inline-block;
-            padding: 2px 10px;
+            padding: 1px 8px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-full);
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
+        }
+        .world-desc-detail {
+            font-size: 0.75rem;
+            color: var(--text-muted);
         }
         .character-info {
             display: flex;
             gap: 16px;
-            margin-top: 6px;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
+            padding: 2px 0;
         }
 
         /* Main Area */
@@ -649,35 +672,37 @@
             font-family: var(--font-display);
             color: var(--text-primary);
         }
-        .api-modal-body {
-            margin-bottom: 20px;
+        .api-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
         }
-        .api-modal-body label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        .api-modal-body input {
-            width: 100%;
+        .api-input-row input {
+            flex: 1;
             padding: 10px 12px;
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
             background: var(--bg-secondary);
             color: var(--text-primary);
             font-size: 0.95rem;
-            box-sizing: border-box;
-        }
-        .api-modal-hint {
-            margin: 8px 0 0;
-            font-size: 0.8rem;
-            color: var(--text-muted);
         }
         .api-modal-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: flex-end;
+            flex-wrap: wrap;
         }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn-sm:hover { background: var(--bg-tertiary); }
 
         /* Responsive - Mobile */
         @media (max-width: 640px) {
@@ -703,6 +728,7 @@
             <span class="story-title" id="storyTitle">故事创作</span>
         </div>
         <div class="top-right">
+            <button class="top-btn" onclick="openPref()">偏好</button>
             <button class="top-btn" onclick="toggleApiPanel()">API设置</button>
             <a href="admin.html" class="top-btn">提示词管理</a>
             <button class="top-btn btn-save" onclick="saveStory()">保存</button>
@@ -713,15 +739,36 @@
     <!-- API Settings Modal -->
     <div id="apiModal" class="api-modal">
         <div class="api-modal-content">
-            <h3>API 设置</h3>
-            <div class="api-modal-body">
-                <label for="apiKeyInput">DeepSeek API Key</label>
+            <h3>DeepSeek API 设置</h3>
+            <div class="api-model-select">
+                <label style="font-size:0.78rem;color:var(--text-secondary);">模型版本</label>
+                <select id="apiModelSelect" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-secondary);color:var(--text-primary);font-family:inherit;font-size:0.88rem;">
+                    <option value="deepseek-v4-pro">deepseek-v4-pro ★ 推荐</option>
+                    <option value="deepseek-v4-flash">deepseek-v4-flash（快速）</option>
+                </select>
+            </div>
+            <div class="api-input-row" style="margin-top:12px;">
                 <input type="password" id="apiKeyInput" placeholder="请输入 API Key" />
-                <p class="api-modal-hint">API Key 将保存在本地浏览器中</p>
+                <button class="btn btn-sm" onclick="toggleApiKey()">显示</button>
             </div>
             <div class="api-modal-actions">
                 <button class="btn" onclick="toggleApiPanel()">取消</button>
                 <button class="btn btn-primary" onclick="saveApiKey()">保存</button>
+                <button class="btn btn-sm" id="apiTestBtn" onclick="testApiKey()">测试连接</button>
+                <button class="btn btn-sm" id="apiTestGenerateBtn" onclick="testApiGenerate()">测试生成</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preference Modal -->
+    <div id="prefModal" class="api-modal">
+        <div class="api-modal-content">
+            <h3>用户偏好（全局写作风格）</h3>
+            <textarea id="prefInput" rows="5" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--bg-secondary);color:var(--text-primary);font-family:inherit;font-size:0.9rem;resize:vertical;box-sizing:border-box;" placeholder="例如：我喜欢黑暗残酷的世界观，主角性格复杂有缺陷，叙事节奏快，不要言情线..."></textarea>
+            <p style="font-size:0.75rem;color:var(--text-muted);margin:4px 0 12px;">AI 将提取偏好的本质转化为写作约束</p>
+            <div class="api-modal-actions">
+                <button class="btn" onclick="closePref()">取消</button>
+                <button class="btn btn-primary" onclick="savePref()">保存</button>
             </div>
         </div>
     </div>
@@ -730,12 +777,18 @@
         <div class="container">
             <!-- World Info Banner -->
             <div class="world-banner">
-                <div class="world-banner-header">
-                    <div class="world-name" id="worldTitle">加载中...</div>
-                    <div class="world-tags" id="worldTags"></div>
-                </div>
+                <details class="banner-details">
+                    <summary class="banner-summary"><span id="worldTitle">加载中...</span><span class="summary-arrow">▸</span></summary>
+                    <div class="banner-body">
+                        <div class="world-tags" id="worldTags"></div>
+                        <div class="world-desc-detail" id="worldDescDetail"></div>
+                    </div>
+                </details>
+                <details class="banner-details">
+                    <summary class="banner-summary"><span id="characterInfo">主角：加载中...</span><span class="summary-arrow">▸</span></summary>
+                    <div class="banner-body" id="characterDetail"></div>
+                </details>
                 <div class="character-info">
-                    <span id="characterInfo">主角：加载中...</span>
                     <span id="narrativeInfo">叙事：加载中...</span>
                 </div>
             </div>
@@ -781,7 +834,7 @@
         <div class="bottom-action-inner">
             <textarea class="custom-input" id="customInput" rows="1" placeholder="输入你想要的剧情方向..."></textarea>
             <div class="bottom-action-btns">
-                <button class="btn btn-primary" id="btnContinue" onclick="continueStory()">继续创作</button>
+                <button class="btn btn-primary" id="btnContinue" onclick="isLoading ? stopGeneration() : continueStory()">继续创作</button>
             </div>
         </div>
     </div>
@@ -824,21 +877,31 @@
 【故事机制】
 第一步：世界观已生成
 第二步：以第三人称开篇，直接进入冲突。用户在阅读中进入世界
-第三步：每个关键节点，提供多个选项，每个选项指向不同剧情走向
-第四步：用户选择后，沿选定方向推进叙事
-第五步：新的节点，新的选项，形成持续的分支叙事
+第三步：每个关键节点，在主角面临抉择、危机或转折时停笔，由用户在底部输入框自行决定剧情走向
+第四步：用户输入选择后，沿选定方向推进叙事
+第五步：新的节点，再次停笔，形成持续的分支叙事
 
-【写作八条铁律】
-1. 钩子：首句必须有异常、不安或未解之谜
-2. 感受优先：情绪在前，用动作和对话暗示，不直接描写心理
-3. 节奏控制：每千字必须有情绪转折或情节推高。平静段落必须有暗流
-4. 规则要演：每引入设定，必须立刻有角色因此改变命运。空讲设定等于没写
-5. 行动即人设：不给角色贴性格标签。只写他在关键时刻做了什么选择
-6. 爽点兑现：每章至少兑现一种底层爽感——翻身、解密、占有、自由、活下来、守护
-7. 语言透明：删优先级：形容词 > 可改成动作的心理描写 > 炫技句子
-8. 考据隐身：所有真实参照只驱动底层逻辑，不在正文里站到前台
-9. 克制数字：除非剧情必须体现精确技术参数（如破解密码、医疗数据），否则不堆砌具体数值。用感官和动作代替测量——写"水滴悬在半空，缓缓往上爬了一截"，不写"停滞了四秒，朝上移动了大约三厘米"
-10. 句尾完整：每段必须在句号处结束，不得在逗号、从句、从属结构处截断。如果字数限制在流中到达，停在最后一个完整句子的句号处。
+【写作铁律 — 源自八大准则，每次写作自动执行】
+
+第一条·钩子：首句必须包含异常（不该发生的事发生了）、不安（让人心里发毛）、或未解（必须知道答案的问题）。
+ 示范："皇帝收到一封从未来寄来的信"（异常）、"孟惊蝉发现铜镜里自己的倒影慢了半拍才转头"（不安）
+
+第二条·感受优先：先写身体反应、情绪涌动、直观感受。解释能不给就不给。让读者从动作和对话里读到情绪。
+ 错误：她很难过。 正确：她把那张纸折了又折，折到再也折不动。
+
+第三条·节奏控制：每千字必须有情绪转折或情节推高。平静段落底下埋暗流——对话有潜台词，环境有暗示，角色心里有没说出口的东西。
+
+第四条·规则要演出来：每引入设定，必须紧接着有角色因这条规则而改变命运。不说"这个世界强者为尊"，直接写强者如何踩人、弱者如何被踩。空讲设定等于没写。
+
+第五条·行动即人设：不给角色贴性格标签（隐忍、善良、腹黑）。只写他在关键时刻做了什么选择、怎么做、做完什么反应。选择比描写多十倍说服力。
+
+第六条·爽点兑现：每章至少兑现一种底层爽感——翻身（被打压者扬眉吐气）、解密（隐藏的真相揭开）、占有（获得力量/财富/尊重）、自由（打破束缚按自己意志行事）、活下来（不可能中杀出生路）、守护（为某人或某物扛住压力）。写完自查：这章读者哪一刻会拍大腿？
+
+第七条·语言透明：删除优先级——删掉所有可删的形容词 > 把所有心理描写试改成动作或对话 > 删掉炫技句子。最终标准：读者记住了场景和情绪，忘记语言本身的存在。
+
+第八条·考据隐身：任何虚构设定锚定真实世界对象。专业信息全部隐入角色动作、对话、环境描写。正文绝不出现在何解释性注释或术语罗列。最终标准：读者说不出哪里好，但觉得这个世界的质感比别的世界更沉。
+
+执行顺序：开篇先用第一条（钩子）→ 每段叙事按第二条（感受优先）展开 → 整体节奏按第三条（节奏控制）把控 → 引入设定按第四条（规则演出来）→ 塑造角色按第五条（行动即人设）→ 每章结尾回看第六条（爽点兑现）→ 修改阶段执行第七条（语言透明）→ 后台始终运行第八条（考据隐身）。全部过完，就是你想要的文字。
 
 【读者心理钩子 — 压抑→释放机制】
 每段剧情必须至少触发一种读者心理需求。先制造压抑端，再兑现释放端。压抑越深，释放越爽。
@@ -901,12 +964,11 @@
 - 爽点分布：小爽点每1-2段一次，大爽点每5-10段一次
 
 【输出要求】
-第三人称开场，直接进入冲突。文字直白有张力，画面感强。结尾停在关键节点，提供有差异性的选项。
+第三人称开场，直接进入冲突。文字直白有张力，画面感强。结尾停在主角的剧情转折点——面临抉择、危机或关键发现时停笔。不提供选项，让用户在底部输入框自行决定。
 
-【字数限制 - 严格】
-- 每次输出正文严格控制在252字以内（不含打点部分）
-- 如果一句话在252字处还没说完，必须把这句话完整说完后再停止
-- 剧情打点不计入252字限制，放在正文之后
+【字数要求】
+- 每次输出约半章篇幅（1000字左右），在主角面临抉择、危机或转折点时自然停笔
+- 剧情打点不计入正文，放在正文之后
 
 【剧情打点 - 智能标记】
 在生成剧情的同时，请根据剧情内容智能判断并标记关键节点。
@@ -922,12 +984,13 @@
    - 一句话描述
    - 重要性
 
-3. 【人物节点】识别新人物出场：
+3. 【人物节点】识别新人物出场。每个新角色必须按主角生成规则立体塑造：
    - 人物ID（唯一标识，如 char_001）
    - 人物名
-   - 首次出场位置（章节序号）
+   - 核心创伤类型（从10种中选1种，决定行为模式）
+   - 表层欲望 vs 深层需求（表面想要什么 / 真正缺什么）
    - 人物标签：主角 / 配角 / 反派 / 中立
-   - 一句话简述
+   - 一句话简述（含身份、处境、性格底色）
 
 4. 【关系边】识别已有节点之间的关系变化：
    - 源人物ID
@@ -989,10 +1052,36 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             showToast.timer = setTimeout(() => toast.classList.remove('show'), 2200);
         }
 
+        let abortController = null;
+
         function setLoadingState(loading, message = '') {
             isLoading = loading;
-            document.getElementById('btnContinue').disabled = loading;
+            const btn = document.getElementById('btnContinue');
+            btn.disabled = false;
+            btn.textContent = loading ? '停止创作' : '继续创作';
             document.getElementById('storyStatus').textContent = message;
+        }
+
+        let partialResult = '';
+
+        function stopGeneration() {
+            if (abortController) { abortController.abort();
+                abortController = null; }
+            typewriterReset();
+            // Save whatever was generated so far
+            if (partialResult.trim()) {
+                const displayText = ensureCompleteSentence(stripStructuredMeta(partialResult));
+                if (displayText.trim()) {
+                    currentStory.history.push({ content: displayText, timestamp: Date.now() });
+                    displayFullStory();
+                    appendNewMeta(partialResult);
+                    saveStoryData();
+                    autoSave();
+                }
+            }
+            partialResult = '';
+            setLoadingState(false);
+            showToast('已停止，内容已保留');
         }
 
         // Load from localStorage
@@ -1011,6 +1100,10 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 
         // Save to localStorage
         function saveStoryData() {
+            currentStory.storyOutline = storyOutline;
+            currentStory.storyClues = storyClues;
+            currentStory.characterCards = characterCards;
+            currentStory.characterRelations = characterRelations;
             localStorage.setItem('current_story_session', JSON.stringify(currentStory));
         }
 
@@ -1026,20 +1119,40 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             document.getElementById('characterInfo').textContent = '主角：' + (currentStory.protagonist || '未知');
             document.getElementById('narrativeInfo').textContent = '叙事：' + (currentStory.narrative || '默认');
 
+            // World tags + description (inside collapsible)
             const tagsHtml = currentStory.worldTags.map(tag =>
                 `<span class="tag">${escapeHTML(tag)}</span>`
             ).join('');
             document.getElementById('worldTags').innerHTML = tagsHtml;
+            if (currentStory.worldDesc && currentStory.worldDesc !== currentStory.worldTags.join(' / ')) {
+                document.getElementById('worldDescDetail').textContent = currentStory.worldDesc;
+            }
 
-            // Load personality framework data
-            protagonistStyle = currentStory.protagonistStyle || '';
-            try {
-                const fw = localStorage.getItem('personality_framework');
-                if (fw) personalityFramework = JSON.parse(fw);
-            } catch (e) {}
+            // Character detail (inside collapsible)
+            if (currentStory.protagonistDesc) {
+                document.getElementById('characterDetail').innerHTML =
+                    '<span style="font-size:0.82rem;color:var(--text-primary);">' + escapeHTML(currentStory.protagonistDesc) + '</span>';
+                if (currentStory.protagonistTags && currentStory.protagonistTags.length) {
+                    document.getElementById('characterDetail').innerHTML +=
+                        '<div style="margin-top:4px;">' + currentStory.protagonistTags.map(t =>
+                        '<span class="tag">' + escapeHTML(t) + '</span>').join('') + '</div>';
+                }
+            } else {
+                document.getElementById('characterDetail').textContent = '暂无角色详情';
+            }
 
-            // Render protagonist card
+            // Restore sidebar data from previous session
+            if (currentStory.storyOutline) storyOutline = currentStory.storyOutline;
+            if (currentStory.storyClues) storyClues = currentStory.storyClues;
+            if (currentStory.characterCards) characterCards = currentStory.characterCards;
+            if (currentStory.characterRelations) characterRelations = currentStory.characterRelations;
+
+            // Render sidebar
+            renderOutline();
+            renderClues();
             renderChars();
+            renderRelationGraph();
+            renderTimeline();
 
             // Display all history if exists
             if (currentStory.history.length > 0) {
@@ -1063,16 +1176,18 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 return;
             }
 
-            const prompt = `世界背景：${currentStory.worldTitle}
-主角：${currentStory.protagonist}
-金手指：${currentStory.goldenFinger || '无'}
-叙事风格：${currentStory.narrative}
+            const prompt = `${getPrefPrompt()}世界：${currentStory.worldTitle}
+世界逻辑：${currentStory.worldDesc || ''}
+世界标签：${currentStory.worldTags.join('、')}
+主角：${currentStory.protagonist}${currentStory.protagonistDesc ? ' — ' + currentStory.protagonistDesc : ''}
+主角标签：${(currentStory.protagonistTags || []).join('、')}
+叙事：${currentStory.narrative}
 
 请根据以上设定，创作故事开篇。要求：
 1. 第三人称开场，直接进入冲突
 2. 首句必须有异常、不安或未解问题
 3. 文字直白有张力，画面感强
-4. 结尾停在关键节点，提供3个选项`;
+4. 在主角面临抉择、危机或关键发现时停笔，不提供选项`;
 
             const systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
@@ -1083,10 +1198,12 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 
             try {
                 const result = await callDeepSeek(prompt, systemPrompt, (text) => {
+                    partialResult = text;
                     displayStoryContent(text);
                 });
 
                 if (result) {
+                    partialResult = '';
                     typewriterReset();
                     const displayText = ensureCompleteSentence(stripStructuredMeta(result));
                     const segment = {
@@ -1095,14 +1212,16 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                     };
                     currentStory.history.push(segment);
                     displayFullStory();
-                    appendNewMeta(result); // parse from FULL result (before sentence truncation)
+                    appendNewMeta(result);
                     saveStoryData();
                     autoSave();
                 } else {
+                    partialResult = '';
                     typewriterReset();
                     document.getElementById('storyText').innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted);">生成失败，请检查 API Key 后刷新重试</p>';
                 }
             } catch (error) {
+                partialResult = '';
                 console.error('生成开篇失败:', error);
                 typewriterReset();
                 document.getElementById('storyText').innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted);">生成失败，请重试</p>';
@@ -1127,7 +1246,9 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
         // Display full story (all history segments)
         function displayFullStory() {
             const allContent = currentStory.history.map(h => h.content);
-            document.getElementById('storyText').innerHTML = allContent.map(c => textToHtml(c)).join('<hr class="story-divider">');
+            document.getElementById('storyText').innerHTML = allContent.map((c, i) =>
+                '<div id="seg-' + i + '">' + textToHtml(c) + '</div>'
+            ).join('<hr class="story-divider">');
         }
 
         // Display story content: all previous history + current streaming text
@@ -1207,12 +1328,11 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 
             const storySoFar = currentStory.history.map(h => h.content).join('\n\n');
 
-            const prompt = `用户选择：${userChoice}
+            const prompt = `${getPrefPrompt()}用户选择：${userChoice}
 
-世界背景：${currentStory.worldTitle}
-主角：${currentStory.protagonist}
-金手指：${currentStory.goldenFinger || '无'}
-叙事风格：${currentStory.narrative}
+世界：${currentStory.worldTitle}（${currentStory.worldTags.join('、')}）
+主角：${currentStory.protagonist}${currentStory.protagonistDesc ? ' — ' + currentStory.protagonistDesc : ''}
+叙事：${currentStory.narrative}
 
 请继续故事，接续以下内容：
 ${storySoFar}
@@ -1232,10 +1352,12 @@ ${storySoFar}
 
             try {
                 const result = await callDeepSeek(prompt, systemPrompt, (text) => {
+                    partialResult = text;
                     displayStoryContent(text);
                 });
 
                 if (result) {
+                    partialResult = '';
                     typewriterReset();
                     const displayText = ensureCompleteSentence(stripStructuredMeta(result));
                     const segment = {
@@ -1246,11 +1368,12 @@ ${storySoFar}
                     displayFullStory();
                     document.getElementById('customInput').value = '';
                     document.getElementById('continueHint').textContent = '输入剧情方向，或直接点击继续';
-                    appendNewMeta(result); // parse from FULL result (before sentence truncation)
+                    appendNewMeta(result);
                     saveStoryData();
                     autoSave();
                 }
             } catch (error) {
+                partialResult = '';
                 console.error('继续创作失败:', error);
                 typewriterReset();
                 showToast('继续创作失败，请稍后再试');
@@ -1342,6 +1465,27 @@ ${storySoFar}
         }
 
         // API Settings Panel
+        // ==================== USER PREFERENCE ====================
+        function openPref() {
+            document.getElementById('prefInput').value = localStorage.getItem('user_preference') || '';
+            document.getElementById('prefModal').classList.add('show');
+        }
+        function closePref() { document.getElementById('prefModal').classList.remove('show'); }
+        function savePref() {
+            const v = document.getElementById('prefInput').value.trim();
+            localStorage.setItem('user_preference', v);
+            closePref();
+            showToast(v ? '偏好已保存' : '偏好已清空');
+        }
+        function getPrefPrompt() {
+            const raw = localStorage.getItem('user_preference') || '';
+            if (!raw.trim()) return '';
+            return raw + '\n\n请将以上偏好的本质提炼为本次创作的基调约束：风格倾向、节奏偏好、禁忌事项。不是照搬原文，而是理解其底层审美后融入写作。\n\n';
+        }
+        document.getElementById('prefModal').addEventListener('click', function(e) {
+            if (e.target.id === 'prefModal') closePref();
+        });
+
         function toggleApiPanel() {
             const modal = document.getElementById('apiModal');
             const apiKeyInput = document.getElementById('apiKeyInput');
@@ -1349,6 +1493,7 @@ ${storySoFar}
                 modal.classList.remove('show');
             } else {
                 apiKeyInput.value = localStorage.getItem('deepseek_api_key') || '';
+                document.getElementById('apiModelSelect').value = getApiConfig().model;
                 modal.classList.add('show');
             }
         }
@@ -1361,8 +1506,48 @@ ${storySoFar}
                 return;
             }
             localStorage.setItem('deepseek_api_key', apiKey);
-            showToast('API Key 已保存');
+            localStorage.setItem('deepseek_model', document.getElementById('apiModelSelect').value);
+            showToast('API Key 和模型已保存');
             toggleApiPanel();
+        }
+
+        function toggleApiKey() {
+            const input = document.getElementById('apiKeyInput');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        async function testApiKey() {
+            const btn = document.getElementById('apiTestBtn');
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (!key) { showToast('请先输入 API Key'); return; }
+            btn.disabled = true;
+            btn.textContent = '测试中...';
+            try {
+                const r = await fetch('https://api.deepseek.com/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+                if (r.ok) showToast('连接成功');
+                else { const e = await r.json().catch(() => ({})); showToast('错误: ' + (e.error?.message || r.status)); }
+            } catch (e) { showToast('网络错误'); }
+            btn.disabled = false;
+            btn.textContent = '测试连接';
+        }
+
+        async function testApiGenerate() {
+            const btn = document.getElementById('apiTestGenerateBtn');
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (!key) { showToast('请先输入 API Key'); return; }
+            btn.disabled = true;
+            btn.textContent = '测试中...';
+            try {
+                const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+                    body: JSON.stringify({ model: 'deepseek-v4-flash', messages: [{ role: 'user', content: '你好' }], max_tokens: 50, stream: false })
+                });
+                if (r.ok) { const d = await r.json(); showToast('生成成功: ' + (d.choices?.[0]?.message?.content?.slice(0, 15) || '')); }
+                else { const e = await r.json().catch(() => ({})); showToast('错误: ' + (e.error?.message || r.status)); }
+            } catch (e) { showToast('网络错误'); }
+            btn.disabled = false;
+            btn.textContent = '测试生成';
         }
 
         // Close modal on background click
@@ -1392,6 +1577,8 @@ ${storySoFar}
             const config = getApiConfig();
             if (!config.apiKey) return null;
 
+            abortController = new AbortController();
+
             try {
                 const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
                     method: 'POST',
@@ -1405,10 +1592,10 @@ ${storySoFar}
                             { role: 'system', content: systemPrompt },
                             { role: 'user', content: prompt }
                         ],
-                        max_tokens: 252,
                         temperature: 0.8,
                         stream: true
-                    })
+                    }),
+                    signal: abortController.signal
                 });
 
                 if (!response.ok) throw new Error('API error');
@@ -1441,19 +1628,18 @@ ${storySoFar}
                 }
                 return result;
             } catch (error) {
+                if (error.name === 'AbortError') return null;
                 console.error('DeepSeek API错误:', error);
                 return null;
+            } finally {
+                abortController = null;
             }
         }
 
         function getApiConfig() {
-            let model = localStorage.getItem('deepseek_model') || 'deepseek-v4-pro';
-            if (model === 'flash') model = 'deepseek-v4-flash';
-            else if (model === 'pro') model = 'deepseek-v4-pro';
-            else if (!model.startsWith('deepseek-')) model = 'deepseek-v4-pro';
             return {
                 apiKey: localStorage.getItem('deepseek_api_key') || '',
-                model
+                model: localStorage.getItem('deepseek_model') || 'deepseek-v4-pro'
             };
         }
 
@@ -1593,13 +1779,16 @@ ${storySoFar}
             const plotPoints = parsePlotPoints(result);
             let hasNewData = false;
 
+            const segIdx = currentStory.history.length - 1;
             if (plotPoints.outline.length > 0) {
+                plotPoints.outline.forEach(o => o._seg = segIdx);
                 storyOutline.push(...plotPoints.outline);
                 renderOutline();
                 renderTimeline();
                 hasNewData = true;
             }
             if (plotPoints.clues.length > 0) {
+                plotPoints.clues.forEach(c => c._seg = segIdx);
                 plotPoints.clues.forEach(newClue => {
                     const exist = storyClues.find(c => c.name === newClue.name);
                     if (exist) { exist.stateChange = newClue.stateChange;
@@ -1614,7 +1803,12 @@ ${storySoFar}
             if (plotPoints.characters.length > 0) {
                 plotPoints.characters.forEach(newChar => {
                     const exist = characterCards.find(c => c.id === newChar.id);
-                    if (!exist) { characterCards.push({ ...newChar, _new: true }); }
+                    if (exist) {
+                        exist.freq = (exist.freq || 1) + 1;
+                        if (!exist.tag || exist.tag === '配角') exist.tag = newChar.tag || exist.tag;
+                    } else {
+                        characterCards.push({ ...newChar, freq: 1, _new: true });
+                    }
                 });
                 renderChars();
                 renderRelationGraph();
@@ -1663,9 +1857,10 @@ ${storySoFar}
             const list = document.getElementById('outlineList');
             if (!list) return;
             if (storyOutline.length === 0) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.78rem;">暂无提纲节点</div>'; return; }
-            list.innerHTML = storyOutline.map(n => {
+            list.innerHTML = storyOutline.map((n, i) => {
                 const imp = n.importance || 'normal';
-                return '<div class="ol-item"><span class="ol-dot ' + imp + '"></span><span>' + escapeHTML(n.summary || n.type || '') + '</span></div>';
+                const seg = n._seg != null ? n._seg : i;
+                return '<div class="ol-item" onclick="scrollToSeg(' + seg + ')"><span class="ol-dot ' + imp + '"></span><span>' + escapeHTML(n.summary || n.type || '') + '</span></div>';
             }).join('');
         }
 
@@ -1683,13 +1878,22 @@ ${storySoFar}
             const list = document.getElementById('charsList');
             if (!list) return;
             let html = '';
+            // Relationship graph at top, collapsible
+            if (characterRelations.length > 0 || Object.keys(characterCards).length > 1) {
+                const graphSvg = buildRelationGraphSvg();
+                if (graphSvg) {
+                    html += '<details style="margin-bottom:8px;"><summary style="cursor:pointer;font-size:0.78rem;color:var(--text-secondary);">人物关系图 ▸</summary>';
+                    html += '<div class="ch-graph" style="margin-top:8px;">' + graphSvg + '</div></details>';
+                }
+            }
             if (currentStory.protagonist) {
                 html += '<div class="ch-item"><span class="ch-avatar">主</span><span class="ch-name">' + escapeHTML(currentStory.protagonist) + '</span><span class="ch-rel">主角</span></div>';
             }
-            characterCards.forEach(c => {
+            const sorted = [...characterCards].sort((a, b) => (b.freq || 0) - (a.freq || 0));
+            sorted.forEach(c => {
                 if (c.tag !== '主角') {
                     const ini = c.name ? c.name[0] : '?';
-                    const tagLabel = c.tag || c.relation || '';
+                    const tagLabel = (c.tag || c.relation || '') + ((c.freq || 0) > 1 ? ' ×' + c.freq : '');
                     html += '<div class="ch-item"><span class="ch-avatar">' + escapeHTML(ini) + '</span><span class="ch-name">' + escapeHTML(c.name) + '</span><span class="ch-rel">' + escapeHTML(tagLabel) + '</span></div>';
                 }
             });
@@ -1724,16 +1928,13 @@ ${storySoFar}
             const overlays = nodes.map((n, i) => {
                 const y = s * (i + 1);
                 const title = escapeHTML(n.summary || n.name || n.desc || '');
-                return '<div style="position:absolute;left:0;top:' + y + 'px;width:100%;height:16px;transform:translateY(-8px);cursor:pointer;" onmouseenter="showTT(this,\'' + title + '\')" onmouseleave="hideTT()"></div>';
+                const seg = n._seg != null ? n._seg : i;
+                return '<div style="position:absolute;left:0;top:' + y + 'px;width:100%;height:16px;transform:translateY(-8px);cursor:pointer;" onclick="scrollToSeg(' + seg + ')" onmouseenter="showTT(this,\'' + title + '\')" onmouseleave="hideTT()"></div>';
             }).join('');
             container.innerHTML = svg + overlays;
         }
 
-        function renderRelationGraph() {
-            const list = document.getElementById('charsList');
-            if (!list) return;
-
-            // Build node map by id
+        function buildRelationGraphSvg() {
             const nodeMap = {};
             if (currentStory.protagonist) {
                 nodeMap['protagonist'] = { id: 'protagonist', name: currentStory.protagonist, isP: true };
@@ -1741,59 +1942,44 @@ ${storySoFar}
             characterCards.forEach(c => {
                 if (c.id) nodeMap[c.id] = { id: c.id, name: c.name, isP: false, tag: c.tag || '' };
             });
-
-            // Build relation lines
             const relLines = characterRelations.filter(r => nodeMap[r.source] && nodeMap[r.target]);
+            if (Object.keys(nodeMap).length < 2) return '';
 
-            let html = '';
-            if (Object.keys(nodeMap).length >= 2) {
-                const centerX = 24, centerY = 150, radius = 80;
-                const nodes = Object.values(nodeMap);
-                const n = nodes.length;
+            const centerX = 24, centerY = 150, radius = 80;
+            const nodes = Object.values(nodeMap);
+            const n = nodes.length;
+            const nodePos = {};
+            nodes.forEach((node, i) => {
+                if (node.isP) { nodePos[node.id] = { x: centerX, y: centerY }; }
+                else {
+                    const angle = (2 * Math.PI * i) / Math.max(n - 1, 1) - Math.PI / 2;
+                    nodePos[node.id] = { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) };
+                }
+            });
 
-                // Position nodes: protagonist in center, others in circle
-                const nodePos = {};
-                nodes.forEach((node, i) => {
-                    if (node.isP) {
-                        nodePos[node.id] = { x: centerX, y: centerY };
-                    } else {
-                        const angle = (2 * Math.PI * (i - 1)) / Math.max(n - 1, 1) - Math.PI / 2;
-                        nodePos[node.id] = {
-                            x: centerX + radius * Math.cos(angle),
-                            y: centerY + radius * Math.sin(angle)
-                        };
-                    }
-                });
+            let svg = '<svg width="200" height="300" style="overflow:visible;">';
+            relLines.forEach(r => {
+                const s = nodePos[r.source], t = nodePos[r.target];
+                if (s && t) svg += '<line x1="' + s.x + '" y1="' + s.y + '" x2="' + t.x + '" y2="' + t.y + '" stroke="#d9d2c4" stroke-width="' + (r.strength || 1) + '" />';
+            });
+            nodes.forEach(node => {
+                const pos = nodePos[node.id];
+                svg += '<circle cx="' + pos.x + '" cy="' + pos.y + '" r="' + (node.isP ? 8 : 5) + '" fill="' + (node.isP ? '#c4971e' : '#8e867d') + '" stroke="#fff" stroke-width="1.5" />';
+                svg += '<text x="' + (pos.x + (node.isP ? 12 : 8)) + '" y="' + (pos.y + 4) + '" font-size="10" fill="#5c554c" font-family="inherit">' + escapeHTML(node.name) + '</text>';
+            });
+            svg += '</svg>';
+            return svg;
+        }
 
-                let svg = '<svg width="200" height="300" style="overflow:visible;">';
-                // Draw relation lines first (behind nodes)
-                relLines.forEach(r => {
-                    const s = nodePos[r.source];
-                    const t = nodePos[r.target];
-                    if (s && t) {
-                        const strength = r.strength || 1;
-                        svg += '<line x1="' + s.x + '" y1="' + s.y + '" x2="' + t.x + '" y2="' + t.y + '" stroke="#d9d2c4" stroke-width="' + strength + '" />';
-                    }
-                });
-                // Draw nodes
-                nodes.forEach(node => {
-                    const pos = nodePos[node.id];
-                    const rr = node.isP ? 8 : 5;
-                    const fill = node.isP ? '#c4971e' : '#8e867d';
-                    svg += '<circle cx="' + pos.x + '" cy="' + pos.y + '" r="' + rr + '" fill="' + fill + '" stroke="#fff" stroke-width="1.5" />';
-                    svg += '<text x="' + (pos.x + (node.isP ? 12 : 8)) + '" y="' + (pos.y + 4) + '" font-size="10" fill="#5c554c" font-family="inherit">' + escapeHTML(node.name) + '</text>';
-                });
-                svg += '</svg>';
-                html += '<div class="ch-graph">' + svg + '</div>';
-            } else if (Object.keys(nodeMap).length === 1) {
-                const node = Object.values(nodeMap)[0];
-                html += '<div class="ch-graph"><svg width="200" height="40"><circle cx="20" cy="20" r="7" fill="#c4971e" stroke="#fff" stroke-width="2"/><text x="34" y="24" font-size="10" fill="#5c554c" font-family="inherit">' + escapeHTML(node.name) + '</text></svg></div>';
-            }
-
-            // Append or replace graph in charsList
+        function renderRelationGraph() {
+            const svg = buildRelationGraphSvg();
+            if (!svg) return;
             const exist = document.querySelector('.ch-graph');
             if (exist) exist.remove();
-            if (html) list.insertAdjacentHTML('beforeend', html);
+            const list = document.getElementById('charsList');
+            if (list && !list.querySelector('.ch-graph')) {
+                list.insertAdjacentHTML('afterbegin', '<div class="ch-graph">' + svg + '</div>');
+            }
         }
 
         function showTT(el, text) {
@@ -1809,6 +1995,11 @@ ${storySoFar}
             tt.style.opacity = '1';
         }
         function hideTT() { const tt = document.getElementById('nodeTooltip'); if (tt) tt.style.opacity = '0'; }
+
+        function scrollToSeg(idx) {
+            const el = document.getElementById('seg-' + idx);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
 
         function switchTab(tab) {
             currentSidebarTab = tab;
