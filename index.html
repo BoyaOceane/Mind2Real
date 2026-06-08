@@ -695,6 +695,92 @@
       return messages;
     }
     // === INSPIRATION DATA ===
+    const CHAR_TAGS = {
+      western: {
+        core: ['高神经质','低神经质','高宜人性','低宜人性','高尽责性','低尽责性','高外向性','低外向性','高开放性','低开放性','自恋型','马基雅维利型','精神病态型','完美主义','冲动型','回避型','偏执型'],
+        drive: ['成就驱动','权力驱动','亲和驱动','认知驱动','生存驱动'],
+        relation: ['安全型','焦虑型','回避型依恋','紊乱型'],
+        defense: ['升华型','幽默型','利他型','合理化','置换型','投射型','否认型','退行型'],
+        trauma: ['童年忽视','背叛创伤','幸存者愧疚','代际创伤','创伤后成长'],
+        self: ['高自尊','低自尊','内控型','外控型','自我清晰','自我混乱']
+      },
+      chinese: {
+        temperament: ['天生领头者','柔韧适应者','热情感染型','外冷内热型','稳重可靠型','细腻滋养型','杀伐果断型','精致挑剔型','自由奔放型','神秘直觉型'],
+        energy: ['主动进攻型','以守为攻型','极端偏执型'],
+        style: ['规矩守成型','野心攻击型','温和包容型','孤僻奇才型','踏实积累型','洒脱挥霍型','随遇而安型','毒舌叛逆型','独立自尊型','冲动义气型'],
+        trajectory: ['稳扎稳打上升型','先苦后甜奋斗型','是非缠身体质','怀才不遇苦闷型','左手进右手出型'],
+        persona: ['天生领袖范','机灵多变型','热心操劳型','刚毅果断型','乐天知足型','亦正亦邪型','稳重守成型','温柔策划型','贪多求全型','直言惹祸型','公正调和型','爱管闲事型','敢爱敢恨型','破旧立新型'],
+        drive: ['自我实现驱动','财富积累驱动','事业成就驱动','情感关系驱动','自由漂泊驱动'],
+        fate: ['天生好命型','强势掌控型','贵人相助型','执念深重型']
+      }
+    };
+
+    const WORLD_TAGS = {
+      physics: ['现实世界','规则世界','星际世界','平行世界','微观世界','数据世界','梦境世界'],
+      era: ['古代世界','近代世界','现代世界','近未来世界','远未来世界','末日世界','后末日世界'],
+      tech: ['蒸汽朋克','赛博朋克','柴油朋克','原子朋克','生物朋克','丝绸朋克','石器朋克'],
+      supernatural: ['无魔世界','低魔世界','高魔世界','神话世界','克苏鲁世界','灵异世界'],
+      civilization: ['部落世界','城邦世界','帝国世界','封建世界','资本世界','无政府世界','蜂巢世界'],
+      existence: ['物质世界','精神世界','模拟世界','书中世界','死后世界','转生世界'],
+      alter: ['废土世界','异星世界','深海世界','地下世界','浮空世界','巨构世界']
+    };
+
+    const NARRATIVE_TAGS = {
+      focus: ['人民叙事','英雄叙事','底层叙事','精英叙事'],
+      perspective: ['全知视角','限知视角','外视角'],
+      time: ['回溯性叙事','共时性叙事'],
+      reliability: ['不可靠叙述','复调叙事'],
+      structure: ['元叙事','非线性叙事','碎片化叙事','反转叙事']
+    };
+
+    function pickRandom(obj) {
+      const keys = Object.keys(obj);
+      const k = keys[Math.floor(Math.random() * keys.length)];
+      return { cat: k, val: obj[k][Math.floor(Math.random() * obj[k].length)] };
+    }
+
+    function generateCharacter() {
+      const isWestern = Math.random() > 0.5;
+      const pool = isWestern ? CHAR_TAGS.western : CHAR_TAGS.chinese;
+      const cats = Object.keys(pool).sort(() => Math.random() - 0.5).slice(0, 2 + Math.floor(Math.random() * 3));
+      const tags = cats.map(c => ({ cat: c, val: pool[c][Math.floor(Math.random() * pool[c].length)] }));
+      return { type: isWestern ? '西式' : '中式', tags: tags };
+    }
+
+    function generateWorld() {
+      const tags = [];
+      for (const cat of Object.keys(WORLD_TAGS)) {
+        if (Math.random() > 0.5) tags.push({ cat: cat, val: WORLD_TAGS[cat][Math.floor(Math.random() * WORLD_TAGS[cat].length)] });
+      }
+      if (!tags.length) tags.push(pickRandom(WORLD_TAGS));
+      return { tags: tags };
+    }
+
+    function generateNarrative() {
+      const tags = Object.keys(NARRATIVE_TAGS).map(c => ({ cat: c, val: NARRATIVE_TAGS[c][Math.floor(Math.random() * NARRATIVE_TAGS[c].length)] }));
+      return { tags: tags };
+    }
+
+    function showInspiration(type, data) {
+      const c = document.getElementById('inspiration-result');
+      let html = '<div class="inspiration-card">';
+      if (type === 'char') {
+        html += '<strong>' + data.type + '角色</strong><br>';
+        data.tags.forEach(t => { html += '<span class="tag">' + t.val + '</span> '; });
+      } else if (type === 'world') {
+        html += '<strong>世界背景</strong><br>';
+        data.tags.forEach(t => { html += '<span class="tag">' + t.val + '</span> '; });
+      } else {
+        html += '<strong>叙事方式</strong><br>';
+        data.tags.forEach(t => { html += '<span class="tag">' + t.val + '</span> '; });
+      }
+      html += '</div>';
+      c.innerHTML = html;
+    }
+
+    document.getElementById('btn-inspire-char').addEventListener('click', () => showInspiration('char', generateCharacter()));
+    document.getElementById('btn-inspire-world').addEventListener('click', () => showInspiration('world', generateWorld()));
+    document.getElementById('btn-inspire-narr').addEventListener('click', () => showInspiration('narrative', generateNarrative()));
     // === UI CONTROLLER ===
 
     function updateLayersTracker() {
