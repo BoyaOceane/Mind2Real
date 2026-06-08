@@ -411,7 +411,12 @@
       try {
         const reply = await callSkill('understand', { message: text, round: chatRound, mode: state.mode });
         removeLastChatMessage();
-        appendChatMessage('ai', reply.message || reply.raw || JSON.stringify(reply));
+        console.log('[即墨] parsed reply:', reply);
+        if (!reply.message && !reply.raw) {
+          appendChatMessage('ai', 'AI 返回了空内容。请检查：\n1. API Key 是否正确\n2. 模型名是否正确（默认 deepseek-v4-pro）\n3. 打开 F12 Console 查看 [即墨] 日志');
+        } else {
+          appendChatMessage('ai', reply.message || reply.raw);
+        }
         if (reply.ready || chatRound >= 3) {
           input.disabled = true;
           document.getElementById('btn-send').disabled = true;
@@ -634,10 +639,13 @@
 
       const messages = buildPrompt ? buildPrompt(skill, params) : [{ role: 'user', content: params.message || 'hi' }];
 
+      const url = `${config.url.replace(/\/$/, '')}/chat/completions`;
+      console.log('[即墨] calling', url, 'model:', config.model, 'skill:', skill);
+
       const isStream = skill === 'write';
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(`${config.url.replace(/\/$/, '')}/chat/completions`, {
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
         body: JSON.stringify({
@@ -660,7 +668,9 @@
         return await readStream(res, skill);
       } else {
         const data = await res.json();
-        const content = data.choices[0].message.content;
+        console.log('[即墨] response:', JSON.stringify(data).slice(0, 200));
+        const content = data.choices?.[0]?.message?.content || '';
+        if (!content) console.warn('[即墨] empty content in response');
         return parseSkillResponse(skill, content);
       }
     }
