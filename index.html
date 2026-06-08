@@ -318,11 +318,57 @@
       history: []
     };
 
-    let state = { ...DEFAULT_STATE };
+    let state;
+
+    function loadState() {
+      try {
+        const stored = localStorage.getItem('jimo_agent_state');
+        if (stored) return { ...DEFAULT_STATE, ...JSON.parse(stored) };
+      } catch (e) {}
+      return { ...DEFAULT_STATE };
+    }
+
+    state = loadState();
+
     let frameworkData = {};
 
     function saveState() {
       try { localStorage.setItem('jimo_agent_state', JSON.stringify(state)); } catch(e) {}
+    }
+
+    function restoreUI() {
+      if (!state.stage || state.stage === 'entry') return;
+      document.getElementById('entry-screen').classList.add('hidden');
+      document.getElementById('mode-display').textContent = state.mode === 'immersion' ? '模式: 代入式' : '模式: 旁观式';
+      updateStageIndicator();
+      if (state.stage === 'understand') {
+        document.getElementById('chat-screen').classList.remove('hidden');
+        if (state.dilemma) {
+          document.getElementById('sidebar-dilemma').textContent = state.dilemma;
+          document.getElementById('dilemma-section').classList.remove('hidden');
+        }
+      } else if (state.stage === 'frame') {
+        document.getElementById('frame-screen').classList.remove('hidden');
+        document.getElementById('frame-content').classList.remove('hidden');
+        document.getElementById('frame-loading').classList.add('hidden');
+        if (state.dilemma) {
+          document.getElementById('dilemma-input').value = state.dilemma;
+          document.getElementById('sidebar-dilemma').textContent = state.dilemma;
+          document.getElementById('dilemma-section').classList.remove('hidden');
+        }
+        if (state.synopsis) document.getElementById('synopsis-input').value = state.synopsis;
+      } else if (state.stage === 'write') {
+        document.getElementById('write-screen').classList.remove('hidden');
+        if (state.dilemma) {
+          document.getElementById('sidebar-dilemma').textContent = state.dilemma;
+          document.getElementById('dilemma-section').classList.remove('hidden');
+        }
+        document.getElementById('layers-section').classList.remove('hidden');
+        updateLayersTracker();
+        if (state.history?.length) {
+          document.getElementById('story-content').textContent = state.history.map(function(h) { return h.content; }).join('\n\n');
+        }
+      }
     }
 
     function selectMode(mode) {
@@ -819,6 +865,12 @@
       updateApiStatus();
       const prefs = JSON.parse(localStorage.getItem('jimo_prefs') || '{}');
       if (prefs.wordCount) document.getElementById('word-count-pref').value = prefs.wordCount;
+      if (state.mode) {
+        document.querySelectorAll('.mode-card').forEach(function(c) { c.classList.remove('selected'); });
+        var sel = document.querySelector('[data-mode="' + state.mode + '"]');
+        if (sel) sel.classList.add('selected');
+      }
+      setTimeout(restoreUI, 100);
     })();
 
     // Word count preference save
