@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>即墨 · 写作 Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300..900&family=Noto+Sans+SC:wght@300..700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       即墨 Agent · 设计系统
+       宣纸色为境 · 墨分五色 · 朱砂为印
+    ============================================================ */
+    :root {
+      --paper-new:   oklch(98% 0.006 95);
+      --paper-aged:  oklch(96% 0.010 92);
+      --paper-dark:  oklch(92% 0.014 88);
+      --ink-light:   oklch(65% 0.018 85);
+      --ink-mid:     oklch(40% 0.024 80);
+      --ink-heavy:   oklch(20% 0.030 70);
+      --ink-black:   oklch(15% 0.032 60);
+      --seal:        oklch(48% 0.16 28);
+      --seal-dark:   oklch(38% 0.18 22);
+      --border:      oklch(82% 0.008 90);
+      --border-dark: oklch(60% 0.012 82);
+      --font-display: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif;
+      --font-body:    'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      --space-xs:  8px;
+      --space-sm:  16px;
+      --space-md:  24px;
+      --space-lg:  48px;
+      --sidebar-w: 320px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; height: 100%; }
+    body {
+      font-family: var(--font-body);
+      background: var(--paper-new);
+      color: var(--ink-light);
+      line-height: 1.8;
+      height: 100%;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* === 侧边栏 === */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--paper-aged);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-md);
+      gap: var(--space-md);
+      overflow-y: auto;
+      z-index: 10;
+    }
+    .sidebar-section { border-bottom: 1px solid var(--border); padding-bottom: var(--space-sm); }
+    .sidebar-section:last-child { border-bottom: none; }
+    .sidebar-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--seal); margin-bottom: var(--space-xs);
+    }
+
+    /* === 主区域 === */
+    #main {
+      flex: 1; height: 100vh; overflow-y: auto;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: var(--space-lg);
+    }
+
+    /* === API 状态指示灯 === */
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .status-dot.on { background: oklch(55% 0.16 145); }
+    .status-dot.off { background: var(--seal); }
+
+    /* === 入口：姿态选择 === */
+    #entry-screen { text-align: center; max-width: 640px; }
+    .mode-cards { display: flex; gap: var(--space-md); margin-top: var(--space-lg); }
+    .mode-card {
+      flex: 1; padding: var(--space-lg); border: 1px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; text-align: left;
+    }
+    .mode-card:hover { border-color: var(--seal); box-shadow: 0 8px 24px oklch(20% 0.030 70 / 0.08); }
+    .mode-card.selected { border-color: var(--seal); background: oklch(48% 0.16 28 / 0.04); }
+    .mode-card h3 { font-family: var(--font-display); font-size: 20px; color: var(--ink-heavy); margin-bottom: 8px; }
+    .mode-card p { font-size: 14px; color: var(--ink-mid); }
+
+    /* === 阶段1：对话气泡 === */
+    #chat-area { width: 100%; max-width: 640px; }
+    .chat-bubble { margin-bottom: var(--space-md); max-width: 80%; padding: var(--space-sm) var(--space-md); border-radius: 8px; line-height: 1.7; }
+    .chat-bubble.ai { background: var(--paper-aged); color: var(--ink-mid); align-self: flex-start; }
+    .chat-bubble.user { background: var(--ink-heavy); color: var(--paper-new); align-self: flex-end; margin-left: auto; }
+    .chat-input-row { display: flex; gap: var(--space-xs); margin-top: var(--space-md); }
+    .chat-input-row input { flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-body); font-size: 15px; outline: none; }
+    .chat-input-row input:focus { border-color: var(--seal); }
+
+    /* === 按钮 === */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--ink-heavy); color: var(--paper-new);
+      border: none; border-radius: 4px; padding: 12px 28px;
+      font-family: var(--font-body); font-size: 15px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--ink-black); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; color: var(--ink-heavy);
+      border: 1.5px solid var(--border-dark); border-radius: 4px;
+      padding: 11px 28px; font-family: var(--font-body); font-size: 15px; cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--ink-heavy); }
+    .btn-icon {
+      background: none; border: none; cursor: pointer; font-size: 14px;
+      padding: 4px; border-radius: 4px; transition: background 0.2s; color: var(--ink-mid);
+    }
+    .btn-icon:hover { background: var(--paper-dark); }
+
+    /* === 阶段2：卡片编辑 === */
+    .framework-card {
+      background: var(--paper-new); border: 1px solid var(--border); border-radius: 8px;
+      padding: var(--space-lg); max-width: 640px; width: 100%;
+    }
+    .framework-card h3 { font-family: var(--font-display); font-size: 18px; color: var(--ink-heavy); margin-bottom: var(--space-sm); }
+    .framework-card textarea {
+      width: 100%; min-height: 100px; padding: var(--space-sm); border: 1px solid var(--border);
+      border-radius: 4px; font-family: var(--font-body); font-size: 15px; resize: vertical;
+      color: var(--ink-light); line-height: 1.8;
+    }
+    .framework-card input {
+      width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px;
+      font-family: var(--font-display); font-size: 16px; color: var(--ink-heavy);
+    }
+
+    /* === 阶段3：阅读流 === */
+    #reading-area { max-width: 640px; width: 100%; }
+    .story-text {
+      font-family: var(--font-body); font-size: 17px; color: var(--ink-light);
+      line-height: 2; white-space: pre-wrap;
+    }
+    .choice-row { display: flex; flex-direction: column; gap: var(--space-xs); margin-top: var(--space-lg); }
+    .choice-btn {
+      text-align: left; padding: var(--space-sm) var(--space-md); border: 1px solid var(--border);
+      border-radius: 6px; background: var(--paper-new); cursor: pointer; font-size: 14px;
+      color: var(--ink-mid); transition: border-color 0.2s;
+    }
+    .choice-btn:hover { border-color: var(--seal); }
+
+    /* === 灵感面板 === */
+    .inspiration-card {
+      background: var(--paper-new); border: 1px solid var(--border); border-radius: 4px;
+      padding: var(--space-sm); margin-top: var(--space-xs); font-size: 13px; line-height: 1.6;
+    }
+    .tag { display: inline-block; background: var(--paper-dark); color: var(--ink-mid); border-radius: 3px; padding: 2px 8px; font-size: 12px; margin: 2px; }
+    .tag-seal { background: oklch(48% 0.16 28 / 0.12); color: var(--seal-dark); }
+
+    /* === 七层递进 === */
+    .layer-item { font-size: 13px; padding: 4px 0; color: var(--ink-mid); display: flex; align-items: center; gap: 6px; }
+    .layer-item.done { color: var(--ink-light); }
+    .layer-item.done::before { content: '✓'; color: oklch(55% 0.16 145); font-weight: bold; }
+    .layer-item.current { color: var(--seal); font-weight: 600; }
+    .layer-item.current::before { content: '→'; }
+    .layer-item.pending { color: var(--ink-light); opacity: 0.4; }
+    .layer-item.pending::before { content: '○'; }
+
+    /* === API 配置面板 === */
+    #api-config-panel input {
+      width: 100%; margin-top: 4px; padding: 6px; border: 1px solid var(--border);
+      border-radius: 4px; font-size: 13px; font-family: var(--font-body);
+    }
+    #api-config-panel input:focus { border-color: var(--seal); outline: none; }
+
+    /* === 通用 === */
+    .hidden { display: none !important; }
+    .title-lg { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--ink-heavy); }
+    .subtitle { font-size: 14px; color: var(--ink-mid); margin-top: var(--space-xs); }
+    .loading-text { color: var(--ink-mid); font-size: 15px; text-align: center; padding: var(--space-lg); }
+
+    /* === 响应式 === */
+    @media (max-width: 768px) {
+      body { flex-direction: column-reverse; }
+      #sidebar { width: 100%; min-width: 100%; height: auto; max-height: 40vh; flex-shrink: 0; }
+      #main { padding: var(--space-md); }
+      .mode-cards { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 侧边栏 -->
+  <aside id="sidebar">
+    <div class="sidebar-section" id="api-section">
+      <div class="sidebar-label">⚙ API</div>
+      <div id="api-status"><span class="status-dot off"></span>未配置</div>
+      <div id="api-config-panel" class="hidden">
+        <input id="api-url" type="text" placeholder="https://api.deepseek.com/v1">
+        <input id="api-key" type="password" placeholder="sk-...">
+        <button class="btn-primary" id="btn-test-api" style="width:100%;margin-top:8px;padding:8px;font-size:13px;">测试连接</button>
+      </div>
+      <button class="btn-icon" id="btn-toggle-api" style="margin-top:4px;">展开 ▼</button>
+    </div>
+
+    <div class="sidebar-section" id="stage-section">
+      <div class="sidebar-label">阶段</div>
+      <div id="stage-indicator">
+        <div style="color:var(--ink-light);opacity:0.4;font-size:13px;">○ 理解你</div>
+        <div style="color:var(--ink-light);opacity:0.4;font-size:13px;">○ 搭框架</div>
+        <div style="color:var(--ink-light);opacity:0.4;font-size:13px;">○ 写故事</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section hidden" id="dilemma-section">
+      <div class="sidebar-label">困境</div>
+      <p id="sidebar-dilemma" style="font-family:var(--font-display);font-size:14px;color:var(--ink-heavy);"></p>
+    </div>
+
+    <div class="sidebar-section hidden" id="layers-section">
+      <div class="sidebar-label">七层递进</div>
+      <div id="layers-tracker"></div>
+    </div>
+
+    <div class="sidebar-section" id="inspiration-section">
+      <div class="sidebar-label">灵感</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" id="btn-inspire-char" style="flex:1;font-size:13px;padding:8px;">🎲 角色</button>
+        <button class="btn-secondary" id="btn-inspire-world" style="flex:1;font-size:13px;padding:8px;">🎲 世界</button>
+        <button class="btn-secondary" id="btn-inspire-narr" style="flex:1;font-size:13px;padding:8px;">🎲 叙事</button>
+      </div>
+      <div id="inspiration-result"></div>
+    </div>
+
+    <div class="sidebar-section" id="settings-section">
+      <div class="sidebar-label">设置</div>
+      <div style="font-size:13px;color:var(--ink-mid);">
+        字数: <select id="word-count-pref" style="margin-left:4px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;font-size:13px;">
+          <option value="500">500</option>
+          <option value="800" selected>800</option>
+          <option value="1000">1000</option>
+        </select>
+      </div>
+      <div id="mode-display" style="font-size:13px;color:var(--ink-mid);margin-top:4px;"></div>
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <main id="main">
+    <div id="entry-screen"></div>
+    <div id="chat-screen" class="hidden"></div>
+    <div id="frame-screen" class="hidden"></div>
+    <div id="write-screen" class="hidden"></div>
+  </main>
+
+  <script>
+    // === STATE ===
+    // === API CLIENT ===
+    // === PROMPTS ===
+    // === INSPIRATION DATA ===
+    // === UI CONTROLLER ===
+  </script>
+</body>
+</html>
