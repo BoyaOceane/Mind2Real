@@ -88,6 +88,15 @@
     .mode-card h3 { font-family: var(--font-display); font-size: 20px; color: var(--ink-heavy); margin-bottom: 8px; }
     .mode-card p { font-size: 14px; color: var(--ink-mid); }
 
+    /* === 阶段1：对话选项按钮 === */
+    .chat-options { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-sm); }
+    .chat-option-btn {
+      text-align: left; padding: 10px 14px; border: 1px solid var(--border);
+      border-radius: 6px; background: var(--paper-new); cursor: pointer;
+      font-size: 14px; color: var(--ink-mid); transition: border-color 0.2s, background 0.2s;
+    }
+    .chat-option-btn:hover { border-color: var(--seal); background: oklch(48% 0.16 28 / 0.04); }
+
     /* === 阶段1：对话气泡 === */
     #chat-area { width: 100%; max-width: 640px; }
     .chat-bubble { margin-bottom: var(--space-md); max-width: 80%; padding: var(--space-sm) var(--space-md); border-radius: 8px; line-height: 1.7; }
@@ -266,7 +275,8 @@
     <div id="chat-screen" class="hidden">
       <div id="chat-area">
         <div id="chat-messages"></div>
-        <div class="chat-input-row">
+        <div id="chat-options-area" class="chat-options hidden"></div>
+        <div class="chat-input-row" id="chat-input-row">
           <input id="chat-input" type="text" placeholder="说说你想写的..." onkeydown="if(event.key==='Enter')sendMessage()">
           <button class="btn-primary" id="btn-send" onclick="sendMessage()">发送</button>
         </div>
@@ -412,14 +422,20 @@
         const reply = await callSkill('understand', { message: text, round: chatRound, mode: state.mode });
         removeLastChatMessage();
         console.log('[即墨] parsed reply:', reply);
-        if (!reply.message && !reply.raw) {
-          appendChatMessage('ai', 'AI 返回了空内容。请检查：\n1. API Key 是否正确\n2. 模型名是否正确（默认 deepseek-v4-pro）\n3. 打开 F12 Console 查看 [即墨] 日志');
+        const msg = reply.message || reply.raw;
+        if (!msg && !reply.choices) {
+          appendChatMessage('ai', 'AI 返回了空内容。请检查 API 配置。');
         } else {
-          appendChatMessage('ai', reply.message || reply.raw);
+          appendChatMessage('ai', msg || '');
+          if (reply.choices && reply.choices.length > 0) {
+            renderChatOptions(reply.choices);
+          }
         }
         if (reply.ready || chatRound >= 3) {
           input.disabled = true;
           document.getElementById('btn-send').disabled = true;
+          document.getElementById('chat-input-row').classList.add('hidden');
+          document.getElementById('chat-options-area').classList.add('hidden');
           const dilemma = reply.dilemma || '';
           setTimeout(() => startFramework(dilemma), 1500);
         } else {
@@ -440,6 +456,54 @@
       div.innerHTML = text;
       document.getElementById('chat-messages').appendChild(div);
       div.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderChatOptions(choices) {
+      const area = document.getElementById('chat-options-area');
+      area.innerHTML = choices.map(function(c) {
+        var isCustom = c.indexOf('自定义') === 0;
+        return '<button class="chat-option-btn' + (isCustom ? ' chat-option-custom' : '') + '" onclick="pickChatOption(\'' + c.replace(/'/g, "\\'") + '\')">' + c + '</button>';
+      }).join('');
+      area.classList.remove('hidden');
+    }
+
+    function pickChatOption(choice) {
+      document.getElementById('chat-options-area').classList.add('hidden');
+      if (choice.indexOf('自定义') === 0) {
+        document.getElementById('chat-input').focus();
+        return;
+      }
+      appendChatMessage('user', choice);
+      sendMessageAsChoice(choice);
+    }
+
+    async function sendMessageAsChoice(text) {
+      const input = document.getElementById('chat-input');
+      input.disabled = true;
+      document.getElementById('btn-send').disabled = true;
+      chatRound++;
+      if (!getApiConfig().key) { appendChatMessage('ai', '请先配置 API Key。'); return; }
+      appendChatMessage('ai', '<em>思考中...</em>');
+      try {
+        const reply = await callSkill('understand', { message: text, round: chatRound, mode: state.mode });
+        removeLastChatMessage();
+        const msg = reply.message || reply.raw;
+        if (msg) appendChatMessage('ai', msg);
+        if (reply.choices && reply.choices.length > 0) renderChatOptions(reply.choices);
+        if (reply.ready || chatRound >= 3) {
+          document.getElementById('chat-input-row').classList.add('hidden');
+          document.getElementById('chat-options-area').classList.add('hidden');
+          setTimeout(function() { startFramework(reply.dilemma || ''); }, 1500);
+        } else {
+          input.disabled = false;
+          document.getElementById('btn-send').disabled = false;
+        }
+      } catch (e) {
+        removeLastChatMessage();
+        appendChatMessage('ai', '出错了: ' + e.message);
+        input.disabled = false;
+        document.getElementById('btn-send').disabled = false;
+      }
     }
 
     function removeLastChatMessage() {
@@ -720,10 +784,10 @@
     const LAYERS = ['出现麻烦', '发现人为因素', '暴露更大目的', '揭开真相', '重塑身份认知', '终极抉择', '代价兑现'];
 
     const SYSTEM_PROMPTS = {
-      understand: (p) => '你是故事理解者。用户会描述想写的内容。你的任务:\n1. 问一个问题来深入理解用户的意图\n2. 复述你理解到的核心情绪/冲突\n3. 提炼为一个"困境一句话"\n\n' +
+      understand: (p) => '你是故事理解者。用户会描述想写的内容。你的任务:\n1. 问一个问题来深入理解用户的意图\n2. 复述你理解到的核心情绪/冲突\n3. 基于用户的回答，给出3-4个具体的方向选项供用户选择\n\n' +
         (p.round >= 2 ? '你已问过一轮，现在基于用户的回答提炼困境。\n' : '先问一个问题，帮用户理清ta真正想表达的。\n') +
         (p.round >= 3 ? '这是最后一轮，必须直接给出困境。\n' : '') +
-        '\n输出JSON格式: {"message":"你的回复","ready":true或false,"dilemma":"困境一句话"}\nready为true表示已确定理解用户意图。message直接写回复，不要用markdown代码块。',
+        '\n输出JSON格式:\n{"message":"你的回复","ready":true或false,"choices":["选项1","选项2","选项3"],"dilemma":"困境一句话"}\nchoices是供用户点击的具体故事方向，至少3个。如果用户表达了明确想法，choices应围绕ta的想法展开。最后一个choice始终是"自定义回答..."。ready为true表示你已确定理解用户意图。message直接写回复，不要用markdown代码块。',
 
       frame: (p) => '你是故事架构师。基于用户困境生成框架。\n\n创作姿态: ' + (p.mode === 'immersion' ? '代入式——从主角视角出发' : '旁观式——导演全知视角') + '\n\n输出JSON格式: {"dilemma":"核心困境","synopsis":"200字故事简介"}\n简介像封底推荐语。不要用markdown代码块。',
 
