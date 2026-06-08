@@ -661,9 +661,41 @@
       }
     }
     // === PROMPTS ===
+    const LAYERS = ['出现麻烦', '发现人为因素', '暴露更大目的', '揭开真相', '重塑身份认知', '终极抉择', '代价兑现'];
+
+    const SYSTEM_PROMPTS = {
+      understand: (p) => '你是故事理解者。用户会描述想写的内容。你的任务:\n1. 问一个问题来深入理解用户的意图\n2. 复述你理解到的核心情绪/冲突\n3. 提炼为一个"困境一句话"\n\n' +
+        (p.round >= 2 ? '你已问过一轮，现在基于用户的回答提炼困境。\n' : '先问一个问题，帮用户理清ta真正想表达的。\n') +
+        (p.round >= 3 ? '这是最后一轮，必须直接给出困境。\n' : '') +
+        '\n输出JSON格式: {"message":"你的回复","ready":true或false,"dilemma":"困境一句话"}\nready为true表示已确定理解用户意图。message直接写回复，不要用markdown代码块。',
+
+      frame: (p) => '你是故事架构师。基于用户困境生成框架。\n\n创作姿态: ' + (p.mode === 'immersion' ? '代入式——从主角视角出发' : '旁观式——导演全知视角') + '\n\n输出JSON格式: {"dilemma":"核心困境","synopsis":"200字故事简介"}\n简介像封底推荐语。不要用markdown代码块。',
+
+      write: (p) => {
+        const modeGuide = p.mode === 'immersion' ? '代入式：从主角的感官和情感出发写。' : '旁观式：以导演视角写，可以有全景、切换视角。';
+        return '你是小说续写者。\n\n' + modeGuide + '\n\n困境: ' + (p.dilemma || '') + '\n简介: ' + (p.synopsis || '') + '\n当前冲突层: ' + LAYERS[(p.currentLayer || 1) - 1] + '\n\n规则:\n- 续写' + (p.wordCount || 800) + '字左右\n- 在自然叙事断点停止\n- 结尾留钩子\n- 提供3个续写方向\n- 不写章节标题，直接写正文\n\n输出JSON格式: {"content":"续写正文","choices":["方向1","方向2","方向3"],"currentLayer":当前冲突层编号(1-7)}\n不要在content里写章节标题。不要用markdown代码块。';
+      }
+    };
+
+    function buildPrompt(skill, params) {
+      const system = SYSTEM_PROMPTS[skill](params);
+      const messages = [{ role: 'system', content: system }];
+      if (skill === 'understand') {
+        messages.push({ role: 'user', content: '[创作姿态: ' + (params.mode === 'immersion' ? '代入式' : '旁观式') + ']\n用户说: ' + params.message });
+      }
+      if (skill === 'frame') {
+        messages.push({ role: 'user', content: '困境方向: ' + params.dilemma + '\n请生成框架。' + (params.regenerate ? '请给出与之前不同的版本。' : '') });
+      }
+      if (skill === 'write') {
+        const prevContent = params.history?.length ? params.history.slice(-2).map(function(h) { return h.content.slice(-300); }).join('...') : '';
+        const direction = params.chosenDirection ? '用户选择了方向: ' + params.chosenDirection : '请开始第一次续写。';
+        const context = prevContent ? '前情: ' + prevContent : '简介: ' + params.synopsis;
+        messages.push({ role: 'user', content: direction + '\n' + context });
+      }
+      return messages;
+    }
     // === INSPIRATION DATA ===
     // === UI CONTROLLER ===
-    const LAYERS = ['出现麻烦', '发现人为因素', '暴露更大目的', '揭开真相', '重塑身份认知', '终极抉择', '代价兑现'];
 
     function updateLayersTracker() {
       const html = LAYERS.map((l, i) => {
