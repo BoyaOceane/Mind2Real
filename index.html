@@ -263,7 +263,15 @@
       </div>
       <button class="btn-primary hidden" id="btn-start" onclick="startUnderstanding()" style="margin-top:var(--space-lg);">开始创作 →</button>
     </div>
-    <div id="chat-screen" class="hidden"></div>
+    <div id="chat-screen" class="hidden">
+      <div id="chat-area">
+        <div id="chat-messages"></div>
+        <div class="chat-input-row">
+          <input id="chat-input" type="text" placeholder="说说你想写的..." onkeydown="if(event.key==='Enter')sendMessage()">
+          <button class="btn-primary" id="btn-send" onclick="sendMessage()">发送</button>
+        </div>
+      </div>
+    </div>
     <div id="frame-screen" class="hidden"></div>
     <div id="write-screen" class="hidden"></div>
   </main>
@@ -281,6 +289,10 @@
 
     let state = { ...DEFAULT_STATE };
 
+    function saveState() {
+      try { localStorage.setItem('jimo_agent_state', JSON.stringify(state)); } catch(e) {}
+    }
+
     function selectMode(mode) {
       document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
       document.querySelector(`[data-mode="${mode}"]`).classList.add('selected');
@@ -289,12 +301,78 @@
       document.getElementById('mode-display').textContent = mode === 'immersion' ? '模式: 代入式' : '模式: 旁观式';
     }
 
+    let chatRound = 0;
+
     function startUnderstanding() {
-      // Placeholder — will be implemented in Task 3
       document.getElementById('entry-screen').classList.add('hidden');
       document.getElementById('chat-screen').classList.remove('hidden');
       state.stage = 'understand';
       updateStageIndicator();
+      saveState();
+      appendChatMessage('ai', "今天想写什么？可以是一个画面、一种情绪、一个执念，或者只是一个模糊的念头。说来听听。");
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      input.disabled = true;
+      document.getElementById('btn-send').disabled = true;
+      appendChatMessage('user', text);
+      chatRound++;
+
+      if (!getApiConfig().key) {
+        appendChatMessage('ai', '请先在侧边栏配置 API Key。');
+        input.disabled = false;
+        document.getElementById('btn-send').disabled = false;
+        return;
+      }
+
+      appendChatMessage('ai', '<em>思考中...</em>');
+      try {
+        const reply = await callSkill('understand', { message: text, round: chatRound, mode: state.mode });
+        removeLastChatMessage();
+        appendChatMessage('ai', reply.message || reply.raw || JSON.stringify(reply));
+        if (reply.ready || chatRound >= 3) {
+          input.disabled = true;
+          document.getElementById('btn-send').disabled = true;
+          const dilemma = reply.dilemma || '';
+          setTimeout(() => startFramework(dilemma), 1500);
+        } else {
+          input.disabled = false;
+          document.getElementById('btn-send').disabled = false;
+        }
+      } catch (e) {
+        removeLastChatMessage();
+        appendChatMessage('ai', '出错了: ' + e.message);
+        input.disabled = false;
+        document.getElementById('btn-send').disabled = false;
+      }
+    }
+
+    function appendChatMessage(role, text) {
+      const div = document.createElement('div');
+      div.className = 'chat-bubble ' + role;
+      div.innerHTML = text;
+      document.getElementById('chat-messages').appendChild(div);
+      div.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function removeLastChatMessage() {
+      const msgs = document.getElementById('chat-messages');
+      if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+    }
+
+    function startFramework(dilemma) {
+      document.getElementById('chat-screen').classList.add('hidden');
+      document.getElementById('frame-screen').classList.remove('hidden');
+      state.stage = 'frame';
+      state.dilemma = dilemma;
+      document.getElementById('sidebar-dilemma').textContent = dilemma;
+      document.getElementById('dilemma-section').classList.remove('hidden');
+      updateStageIndicator();
+      saveState();
     }
 
     // === API CLIENT ===
