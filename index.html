@@ -272,7 +272,27 @@
         </div>
       </div>
     </div>
-    <div id="frame-screen" class="hidden"></div>
+    <div id="frame-screen" class="hidden">
+      <div id="frame-loading" style="text-align:center;padding:var(--space-lg);">
+        <p class="loading-text">正在搭框架...</p>
+      </div>
+      <div id="frame-content" class="hidden" style="max-width:640px;width:100%;">
+        <div class="title-lg">故事框架</div>
+        <p class="subtitle">AI 根据你的想法生成了以下框架，可编辑后确认</p>
+        <div class="framework-card" style="margin-top:var(--space-md);">
+          <h3>核心困境</h3>
+          <input id="dilemma-input" type="text">
+        </div>
+        <div class="framework-card" style="margin-top:var(--space-sm);">
+          <h3>故事简介</h3>
+          <textarea id="synopsis-input" placeholder="(200字以内)"></textarea>
+        </div>
+        <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-lg);justify-content:flex-end;">
+          <button class="btn-secondary" id="btn-regenerate" onclick="regenerateFramework()">重新生成</button>
+          <button class="btn-primary" id="btn-confirm-frame" onclick="confirmFramework()">确认，开始写作 →</button>
+        </div>
+      </div>
+    </div>
     <div id="write-screen" class="hidden"></div>
   </main>
 
@@ -288,6 +308,7 @@
     };
 
     let state = { ...DEFAULT_STATE };
+    let frameworkData = {};
 
     function saveState() {
       try { localStorage.setItem('jimo_agent_state', JSON.stringify(state)); } catch(e) {}
@@ -364,13 +385,65 @@
       if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
     }
 
-    function startFramework(dilemma) {
+    async function startFramework(dilemma) {
       document.getElementById('chat-screen').classList.add('hidden');
       document.getElementById('frame-screen').classList.remove('hidden');
+      document.getElementById('frame-content').classList.add('hidden');
+      document.getElementById('frame-loading').classList.remove('hidden');
       state.stage = 'frame';
       state.dilemma = dilemma;
       document.getElementById('sidebar-dilemma').textContent = dilemma;
       document.getElementById('dilemma-section').classList.remove('hidden');
+      updateStageIndicator();
+      saveState();
+
+      try {
+        const result = await callSkill('frame', { dilemma: dilemma, mode: state.mode });
+        frameworkData = result;
+        document.getElementById('frame-loading').classList.add('hidden');
+        document.getElementById('frame-content').classList.remove('hidden');
+        document.getElementById('dilemma-input').value = result.dilemma || dilemma;
+        document.getElementById('synopsis-input').value = result.synopsis || '';
+      } catch (e) {
+        document.getElementById('frame-loading').classList.add('hidden');
+        document.getElementById('frame-content').classList.remove('hidden');
+        document.getElementById('dilemma-input').value = dilemma;
+        showNotification('框架生成失败: ' + e.message, 'error');
+      }
+    }
+
+    async function confirmFramework() {
+      frameworkData.dilemma = document.getElementById('dilemma-input').value;
+      frameworkData.synopsis = document.getElementById('synopsis-input').value;
+      state.dilemma = frameworkData.dilemma;
+      state.synopsis = frameworkData.synopsis;
+      document.getElementById('sidebar-dilemma').textContent = frameworkData.dilemma;
+      saveState();
+      startWriting();
+    }
+
+    async function regenerateFramework() {
+      document.getElementById('frame-content').classList.add('hidden');
+      document.getElementById('frame-loading').classList.remove('hidden');
+      try {
+        const result = await callSkill('frame', { dilemma: state.dilemma, mode: state.mode, regenerate: true });
+        frameworkData = result;
+        document.getElementById('dilemma-input').value = result.dilemma || state.dilemma;
+        document.getElementById('synopsis-input').value = result.synopsis || '';
+      } catch (e) {
+        showNotification('重新生成失败: ' + e.message, 'error');
+      }
+      document.getElementById('frame-loading').classList.add('hidden');
+      document.getElementById('frame-content').classList.remove('hidden');
+    }
+
+    function startWriting() {
+      // Placeholder — Task 5
+      document.getElementById('frame-screen').classList.add('hidden');
+      document.getElementById('write-screen').classList.remove('hidden');
+      state.stage = 'write';
+      state.currentLayer = state.currentLayer || 1;
+      document.getElementById('layers-section').classList.remove('hidden');
       updateStageIndicator();
       saveState();
     }
