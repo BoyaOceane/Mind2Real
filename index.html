@@ -293,7 +293,18 @@
         </div>
       </div>
     </div>
-    <div id="write-screen" class="hidden"></div>
+    <div id="write-screen" class="hidden">
+      <div id="reading-area">
+        <div id="story-content" class="story-text"></div>
+        <div id="story-loading" class="hidden" style="text-align:center;padding:var(--space-lg);">
+          <p class="loading-text">写作中...</p>
+        </div>
+        <div id="choice-area" class="choice-row hidden"></div>
+        <div id="retry-area" class="hidden" style="text-align:center;margin-top:var(--space-md);">
+          <button class="btn-secondary" onclick="retryContinue()">续写中断，点此重试</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script>
@@ -437,15 +448,72 @@
       document.getElementById('frame-content').classList.remove('hidden');
     }
 
-    function startWriting() {
-      // Placeholder — Task 5
+    async function startWriting() {
       document.getElementById('frame-screen').classList.add('hidden');
       document.getElementById('write-screen').classList.remove('hidden');
       state.stage = 'write';
       state.currentLayer = state.currentLayer || 1;
       document.getElementById('layers-section').classList.remove('hidden');
       updateStageIndicator();
+      updateLayersTracker();
       saveState();
+      await continueStory();
+    }
+
+    async function continueStory(chosenDirection) {
+      const loading = document.getElementById('story-loading');
+      const choiceArea = document.getElementById('choice-area');
+      const retryArea = document.getElementById('retry-area');
+      loading.classList.remove('hidden');
+      choiceArea.classList.add('hidden');
+      retryArea.classList.add('hidden');
+
+      try {
+        const wordCount = getWordCountPref();
+        const result = await callSkill('write', {
+          mode: state.mode,
+          dilemma: state.dilemma,
+          synopsis: state.synopsis,
+          history: state.history,
+          currentLayer: state.currentLayer,
+          wordCount: wordCount,
+          chosenDirection: chosenDirection || null
+        });
+        loading.classList.add('hidden');
+        const content = document.getElementById('story-content');
+        content.textContent += (content.textContent ? '\n\n' : '') + (result.content || result.raw || '');
+        state.history.push({ content: result.content || result.raw, choices: result.choices || [], chosen: -1 });
+        state.currentLayer = result.currentLayer || state.currentLayer;
+        updateLayersTracker();
+        saveState();
+        if (result.choices && result.choices.length > 0) {
+          renderChoices(result.choices);
+        } else {
+          renderChoices(['继续推进剧情', '深入角色内心', '引入新冲突']);
+        }
+      } catch (e) {
+        loading.classList.add('hidden');
+        retryArea.classList.remove('hidden');
+      }
+    }
+
+    function renderChoices(choices) {
+      const area = document.getElementById('choice-area');
+      area.innerHTML = choices.map((c, i) =>
+        `<button class="choice-btn" onclick="pickChoice(${i})">${i + 1}. ${c}</button>`
+      ).join('');
+      area.classList.remove('hidden');
+    }
+
+    function pickChoice(index) {
+      state.history[state.history.length - 1].chosen = index;
+      saveState();
+      continueStory(index + 1);
+    }
+
+    function retryContinue() {
+      const lastIdx = state.history.length > 0 ? state.history[state.history.length - 1].chosen : -1;
+      continueStory(lastIdx >= 0 ? lastIdx + 1 : null);
     }
 
     // === API CLIENT ===
@@ -595,6 +663,18 @@
     // === PROMPTS ===
     // === INSPIRATION DATA ===
     // === UI CONTROLLER ===
+    const LAYERS = ['出现麻烦', '发现人为因素', '暴露更大目的', '揭开真相', '重塑身份认知', '终极抉择', '代价兑现'];
+
+    function updateLayersTracker() {
+      const html = LAYERS.map((l, i) => {
+        const idx = i + 1;
+        if (idx < state.currentLayer) return '<div class="layer-item done">' + idx + '. ' + l + '</div>';
+        if (idx === state.currentLayer) return '<div class="layer-item current">' + idx + '. ' + l + '</div>';
+        return '<div class="layer-item pending">' + idx + '. ' + l + '</div>';
+      }).join('');
+      document.getElementById('layers-tracker').innerHTML = html;
+    }
+
     function showNotification(msg, type) {
       const el = document.createElement('div');
       el.textContent = msg;
