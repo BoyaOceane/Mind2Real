@@ -1,0 +1,6 @@
+PARAM	VALUE
+base_url (OpenAI)	https://api.deepseek.com
+base_url (Anthropic)	https://api.deepseek.com/anthropic
+api_key	apply for an API key
+model*	deepseek-v4-flash
+deepseek-v4-pro

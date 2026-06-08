@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>即墨 · 设计系统 v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200..900&family=Noto+Sans+SC:wght@300..700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       即墨 · 设计系统 v2
+       宣纸色为境 · 墨分五色 · 朱砂为印
+    ============================================================ */
+
+    :root {
+      /* 宣纸底色系 — 暖白宣纸从生到熟 */
+      --jimo-paper-new:    oklch(98% 0.006 95);   /* 生宣 — 微暖白 */
+      --jimo-paper-aged:   oklch(96% 0.010 92);   /* 熟宣 — 暖黄白 */
+      --jimo-paper-dark:   oklch(92% 0.014 88);   /* 陈纸 — 暗黄 */
+      --jimo-ink-light:    oklch(65% 0.018 85);   /* 淡墨 — 阅读正文 */
+      --jimo-ink-mid:      oklch(40% 0.024 80);   /* 中墨 — 副标题 */
+      --jimo-ink-heavy:    oklch(20% 0.030 70);   /* 重墨 — 标题 */
+      --jimo-ink-black:    oklch(15% 0.032 60);   /* 浓墨 — 强调 */
+      --jimo-seal-red:     oklch(48% 0.16 28);    /* 朱砂印 — 唯一点缀 */
+      --jimo-seal-dark:    oklch(38% 0.18 22);    /* 暗朱砂 */
+      --jimo-border:       oklch(82% 0.008 90);   /* 细线边框 */
+      --jimo-border-dark:  oklch(60% 0.012 82);   /* 深边框 */
+
+      /* 字体 */
+      --font-display: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif;
+      --font-body:    'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      --font-mono:    'LXGW WenKai', 'FangSong', 'STFangsong', serif;
+
+      /* 间距 */
+      --space-xs:  8px;
+      --space-sm:  16px;
+      --space-md:  24px;
+      --space-lg:  48px;
+      --space-xl:  80px;
+      --space-2xl: 120px;
+    }
+
+    /* ---- 基础重置 ---- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--jimo-paper-new);
+      color: var(--jimo-ink-light);
+      line-height: 1.9;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- 导航 ---- */
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: oklch(98% 0.006 95 / 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--jimo-border);
+      padding: 0 var(--space-lg);
+    }
+    .toc-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+      height: 56px;
+    }
+    .toc-logo {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--jimo-ink-heavy);
+      letter-spacing: 0.08em;
+      text-decoration: none;
+    }
+    .toc-logo span { color: var(--jimo-seal-red); }
+    .toc-links {
+      display: flex;
+      gap: var(--space-md);
+      list-style: none;
+    }
+    .toc-links a {
+      font-size: 14px;
+      color: var(--jimo-ink-mid);
+      text-decoration: none;
+      padding: 6px 0;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .toc-links a:hover { color: var(--jimo-ink-heavy); border-bottom-color: var(--jimo-seal-red); }
+
+    /* ---- 容器 ---- */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 var(--space-lg); }
+    section { padding: var(--space-xl) 0; border-bottom: 1px solid var(--jimo-border); }
+    section:last-child { border-bottom: none; }
+
+    /* ---- 章节标题 ---- */
+    .section-label {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--jimo-seal-red);
+      margin-bottom: var(--space-sm);
+    }
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      color: var(--jimo-ink-heavy);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+    h2 {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 3.5vw, 40px);
+      font-weight: 600;
+      color: var(--jimo-ink-heavy);
+      line-height: 1.3;
+      margin-bottom: var(--space-sm);
+    }
+    h3 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--jimo-ink-mid);
+      margin-bottom: var(--space-sm);
+    }
+    .subtitle {
+      font-size: 18px;
+      color: var(--jimo-ink-mid);
+      max-width: 640px;
+      line-height: 1.7;
+    }
+
+    /* ---- 色板 ---- */
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: var(--space-sm);
+      margin-top: var(--space-lg);
+    }
+    .swatch {
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--jimo-border);
+    }
+    .swatch-color {
+      height: 80px;
+    }
+    .swatch-info {
+      background: var(--jimo-paper-new);
+      padding: 10px 14px;
+    }
+    .swatch-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--jimo-ink-heavy);
+      font-family: var(--font-body);
+    }
+    .swatch-val {
+      font-size: 11px;
+      color: var(--jimo-ink-mid);
+      font-family: monospace;
+      margin-top: 2px;
+    }
+
+    /* ---- 字体展示 ---- */
+    .type specimens { margin-top: var(--space-lg); }
+    .type-row {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: var(--space-lg);
+      align-items: baseline;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--jimo-border);
+    }
+    .type-meta { font-size: 12px; color: var(--jimo-ink-mid); }
+    .type-meta strong { display: block; font-size: 14px; color: var(--jimo-ink-heavy); margin-bottom: 4px; }
+    .type-sample-display {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700;
+      color: var(--jimo-ink-heavy);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .type-sample-body {
+      font-family: var(--font-body);
+      font-size: 20px;
+      color: var(--jimo-ink-light);
+      line-height: 1.8;
+    }
+    .type-sample-mono {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      color: var(--jimo-ink-mid);
+    }
+
+    /* ---- 间距系统 ---- */
+    .spacing-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--jimo-border);
+    }
+    .spacing-label { width: 80px; font-size: 13px; font-weight: 600; color: var(--jimo-ink-heavy); }
+    .spacing-bar { display: flex; align-items: center; gap: var(--space-md); }
+    .spacing-block {
+      background: var(--jimo-seal-red);
+      height: 24px;
+      opacity: 0.6;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .spacing-block:hover { opacity: 1; }
+    .spacing-num { font-size: 12px; color: var(--jimo-ink-mid); min-width: 60px; }
+
+    /* ---- 组件卡片 ---- */
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+    .component-card {
+      background: var(--jimo-paper-aged);
+      border: 1px solid var(--jimo-border);
+      border-radius: 6px;
+      padding: var(--space-md);
+    }
+    .component-card-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--jimo-seal-red);
+      margin-bottom: var(--space-sm);
+    }
+    .component-demo {
+      background: var(--jimo-paper-new);
+      border: 1px solid var(--jimo-border);
+      border-radius: 4px;
+      padding: var(--space-md);
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      align-items: flex-start;
+    }
+
+    /* ---- 按钮 ---- */
+    .btn-primary {
+      background: var(--jimo-ink-heavy);
+      color: var(--jimo-paper-new);
+      border: none;
+      border-radius: 4px;
+      padding: 10px 24px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--jimo-ink-black); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--jimo-ink-heavy);
+      border: 1.5px solid var(--jimo-ink-mid);
+      border-radius: 4px;
+      padding: 9px 24px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, transform 0.15s;
+    }
+    .btn-secondary:hover { border-color: var(--jimo-ink-heavy); color: var(--jimo-ink-heavy); transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--jimo-seal-red);
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--jimo-seal-dark); }
+
+    /* ---- 标签 ---- */
+    .tag {
+      display: inline-block;
+      background: var(--jimo-paper-dark);
+      color: var(--jimo-ink-mid);
+      border-radius: 3px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .tag-seal {
+      background: oklch(48% 0.16 28 / 0.12);
+      color: var(--jimo-seal-dark);
+    }
+    .tag-ink {
+      background: var(--jimo-ink-heavy);
+      color: var(--jimo-paper-new);
+    }
+
+    /* ---- 输入框 ---- */
+    .input-field {
+      background: var(--jimo-paper-new);
+      border: 1.5px solid var(--jimo-border);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--jimo-ink-heavy);
+      width: 100%;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .input-field::placeholder { color: var(--jimo-ink-mid); opacity: 0.7; }
+    .input-field:focus { border-color: var(--jimo-ink-mid); }
+
+    /* ---- 卡片组件 ---- */
+    .card {
+      background: var(--jimo-paper-new);
+      border: 1px solid var(--jimo-border);
+      border-radius: 6px;
+      padding: var(--space-md);
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--jimo-ink-heavy);
+      margin-bottom: 6px;
+    }
+    .card-body {
+      font-size: 14px;
+      color: var(--jimo-ink-light);
+      line-height: 1.7;
+    }
+
+    /* ---- 段落排版示例 ---- */
+    .prose-section {
+      margin-top: var(--space-lg);
+      max-width: 680px;
+    }
+    .prose-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--jimo-ink-heavy);
+      margin-bottom: var(--space-md);
+    }
+    .prose-body {
+      font-family: var(--font-body);
+      font-size: 17px;
+      color: var(--jimo-ink-light);
+      line-height: 2;
+      letter-spacing: 0.01em;
+    }
+    .prose-body p + p { margin-top: 1.4em; }
+
+    /* ---- 引用块 ---- */
+    .blockquote {
+      border-left: 3px solid var(--jimo-seal-red);
+      padding: var(--space-sm) var(--space-md);
+      margin: var(--space-md) 0;
+      background: var(--jimo-paper-aged);
+      border-radius: 0 4px 4px 0;
+    }
+    .blockquote p {
+      font-family: var(--font-display);
+      font-size: 20px;
+      color: var(--jimo-ink-mid);
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    /* ---- 分隔线 ---- */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--jimo-border);
+      margin: var(--space-xl) 0;
+    }
+
+    /* ---- 版本说明 ---- */
+    .version-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: oklch(48% 0.16 28 / 0.10);
+      color: var(--jimo-seal-dark);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ---- 响应式 ---- */
+    @media (max-width: 768px) {
+      .toc-inner { gap: var(--space-md); }
+      .toc-links { display: none; }
+      .type-row { grid-template-columns: 1fr; gap: var(--space-sm); }
+      .palette-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="index.html" class="toc-logo">即<span>墨</span></a>
+    <ul class="toc-links">
+      <li><a href="#colors">色彩</a></li>
+      <li><a href="#typography">字体</a></li>
+      <li><a href="#spacing">间距</a></li>
+      <li><a href="#components">组件</a></li>
+      <li><a href="#prose">阅读排版</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- 封面 -->
+<section style="padding-top: var(--space-xl); padding-bottom: var(--space-xl);">
+  <div class="container">
+    <div class="section-label">Design System v2</div>
+    <h1 style="margin-bottom: var(--space-md);">即墨设计系统</h1>
+    <p class="subtitle">宣纸色为境 · 墨分五色 · 朱砂为印<br>
+      专为小说生成阅读场景优化，易读性优先</p>
+    <div style="margin-top: var(--space-md); display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+      <span class="version-badge">v2.0</span>
+      <span class="tag">宣纸色底</span>
+      <span class="tag tag-seal">朱砂点缀</span>
+      <span class="tag">墨分五色</span>
+      <span class="tag">强对比度</span>
+    </div>
+  </div>
+</section>
+
+<!-- 色彩系统 -->
+<section id="colors">
+  <div class="container">
+    <div class="section-label">01 · 色彩</div>
+    <h2>宣纸色系</h2>
+    <p class="subtitle">以宣纸的多层次底色为核心——从生宣的微暖白到陈纸的暗黄，配合墨色的五个渐进层次，以及唯一的朱砂印点缀。</p>
+
+    <h3 style="margin-top: var(--space-lg); margin-bottom: var(--space-sm);">宣纸底色</h3>
+    <div class="palette-grid">
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-paper-new);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">生宣</div>
+          <div class="swatch-val">oklch(98% 0.006 95)</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-paper-aged);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">熟宣</div>
+          <div class="swatch-val">oklch(96% 0.010 92)</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-paper-dark);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">陈纸</div>
+          <div class="swatch-val">oklch(92% 0.014 88)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: var(--space-lg); margin-bottom: var(--space-sm);">墨分五色</h3>
+    <div class="palette-grid">
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-ink-black);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">浓墨</div>
+          <div class="swatch-val">oklch(15% 0.032 60)</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-ink-heavy);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">重墨</div>
+          <div class="swatch-val">oklch(20% 0.030 70)</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-ink-mid);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">中墨</div>
+          <div class="swatch-val">oklch(40% 0.024 80)</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-ink-light);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">淡墨</div>
+          <div class="swatch-val">oklch(65% 0.018 85)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: var(--space-lg); margin-bottom: var(--space-sm);">朱砂印（唯一点缀）</h3>
+    <div class="palette-grid">
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-seal-red);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">朱砂印</div>
+          <div class="swatch-val">oklch(48% 0.16 28)</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-seal-dark);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">暗朱砂</div>
+          <div class="swatch-val">oklch(38% 0.18 22)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: var(--space-lg); margin-bottom: var(--space-sm);">边框与线</h3>
+    <div class="palette-grid">
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-border);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">细线边框</div>
+          <div class="swatch-val">oklch(82% 0.008 90)</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--jimo-border-dark);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">深边框</div>
+          <div class="swatch-val">oklch(60% 0.012 82)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 字体系统 -->
+<section id="typography">
+  <div class="container">
+    <div class="section-label">02 · 字体</div>
+    <h2>字体层级</h2>
+    <p class="subtitle">宋体衬线用于标题与强调，醒过来无衬线用于正文阅读，楷体用于古文引用与特殊场景。三层分离，确保阅读舒适度。</p>
+
+    <div class="type-specimens">
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Display — 宋体衬线</strong>
+          标题 · 大字号 · 墨色浓<br>
+          font-display
+        </div>
+        <div class="type-sample-display">天地玄黄 宇宙洪荒</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Body — 雅黑/思源</strong>
+          正文阅读 · 17px起 · 淡墨色<br>
+          font-body
+        </div>
+        <div class="type-sample-body">秋风清，秋月明，落叶聚还散，寒鸦栖复惊。</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Mono — 楷体/仿宋</strong>
+          古文引用 · 典故 · 特殊场景<br>
+          font-mono
+        </div>
+        <div class="type-sample-mono">「山不在高，有仙则名。水不在深，有龙则灵。」</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: var(--space-lg);">字号梯度</h3>
+    <div style="margin-top: var(--space-md);">
+      <div class="type-row">
+        <div class="type-meta">56px · 大标题</div>
+        <div class="type-sample-display" style="font-size: 48px;">即墨</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">40px · 章节标题</div>
+        <div style="font-family: var(--font-display); font-size: 40px; color: var(--jimo-ink-heavy); font-weight: 600;">第一章 烽火戏诸侯</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">28px · 小标题</div>
+        <div style="font-family: var(--font-display); font-size: 28px; color: var(--jimo-ink-mid);">夜色渐深，江面泛起薄雾</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">17px · 正文</div>
+        <div style="font-family: var(--font-body); font-size: 17px; color: var(--jimo-ink-light); line-height: 2;">
+          两人沿着山路走了约莫半个时辰，月光透过枝叶洒下斑驳的影子。林霜脚步轻盈，显然对这片山林极为熟悉。
+        </div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">14px · 辅助文字</div>
+        <div style="font-family: var(--font-body); font-size: 14px; color: var(--jimo-ink-mid);">
+          更新于 2026年5月14日 · 字数 12.4万 · 阅读时长约 8 小时
+        </div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">12px · 标签/元信息</div>
+        <div style="font-size: 12px; color: var(--jimo-ink-mid); letter-spacing: 0.08em; text-transform: uppercase;">
+          CHAPTER 03 · FANTASY
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 间距系统 -->
+<section id="spacing">
+  <div class="container">
+    <div class="section-label">03 · 间距</div>
+    <h2>间距系统</h2>
+    <p class="subtitle">基于 8px 网格系统的五级间距。大量留白是东方美学的核心，也是阅读舒适度的保障。</p>
+
+    <div style="margin-top: var(--space-lg);">
+      <div class="spacing-row">
+        <div class="spacing-label">xs — 8px</div>
+        <div class="spacing-bar"><div class="spacing-block" style="width: 8px;"></div></div>
+        <div class="spacing-num">元素内紧凑间距</div>
+      </div>
+      <div class="spacing-row">
+        <div class="spacing-label">sm — 16px</div>
+        <div class="spacing-bar"><div class="spacing-block" style="width: 16px;"></div></div>
+        <div class="spacing-num">组件内标准间距</div>
+      </div>
+      <div class="spacing-row">
+        <div class="spacing-label">md — 24px</div>
+        <div class="spacing-bar"><div class="spacing-block" style="width: 24px;"></div></div>
+        <div class="spacing-num">区块间间距</div>
+      </div>
+      <div class="spacing-row">
+        <div class="spacing-label">lg — 48px</div>
+        <div class="spacing-bar"><div class="spacing-block" style="width: 48px;"></div></div>
+        <div class="spacing-num">章节/段落间距</div>
+      </div>
+      <div class="spacing-row">
+        <div class="spacing-label">xl — 80px</div>
+        <div class="spacing-bar"><div class="spacing-block" style="width: 80px;"></div></div>
+        <div class="spacing-num">大区块分隔 / 页边距</div>
+      </div>
+      <div class="spacing-row">
+        <div class="spacing-label">2xl — 120px</div>
+        <div class="spacing-bar"><div class="spacing-block" style="width: 120px;"></div></div>
+        <div class="spacing-num">页与页之间大量留白</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 组件 -->
+<section id="components">
+  <div class="container">
+    <div class="section-label">04 · 组件</div>
+    <h2>核心组件</h2>
+    <p class="subtitle">所有组件以墨色为主、宣纸色为底、朱砂印为唯一点缀。克制是核心原则。</p>
+
+    <div class="component-grid">
+      <!-- 按钮组 -->
+      <div class="component-card">
+        <div class="component-card-title">Button 按钮</div>
+        <div class="component-demo" style="flex-direction: row; flex-wrap: wrap; gap: 8px;">
+          <button class="btn-primary">主要</button>
+          <button class="btn-secondary">次要</button>
+          <button class="btn-ghost">文字链接</button>
+        </div>
+      </div>
+
+      <!-- 标签 -->
+      <div class="component-card">
+        <div class="component-card-title">Tag 标签</div>
+        <div class="component-demo" style="flex-direction: row; flex-wrap: wrap; gap: 8px;">
+          <span class="tag">默认</span>
+          <span class="tag tag-seal">朱砂</span>
+          <span class="tag tag-ink">墨色</span>
+        </div>
+      </div>
+
+      <!-- 输入框 -->
+      <div class="component-card">
+        <div class="component-card-title">Input 输入框</div>
+        <div class="component-demo" style="gap: 8px;">
+          <input type="text" class="input-field" placeholder="请输入章节标题……">
+          <input type="text" class="input-field" value="青山隐隐水迢迢" readonly style="background: var(--jimo-paper-aged);">
+        </div>
+      </div>
+
+      <!-- 卡片 -->
+      <div class="component-card">
+        <div class="component-card-title">Card 卡片</div>
+        <div class="component-demo">
+          <div class="card">
+            <div class="card-title">第一章 烽火戏诸侯</div>
+            <div class="card-body">周室衰微，诸侯并起，天下大势，分久必合。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 引用 -->
+      <div class="component-card">
+        <div class="component-card-title">Blockquote 引用块</div>
+        <div class="component-demo">
+          <div class="blockquote">
+            <p>「山不在高，有仙则名。水不在深，有龙则灵。」</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分隔线 -->
+      <div class="component-card">
+        <div class="component-card-title">Divider 分隔线</div>
+        <div class="component-demo" style="flex-direction: column; gap: 16px;">
+          <hr class="divider">
+          <hr class="divider" style="border-top: 2px solid var(--jimo-border-dark);">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 阅读排版 -->
+<section id="prose">
+  <div class="container">
+    <div class="section-label">05 · 阅读排版</div>
+    <h2>正文排版规范</h2>
+    <p class="subtitle">小说阅读场景的核心规范：强对比度、充足行高、合理行长、衬线标题。</p>
+
+    <div class="prose-section">
+      <div class="prose-title">正文示例 — 无装饰阅读</div>
+      <div class="prose-body">
+        <p>夜色渐深，江面泛起薄雾。画舫缓缓行驶，船头挂着两盏红灯笼，光晕落在水面上，随波纹一圈圈散开。</p>
+        <p>林霜坐在窗边，手指轻轻敲着桐木桌面，似乎在等什么。桌上摊开一本旧册，纸页已经泛黄，边角卷起了毛边。</p>
+        <p>「客官，前面就是销金窝了。」船夫的声音从甲板上传来，带着几分敬畏。</p>
+        <p>她抬起头，目光穿过蒙蒙水汽，望向远处灯火阑珊的彼岸。那里是江湖中人谈之色变的禁地，也是她此行必到之处。</p>
+      </div>
+    </div>
+
+    <div class="blockquote" style="margin-top: var(--space-xl);">
+      <p>阅读排版五原则：<br>
+        字重分明 · 行高1.9+ · 行长不超过70字 · 段距大于行距 · 朱砂仅限点缀</p>
+    </div>
+  </div>
+</section>
+
+<!-- 底部 -->
+<section style="background: var(--jimo-paper-aged);">
+  <div class="container" style="padding: var(--space-xl) 0; text-align: center;">
+    <div style="font-family: var(--font-display); font-size: 48px; color: var(--jimo-ink-heavy); opacity: 0.15; margin-bottom: var(--space-md);">即</div>
+    <div style="font-size: 13px; color: var(--jimo-ink-mid);">
+      即墨设计系统 v2.0 · 宣纸色为境 · 墨分五色 · 朱砂为印
+    </div>
+    <div style="font-size: 12px; color: var(--jimo-ink-mid); opacity: 0.6; margin-top: 8px;">
+      Built for novel reading · Readability first
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
