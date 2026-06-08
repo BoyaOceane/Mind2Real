@@ -338,7 +338,7 @@
     document.getElementById('btn-test-api').addEventListener('click', async () => {
       const url = document.getElementById('api-url').value.trim() || 'https://api.deepseek.com/v1';
       const key = document.getElementById('api-key').value.trim();
-      if (!key) { alert('请填写 API Key'); return; }
+      if (!key) { showNotification('请填写 API Key', 'error'); return; }
       const btn = document.getElementById('btn-test-api');
       btn.textContent = '测试中...'; btn.disabled = true;
       try {
@@ -370,6 +370,8 @@
       const messages = buildPrompt ? buildPrompt(skill, params) : [{ role: 'user', content: params.message || 'hi' }];
 
       const isStream = skill === 'write';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
       const res = await fetch(`${config.url.replace(/\/$/, '')}/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
@@ -379,8 +381,10 @@
           temperature: skill === 'write' ? 0.8 : 0.6,
           max_tokens: skill === 'write' ? 2000 : 600,
           stream: isStream
-        })
+        }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -470,7 +474,9 @@
 
     // Word count preference save
     document.getElementById('word-count-pref').addEventListener('change', () => {
-      localStorage.setItem('jimo_prefs', JSON.stringify({ wordCount: getWordCountPref() }));
+      const prefs = JSON.parse(localStorage.getItem('jimo_prefs') || '{}');
+      prefs.wordCount = getWordCountPref();
+      localStorage.setItem('jimo_prefs', JSON.stringify(prefs));
     });
   </script>
 </body>
