@@ -248,7 +248,21 @@
 
   <!-- 主区域 -->
   <main id="main">
-    <div id="entry-screen"></div>
+    <div id="entry-screen">
+      <div class="title-lg">你想怎么创作？</div>
+      <p class="subtitle" style="margin-top:8px;">选择一种姿态，决定了你和故事的关系</p>
+      <div class="mode-cards">
+        <div class="mode-card" data-mode="immersion" onclick="selectMode('immersion')">
+          <h3>📖 代入式</h3>
+          <p>你成为主角<br>通过主角的感官体验故事<br>情感是唯一的指南针</p>
+        </div>
+        <div class="mode-card" data-mode="director" onclick="selectMode('director')">
+          <h3>🎬 旁观式</h3>
+          <p>你来当导演<br>掌控全局，调度角色<br>逻辑是叙事的骨架</p>
+        </div>
+      </div>
+      <button class="btn-primary hidden" id="btn-start" onclick="startUnderstanding()" style="margin-top:var(--space-lg);">开始创作 →</button>
+    </div>
     <div id="chat-screen" class="hidden"></div>
     <div id="frame-screen" class="hidden"></div>
     <div id="write-screen" class="hidden"></div>
@@ -256,10 +270,46 @@
 
   <script>
     // === STATE ===
+    const DEFAULT_STATE = {
+      stage: 'entry',
+      mode: null,
+      dilemma: '',
+      synopsis: '',
+      currentLayer: 1,
+      history: []
+    };
+
+    let state = { ...DEFAULT_STATE };
+
+    function selectMode(mode) {
+      document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`[data-mode="${mode}"]`).classList.add('selected');
+      document.getElementById('btn-start').classList.remove('hidden');
+      state.mode = mode;
+      document.getElementById('mode-display').textContent = mode === 'immersion' ? '模式: 代入式' : '模式: 旁观式';
+    }
+
+    function startUnderstanding() {
+      // Placeholder — will be implemented in Task 3
+      document.getElementById('entry-screen').classList.add('hidden');
+      document.getElementById('chat-screen').classList.remove('hidden');
+      state.stage = 'understand';
+      updateStageIndicator();
+    }
+
     // === API CLIENT ===
     // === PROMPTS ===
     // === INSPIRATION DATA ===
     // === UI CONTROLLER ===
+    function updateStageIndicator() {
+      const labels = ['理解你', '搭框架', '写故事'];
+      const current = state.stage === 'understand' ? 0 : state.stage === 'frame' ? 1 : state.stage === 'write' ? 2 : -1;
+      document.getElementById('stage-indicator').innerHTML = labels.map((l, i) => {
+        if (i === current) return `<div style="color:var(--seal);font-weight:600;font-size:14px;">● ${l}</div>`;
+        if (i < current) return `<div style="color:var(--ink-light);font-size:13px;">✓ ${l}</div>`;
+        return `<div style="color:var(--ink-light);opacity:0.4;font-size:13px;">○ ${l}</div>`;
+      }).join('');
+    }
   </script>
 </body>
 </html>
