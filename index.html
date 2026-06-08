@@ -468,11 +468,11 @@
     }
 
     function pickChatOption(choice) {
-      document.getElementById('chat-options-area').classList.add('hidden');
       if (choice.indexOf('自定义') === 0) {
         document.getElementById('chat-input').focus();
         return;
       }
+      document.getElementById('chat-options-area').classList.add('hidden');
       appendChatMessage('user', choice);
       sendMessageAsChoice(choice);
     }
