@@ -719,8 +719,9 @@
         .seg-edit-layout {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
+        /* 原稿 — 顶部折叠条 */
         .seg-original-panel {
             background: var(--paper-aged);
             border: 1px solid var(--border-light);
@@ -731,79 +732,105 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 14px;
+            padding: 6px 14px;
             cursor: pointer;
             user-select: none;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
+            letter-spacing: 0.04em;
         }
         .seg-original-header:hover { background: var(--paper-dark); }
-        .seg-original-header .arrow { transition: transform 0.2s; font-size: 0.7rem; }
+        .seg-original-header .arrow { transition: transform 0.2s; font-size: 0.65rem; }
         .seg-original-panel.collapsed .seg-original-body { display: none; }
         .seg-original-panel.collapsed .arrow { transform: rotate(-90deg); }
         .seg-original-body {
-            padding: 0 14px 12px;
-            font-size: 0.85rem;
-            line-height: 1.8;
+            padding: 8px 14px 10px;
+            font-size: 0.82rem;
+            line-height: 1.85;
             color: var(--text-muted);
             white-space: pre-wrap;
-            max-height: 120px;
+            max-height: 100px;
             overflow-y: auto;
             border-top: 1px solid var(--border-light);
             margin: 0 12px;
         }
+        /* 双栏：改稿 + 差异 */
+        .seg-edit-row {
+            display: flex;
+            gap: 16px;
+            min-height: 320px;
+        }
         .seg-edited-panel {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
             background: var(--bg-primary);
             border: 1px solid var(--border-medium);
             border-radius: var(--radius-md);
             padding: 12px;
+            min-width: 0;
         }
         .seg-label {
             font-size: 0.72rem;
             color: var(--text-muted);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: block;
+            letter-spacing: 0.04em;
+            flex-shrink: 0;
         }
         .seg-edit-textarea {
             width: 100%;
-            min-height: 300px;
-            resize: vertical;
-            padding: 12px 14px;
-            font-size: 0.92rem;
+            flex: 1;
+            resize: none;
+            padding: 0;
+            font-size: 0.95rem;
             line-height: 1.9;
             font-family: inherit;
             color: var(--text-primary);
-            background: var(--bg-primary);
+            background: transparent;
             border: none;
             outline: none;
             box-sizing: border-box;
         }
-        .seg-diff-preview {
+        .seg-diff-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             background: var(--paper-aged);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-md);
-            padding: 12px 14px;
-            font-size: 0.82rem;
+            padding: 12px;
+            min-width: 0;
+            overflow-y: auto;
+        }
+        .seg-diff-panel .seg-label {
+            flex-shrink: 0;
+        }
+        .seg-diff-content {
+            flex: 1;
+            font-size: 0.85rem;
             line-height: 1.9;
             color: var(--text-secondary);
             white-space: pre-wrap;
-            min-height: 40px;
-            max-height: 200px;
             overflow-y: auto;
+            word-break: break-word;
         }
-        .seg-diff-preview .diff-del {
+        .seg-diff-content .diff-del {
             color: #b85555;
             text-decoration: line-through;
-            background: rgba(184, 85, 85, 0.08);
+            background: rgba(184, 85, 85, 0.06);
         }
-        .seg-diff-preview .diff-add {
+        .seg-diff-content .diff-add {
             color: #b85555;
-            background: rgba(184, 85, 85, 0.12);
+            background: rgba(184, 85, 85, 0.10);
         }
         .seg-diff-empty {
             color: var(--text-muted);
             font-size: 0.78rem;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
         }
         .seg-edit-actions {
             display: flex;
@@ -811,7 +838,7 @@
             gap: 8px;
         }
         .seg-edit-actions .btn-sm {
-            padding: 6px 14px;
+            padding: 7px 16px;
             font-size: 0.82rem;
             border: 1px solid var(--border-medium);
             border-radius: var(--radius-sm);
@@ -916,6 +943,8 @@
             .bottom-action-inner { flex-direction: column; gap: 8px; }
             .bottom-action-btns { width: 100%; }
             .bottom-action-btns .btn { flex: 1; }
+            .seg-edit-row { flex-direction: column; min-height: auto; }
+            .seg-edit-textarea { min-height: 200px; }
         }
     </style>
 </head>
@@ -1501,12 +1530,17 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                         '</div>' +
                         '<div class="seg-original-body">' + escapeHTML(original) + '</div>' +
                     '</div>' +
-                    '<div class="seg-edited-panel">' +
-                        '<span class="seg-label">改稿</span>' +
-                        '<textarea id="seg-edit-' + index + '" class="seg-edit-textarea">' + escapeHTML(seg.content) + '</textarea>' +
-                    '</div>' +
-                    '<div class="seg-diff-preview" id="seg-diff-' + index + '">' +
-                        '<div class="seg-diff-empty">— 修改后此处显示与原文的差异 —</div>' +
+                    '<div class="seg-edit-row">' +
+                        '<div class="seg-edited-panel">' +
+                            '<span class="seg-label">改稿</span>' +
+                            '<textarea id="seg-edit-' + index + '" class="seg-edit-textarea">' + escapeHTML(seg.content) + '</textarea>' +
+                        '</div>' +
+                        '<div class="seg-diff-panel">' +
+                            '<span class="seg-label">差异</span>' +
+                            '<div class="seg-diff-content" id="seg-diff-' + index + '">' +
+                                '<div class="seg-diff-empty">— 修改后此处显示差异 —</div>' +
+                            '</div>' +
+                        '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="seg-edit-actions">' +
@@ -1531,6 +1565,10 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             if (!container) return;
             if (original === edited) {
                 container.innerHTML = '<div class="seg-diff-empty">— 尚未修改 —</div>';
+                return;
+            }
+            if (!edited.trim()) {
+                container.innerHTML = '<div class="seg-diff-empty">— 改稿为空 —</div>';
                 return;
             }
             container.innerHTML = computeCharDiff(original, edited);
