@@ -1555,25 +1555,12 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 
         // Display full story (all history segments)
         function displayFullStory() {
-            document.getElementById('storyText').innerHTML = currentStory.history.map((h, i) => {
-                let reasoningBlock = '';
-                if (h.reasoning) {
-                    const rid = 'reasoning-' + i;
-                    reasoningBlock =
-                        '<div class="reasoning-bar" id="' + rid + '">' +
-                            '<div class="reasoning-header" onclick="document.getElementById(\'' + rid + '\').classList.toggle(\'collapsed\')">' +
-                                '<span>文风推理</span>' +
-                                '<span class="reasoning-arrow">▾</span>' +
-                            '</div>' +
-                            '<div class="reasoning-body">' + escapeHTML(h.reasoning) + '</div>' +
-                        '</div>';
-                }
-                return '<div id="seg-' + i + '" class="story-segment">' +
+            document.getElementById('storyText').innerHTML = currentStory.history.map((h, i) =>
+                '<div id="seg-' + i + '" class="story-segment">' +
                     '<div class="seg-toolbar"><button class="seg-edit-btn" onclick="editSegment(' + i + ')">润色</button></div>' +
-                    reasoningBlock +
                     '<div class="seg-content">' + textToHtml(h.content) + '</div>' +
-                '</div>';
-            }).join('<hr class="story-divider">');
+                '</div>'
+            ).join('<hr class="story-divider">');
         }
 
         // ---- Segment editing ----
@@ -1930,8 +1917,10 @@ JSON 结构：
             // Advance 1-2 chars per frame depending on speed
             _tw.pos = Math.min(_tw.pos + _tw.speed, _tw.text.length);
             const partial = _tw.text.slice(0, _tw.pos);
+            // Strip 【风格推理】 — only show body after 【正文】
+            const { body } = parseStyleReasoning(partial);
             const prevHtml = currentStory.history.map(h => textToHtml(h.content)).join('<hr class="story-divider">');
-            const newHtml = textToHtml(partial);
+            const newHtml = body ? textToHtml(stripStructuredMeta(body)) : '';
             const divider = currentStory.history.length > 0 ? '<hr class="story-divider">' : '';
             document.getElementById('storyText').innerHTML = prevHtml + divider + newHtml;
             const storyEl = document.querySelector('.story-content');
