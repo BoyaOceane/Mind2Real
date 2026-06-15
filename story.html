@@ -1356,10 +1356,9 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             typewriterReset();
             // Save whatever was generated so far
             if (partialResult.trim()) {
-                const { reasoning, body } = parseStyleReasoning(partialResult);
-                const displayText = ensureCompleteSentence(stripStructuredMeta(body));
+                const displayText = ensureCompleteSentence(stripStructuredMeta(partialResult));
                 if (displayText.trim()) {
-                    currentStory.history.push({ content: displayText, original: displayText, reasoning: reasoning || undefined, timestamp: Date.now() });
+                    currentStory.history.push({ content: displayText, original: displayText, reasoning: _pendingReasoning || undefined, timestamp: Date.now() });
                     displayFullStory();
                     appendNewMeta(partialResult);
                     saveStoryData();
@@ -1367,6 +1366,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 }
             }
             partialResult = '';
+            _pendingReasoning = '';
             setLoadingState(false);
             showToast('已停止，内容已保留');
         }
@@ -1496,12 +1496,23 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 3. 文字直白有张力，画面感强
 4. 在主角面临抉择、危机或关键发现时停笔，不提供选项`;
 
-            const systemPrompt = renderPrompt(getStoryPrompt(), {
+            let systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
                 worldDesc: currentStory.worldDesc || '',
                 protagonist: currentStory.protagonist,
                 goldenFinger: currentStory.goldenFinger || '无'
             });
+
+            // Step 1: Generate style reasoning independently
+            let reasoning = '';
+            if (styleBlock) {
+                const context = `世界：${currentStory.worldTitle}\n主角：${currentStory.protagonist}\n叙事：${currentStory.narrative}`;
+                reasoning = await generateStyleReasoning(styleBlock, context);
+                _pendingReasoning = reasoning;
+                if (reasoning) {
+                    systemPrompt = `【本次写作策略】\n${reasoning}\n\n` + systemPrompt;
+                }
+            }
 
             try {
                 const result = await callDeepSeek(prompt, systemPrompt, (text) => {
@@ -1512,8 +1523,8 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 if (result) {
                     partialResult = '';
                     typewriterReset();
-                    const { reasoning, body } = parseStyleReasoning(result);
-                    const displayText = ensureCompleteSentence(stripStructuredMeta(body));
+                    _pendingReasoning = '';
+                    const displayText = ensureCompleteSentence(stripStructuredMeta(result));
                     const segment = {
                         content: displayText,
                         original: displayText,
@@ -1747,6 +1758,32 @@ JSON 结构：
 2. 只输出 JSON，不要 markdown 代码块，不要额外文字。
 3. 尽量具体，避免泛泛而谈。`;
 
+        // Independent style reasoning — called before body generation
+        async function generateStyleReasoning(styleBlock, storyContext) {
+            const config = getApiConfig();
+            if (!config.apiKey || !styleBlock) return '';
+            const systemPrompt = `你是一位写作文风策略师。你会收到一份文风约束档案和当前故事上下文。
+请仔细分析每条约束，针对当前场景制定具体的写作策略。
+
+要求：
+1. 逐条说明你对每条约束的理解和本次落实方案
+2. 越具体越好，让人能看出你的完整思考过程
+3. 直接输出策略文本，不要任何标记`;
+            const userPrompt = `${styleBlock}
+
+当前故事上下文：
+${storyContext}
+
+请输出你的写作策略。`;
+            try {
+                const raw = await callDeepSeek(userPrompt, systemPrompt);
+                return raw ? raw.trim() : '';
+            } catch (e) {
+                console.error('generateStyleReasoning error:', e);
+                return '';
+            }
+        }
+
         async function analyzeStyleDiff(original, edited) {
             try {
                 const config = getApiConfig();
@@ -1904,8 +1941,7 @@ JSON 结构：
                 }).join('\n');
                 parts.push('【改写示例】\n' + exLines);
             }
-            return '【用户文风约束】\n' + parts.join('\n') +
-                '\n\n请先输出【风格推理】块，逐条说明你对每条约束的理解和本次打算如何落实，比如：句式节奏你打算怎么控制？用词层级选哪个方向？禁忌如何规避？示例给了你什么启发？推理越具体越好，让读者能看出你的思考过程。推理结束后用【正文】标记开始创作。';
+            return '【用户文风约束】\n' + parts.join('\n');
         }
 
         // Display story content: all previous history + current streaming text
@@ -1930,10 +1966,8 @@ JSON 结构：
             // Advance 1-2 chars per frame depending on speed
             _tw.pos = Math.min(_tw.pos + _tw.speed, _tw.text.length);
             const partial = _tw.text.slice(0, _tw.pos);
-            // Strip 【风格推理】 — only show body after 【正文】
-            const { body } = parseStyleReasoning(partial);
             const prevHtml = currentStory.history.map(h => textToHtml(h.content)).join('<hr class="story-divider">');
-            const newHtml = body ? textToHtml(stripStructuredMeta(body)) : '';
+            const newHtml = textToHtml(partial);
             const divider = currentStory.history.length > 0 ? '<hr class="story-divider">' : '';
             document.getElementById('storyText').innerHTML = prevHtml + divider + newHtml;
             const storyEl = document.querySelector('.story-content');
@@ -2005,12 +2039,24 @@ ${storySoFar}
 3. 文字直白有张力
 4. 结尾停在新的关键节点，提供3个选项`;
 
-            const systemPrompt = renderPrompt(getStoryPrompt(), {
+            let systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
                 worldDesc: currentStory.worldDesc || '',
                 protagonist: currentStory.protagonist,
                 goldenFinger: currentStory.goldenFinger || '无'
             });
+
+            // Step 1: Generate style reasoning independently
+            let reasoning = '';
+            if (styleBlock) {
+                setLoadingState(true, '正在分析文风策略...');
+                reasoning = await generateStyleReasoning(styleBlock, storySoFar.slice(-600));
+                _pendingReasoning = reasoning;
+                if (reasoning) {
+                    systemPrompt = `【本次写作策略】\n${reasoning}\n\n` + systemPrompt;
+                }
+                setLoadingState(true, '正在续写...');
+            }
 
             try {
                 const result = await callDeepSeek(prompt, systemPrompt, (text) => {
@@ -2021,8 +2067,8 @@ ${storySoFar}
                 if (result) {
                     partialResult = '';
                     typewriterReset();
-                    const { reasoning, body } = parseStyleReasoning(result);
-                    const displayText = ensureCompleteSentence(stripStructuredMeta(body));
+                    _pendingReasoning = '';
+                    const displayText = ensureCompleteSentence(stripStructuredMeta(result));
                     const segment = {
                         content: displayText,
                         original: displayText,
