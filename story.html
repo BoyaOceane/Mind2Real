@@ -722,15 +722,46 @@
             border-color: var(--accent-primary);
         }
         .seg-edit-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .seg-original-panel, .seg-edited-panel {
+        .seg-original-panel {
             background: var(--paper-aged);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-md);
-            padding: 16px;
+            overflow: hidden;
+        }
+        .seg-original-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 14px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+        .seg-original-header:hover { background: var(--paper-dark); }
+        .seg-original-header .arrow { transition: transform 0.2s; font-size: 0.7rem; }
+        .seg-original-panel.collapsed .seg-original-body { display: none; }
+        .seg-original-panel.collapsed .arrow { transform: rotate(-90deg); }
+        .seg-original-body {
+            padding: 0 14px 12px;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+            white-space: pre-wrap;
+            max-height: 120px;
+            overflow-y: auto;
+            border-top: 1px solid var(--border-light);
+            margin: 0 12px;
+        }
+        .seg-edited-panel {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            padding: 12px;
         }
         .seg-label {
             font-size: 0.72rem;
@@ -738,36 +769,51 @@
             margin-bottom: 8px;
             display: block;
         }
-        .seg-original-text {
-            font-size: 0.88rem;
-            line-height: 1.8;
-            color: var(--text-secondary);
-            white-space: pre-wrap;
-        }
         .seg-edit-textarea {
             width: 100%;
-            min-height: 180px;
+            min-height: 300px;
             resize: vertical;
-            padding: 10px 12px;
-            font-size: 0.9rem;
-            line-height: 1.8;
+            padding: 12px 14px;
+            font-size: 0.92rem;
+            line-height: 1.9;
             font-family: inherit;
             color: var(--text-primary);
             background: var(--bg-primary);
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-sm);
+            border: none;
+            outline: none;
             box-sizing: border-box;
         }
-        .seg-edit-textarea:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.15);
+        .seg-diff-preview {
+            background: var(--paper-aged);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            font-size: 0.82rem;
+            line-height: 1.9;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            min-height: 40px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .seg-diff-preview .diff-del {
+            color: #b85555;
+            text-decoration: line-through;
+            background: rgba(184, 85, 85, 0.08);
+        }
+        .seg-diff-preview .diff-add {
+            color: #b85555;
+            background: rgba(184, 85, 85, 0.12);
+        }
+        .seg-diff-empty {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            text-align: center;
         }
         .seg-edit-actions {
             display: flex;
             justify-content: flex-end;
             gap: 8px;
-            margin-top: 12px;
         }
         .seg-edit-actions .btn-sm {
             padding: 6px 14px;
@@ -1449,15 +1495,22 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             const el = document.getElementById('seg-' + index);
             if (!el) return;
             const original = seg.original || seg.content;
+
             el.innerHTML =
                 '<div class="seg-edit-layout">' +
-                    '<div class="seg-original-panel">' +
-                        '<span class="seg-label">原稿</span>' +
-                        '<div class="seg-original-text">' + escapeHTML(original) + '</div>' +
+                    '<div class="seg-original-panel collapsed" id="seg-orig-' + index + '">' +
+                        '<div class="seg-original-header" onclick="document.getElementById(\'seg-orig-' + index + '\').classList.toggle(\'collapsed\')">' +
+                            '<span>原稿</span>' +
+                            '<span class="arrow">▾</span>' +
+                        '</div>' +
+                        '<div class="seg-original-body">' + escapeHTML(original) + '</div>' +
                     '</div>' +
                     '<div class="seg-edited-panel">' +
                         '<span class="seg-label">改稿</span>' +
                         '<textarea id="seg-edit-' + index + '" class="seg-edit-textarea">' + escapeHTML(seg.content) + '</textarea>' +
+                    '</div>' +
+                    '<div class="seg-diff-preview" id="seg-diff-' + index + '">' +
+                        '<div class="seg-diff-empty">— 修改后此处显示与原文的差异 —</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="seg-edit-actions">' +
@@ -1465,6 +1518,58 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                     '<button class="btn-sm" onclick="cancelSegmentEdit()">取消</button>' +
                     '<button class="btn-sm btn-primary" onclick="saveSegmentEdit(' + index + ')">保存</button>' +
                 '</div>';
+
+            const ta = document.getElementById('seg-edit-' + index);
+            ta.focus();
+            ta.setSelectionRange(ta.value.length, ta.value.length);
+            // Live diff on input
+            const origText = original;
+            ta.addEventListener('input', function () {
+                updateDiffPreview(index, origText, ta.value);
+            });
+            updateDiffPreview(index, origText, ta.value);
+        }
+
+        function updateDiffPreview(index, original, edited) {
+            const container = document.getElementById('seg-diff-' + index);
+            if (!container) return;
+            if (original === edited) {
+                container.innerHTML = '<div class="seg-diff-empty">— 尚未修改 —</div>';
+                return;
+            }
+            container.innerHTML = computeCharDiff(original, edited);
+        }
+
+        function computeCharDiff(original, edited) {
+            const o = [...original];  // split into Unicode codepoints
+            const e = [...edited];
+            const m = o.length, n = e.length;
+
+            // LCS table
+            const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+            for (let i = m - 1; i >= 0; i--) {
+                for (let j = n - 1; j >= 0; j--) {
+                    if (o[i] === e[j]) dp[i][j] = dp[i + 1][j + 1] + 1;
+                    else dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+                }
+            }
+
+            // Backtrack
+            let result = '';
+            let i = 0, j = 0;
+            while (i < m || j < n) {
+                if (i < m && j < n && o[i] === e[j]) {
+                    result += escapeHTML(o[i]);
+                    i++; j++;
+                } else if (j < n && (i >= m || dp[i][j + 1] >= dp[i + 1][j])) {
+                    result += '<span class="diff-add">' + escapeHTML(e[j]) + '</span>';
+                    j++;
+                } else {
+                    result += '<span class="diff-del">' + escapeHTML(o[i]) + '</span>';
+                    i++;
+                }
+            }
+            return result;
         }
 
         function cancelSegmentEdit() {
