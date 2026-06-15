@@ -1358,7 +1358,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             if (partialResult.trim()) {
                 const displayText = ensureCompleteSentence(stripStructuredMeta(partialResult));
                 if (displayText.trim()) {
-                    currentStory.history.push({ content: displayText, original: displayText, reasoning: _pendingReasoning || undefined, timestamp: Date.now() });
+                    currentStory.history.push({ content: displayText, original: displayText, timestamp: Date.now() });
                     displayFullStory();
                     appendNewMeta(partialResult);
                     saveStoryData();
@@ -1366,7 +1366,6 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 }
             }
             partialResult = '';
-            _pendingReasoning = '';
             setLoadingState(false);
             showToast('已停止，内容已保留');
         }
@@ -1496,35 +1495,24 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 3. 文字直白有张力，画面感强
 4. 在主角面临抉择、危机或关键发现时停笔，不提供选项`;
 
-            let systemPrompt = renderPrompt(getStoryPrompt(), {
+            const systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
                 worldDesc: currentStory.worldDesc || '',
                 protagonist: currentStory.protagonist,
                 goldenFinger: currentStory.goldenFinger || '无'
             });
 
-            // Step 1: Generate style reasoning independently
-            let reasoning = '';
-            if (styleBlock) {
-                const context = `世界：${currentStory.worldTitle}\n主角：${currentStory.protagonist}\n叙事：${currentStory.narrative}`;
-                reasoning = await generateStyleReasoning(styleBlock, context);
-                _pendingReasoning = reasoning;
-                if (reasoning) {
-                    systemPrompt = `【本次写作策略】\n${reasoning}\n\n` + systemPrompt;
-                }
-            }
-
             try {
-                const result = await callDeepSeek(prompt, systemPrompt, (text) => {
+                // Native deep thinking — reasoning returned alongside content
+                const { reasoning, content } = await callDeepSeek(prompt, systemPrompt, (text) => {
                     partialResult = text;
                     displayStoryContent(text);
-                });
+                }, true);
 
-                if (result) {
+                if (content) {
                     partialResult = '';
                     typewriterReset();
-                    _pendingReasoning = '';
-                    const displayText = ensureCompleteSentence(stripStructuredMeta(result));
+                    const displayText = ensureCompleteSentence(stripStructuredMeta(content));
                     const segment = {
                         content: displayText,
                         original: displayText,
@@ -1533,7 +1521,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                     };
                     currentStory.history.push(segment);
                     displayFullStory();
-                    appendNewMeta(result);
+                    appendNewMeta(content);
                     saveStoryData();
                     autoSave();
                 } else {
@@ -1758,32 +1746,6 @@ JSON 结构：
 2. 只输出 JSON，不要 markdown 代码块，不要额外文字。
 3. 尽量具体，避免泛泛而谈。`;
 
-        // Independent style reasoning — called before body generation
-        async function generateStyleReasoning(styleBlock, storyContext) {
-            const config = getApiConfig();
-            if (!config.apiKey || !styleBlock) return '';
-            const systemPrompt = `你是一位写作文风策略师。你会收到一份文风约束档案和当前故事上下文。
-请仔细分析每条约束，针对当前场景制定具体的写作策略。
-
-要求：
-1. 逐条说明你对每条约束的理解和本次落实方案
-2. 越具体越好，让人能看出你的完整思考过程
-3. 直接输出策略文本，不要任何标记`;
-            const userPrompt = `${styleBlock}
-
-当前故事上下文：
-${storyContext}
-
-请输出你的写作策略。`;
-            try {
-                const raw = await callDeepSeek(userPrompt, systemPrompt);
-                return raw ? raw.trim() : '';
-            } catch (e) {
-                console.error('generateStyleReasoning error:', e);
-                return '';
-            }
-        }
-
         async function analyzeStyleDiff(original, edited) {
             try {
                 const config = getApiConfig();
@@ -1792,7 +1754,7 @@ ${storyContext}
                     return;
                 }
                 const userPrompt = `<原稿>\n${original}\n\n<改稿>\n${edited}\n\n请输出 JSON 风格档案。`;
-                const raw = await callDeepSeek(userPrompt, STYLE_ANALYZER_PROMPT);
+                const { content: raw } = await callDeepSeek(userPrompt, STYLE_ANALYZER_PROMPT);
                 if (!raw || !raw.trim()) {
                     showToast('文风学习失败：API 无返回');
                     return;
@@ -2039,36 +2001,24 @@ ${storySoFar}
 3. 文字直白有张力
 4. 结尾停在新的关键节点，提供3个选项`;
 
-            let systemPrompt = renderPrompt(getStoryPrompt(), {
+            const systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
                 worldDesc: currentStory.worldDesc || '',
                 protagonist: currentStory.protagonist,
                 goldenFinger: currentStory.goldenFinger || '无'
             });
 
-            // Step 1: Generate style reasoning independently
-            let reasoning = '';
-            if (styleBlock) {
-                setLoadingState(true, '正在分析文风策略...');
-                reasoning = await generateStyleReasoning(styleBlock, storySoFar.slice(-600));
-                _pendingReasoning = reasoning;
-                if (reasoning) {
-                    systemPrompt = `【本次写作策略】\n${reasoning}\n\n` + systemPrompt;
-                }
-                setLoadingState(true, '正在续写...');
-            }
-
             try {
-                const result = await callDeepSeek(prompt, systemPrompt, (text) => {
+                // Native deep thinking — reasoning returned alongside content
+                const { reasoning, content } = await callDeepSeek(prompt, systemPrompt, (text) => {
                     partialResult = text;
                     displayStoryContent(text);
-                });
+                }, !!styleBlock);
 
-                if (result) {
+                if (content) {
                     partialResult = '';
                     typewriterReset();
-                    _pendingReasoning = '';
-                    const displayText = ensureCompleteSentence(stripStructuredMeta(result));
+                    const displayText = ensureCompleteSentence(stripStructuredMeta(content));
                     const segment = {
                         content: displayText,
                         original: displayText,
@@ -2079,7 +2029,7 @@ ${storySoFar}
                     displayFullStory();
                     document.getElementById('customInput').value = '';
                     document.getElementById('continueHint').textContent = fmtContinueHint(false);
-                    appendNewMeta(result);
+                    appendNewMeta(content);
                     saveStoryData();
                     autoSave();
                 }
@@ -2288,11 +2238,24 @@ ${storySoFar}
         });
 
         // API functions (simplified - would need full implementation)
-        async function callDeepSeek(prompt, systemPrompt, onChunk) {
+        async function callDeepSeek(prompt, systemPrompt, onChunk, enableThinking = false) {
             const config = getApiConfig();
-            if (!config.apiKey) return null;
+            if (!config.apiKey) return { reasoning: '', content: '' };
 
             abortController = new AbortController();
+
+            const body = {
+                model: config.model,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.8,
+                stream: true
+            };
+            if (enableThinking) {
+                body.thinking = { type: 'enabled' };
+            }
 
             try {
                 const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -2301,15 +2264,7 @@ ${storySoFar}
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${config.apiKey}`
                     },
-                    body: JSON.stringify({
-                        model: config.model,
-                        messages: [
-                            { role: 'system', content: systemPrompt },
-                            { role: 'user', content: prompt }
-                        ],
-                        temperature: 0.8,
-                        stream: true
-                    }),
+                    body: JSON.stringify(body),
                     signal: abortController.signal
                 });
 
@@ -2317,7 +2272,8 @@ ${storySoFar}
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let result = '';
+                let content = '';
+                let reasoning = '';
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -2332,20 +2288,23 @@ ${storySoFar}
                             if (data === '[DONE]') continue;
                             try {
                                 const parsed = JSON.parse(data);
-                                const content = parsed.choices?.[0]?.delta?.content || '';
-                                if (content) {
-                                    result += content;
-                                    if (onChunk) onChunk(result);
+                                const delta = parsed.choices?.[0]?.delta;
+                                if (delta?.reasoning_content) {
+                                    reasoning += delta.reasoning_content;
+                                }
+                                if (delta?.content) {
+                                    content += delta.content;
+                                    if (onChunk) onChunk(content);
                                 }
                             } catch (e) {}
                         }
                     }
                 }
-                return result;
+                return { reasoning: reasoning.trim(), content: content.trim() };
             } catch (error) {
-                if (error.name === 'AbortError') return null;
+                if (error.name === 'AbortError') return { reasoning: '', content: '' };
                 console.error('DeepSeek API错误:', error);
-                return null;
+                return { reasoning: '', content: '' };
             } finally {
                 abortController = null;
             }
