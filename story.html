@@ -236,13 +236,12 @@
             min-height: 0;
             position: relative;
         }
-        /* Container — story panel on left, sidebar pinned right */
+        /* Container — story panel fills left, sidebar pinned right, no gap */
         .container {
             display: flex;
             flex-direction: column;
             flex: 1 1 auto;
             min-width: 0;
-            max-width: 860px;
             padding: 16px 24px 0;
             min-height: 0;
             overflow: hidden;
@@ -506,15 +505,12 @@
         /* 固定底栏 */
         .bottom-action-bar {
             flex-shrink: 0;
-            max-width: 640px;
             width: 100%;
-            margin: 0 auto;
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-            padding: 14px 20px;
+            border-top: 1px solid var(--border-light);
+            padding: 14px 24px;
             box-shadow: 0 -2px 12px rgba(100, 80, 50, 0.07);
             z-index: 90;
         }
