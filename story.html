@@ -1554,8 +1554,24 @@
 
             // Ensure at least a default style profile exists
             const profiles = loadStyleProfiles();
+            // Seed default profile if empty
+            const seed = {
+                voice: { sentence_rhythm: '短句密集，长句用于收尾', tone: '克制、冷峻，偶尔反讽', pacing: '动作快，情绪慢' },
+                language: { word_level: '偏好单音节动词，避免四字成语', sensory_bias: ['触觉', '听觉'], dialogue_mode: '对话占比高，提示语极简', metaphor_style: '用具象物比喻情绪' },
+                character: { inner_thoughts: '极少直接写心理，转动作或环境', description_rule: '不写外貌全貌，只抓一个特征反复出现' },
+                taboos: [
+                    { pattern: '情绪直述', deleted: '他感到一阵愤怒', reason: '情绪应外化为具体动作，让读者自行感受', count: 1 },
+                    { pattern: '副词削弱', deleted: '突然，门被推开', reason: '用副词延迟了动作发生的瞬间感，削弱冲击力', count: 1 },
+                    { pattern: '设定解释', deleted: '这个世界的力量体系分为三个层次', reason: '反对信息倾泻，设定应通过情节自然流露', count: 1 }
+                ],
+                examples: [{ original: '他感到一阵愤怒。', edited: '他把杯子攥出裂纹。', rule: '情绪外化为动作' }]
+            };
             if (Object.keys(profiles).length === 0) {
                 createStyleProfile('_default');
+                commitToStyle('_default', seed, '设计规格·示例数据');
+                setActiveStyle('_default');
+            } else if (profiles['_default'] && isEmptyProfile(profiles['_default'].profile) && (!profiles['_default'].history || profiles['_default'].history.length === 0)) {
+                commitToStyle('_default', seed, '设计规格·示例数据');
                 setActiveStyle('_default');
             }
 
