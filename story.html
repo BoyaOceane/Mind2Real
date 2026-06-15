@@ -904,7 +904,34 @@
         .seg-edit-actions .btn-primary:hover { background: var(--ink-black); }
 
         /* Style panel */
-        .style-panel { display: flex; flex-direction: column; gap: 12px; }
+        .style-panel { display: flex; flex-direction: column; gap: 10px; }
+        .style-selector { display: flex; gap: 6px; align-items: center; }
+        .style-selector select {
+            padding: 5px 8px;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.78rem;
+            font-family: inherit;
+        }
+        .style-default-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .style-default-toggle input { cursor: pointer; }
+        .style-commit-item {
+            padding: 4px 0;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            border-bottom: 1px dotted var(--border-light);
+        }
+        .style-commit-date { color: var(--text-muted); font-size: 0.68rem; }
+        .style-commit-source { color: var(--text-secondary); }
         .style-group { }
         .style-group-title {
             font-size: 0.72rem;
@@ -936,13 +963,15 @@
             line-height: 1.6;
         }
         .style-actions {
+            display: flex;
+            gap: 6px;
             padding-top: 8px;
             border-top: 1px solid var(--border-light);
         }
         .style-actions .btn {
-            width: 100%;
-            padding: 8px 0;
-            font-size: 0.82rem;
+            flex: 1;
+            padding: 6px 0;
+            font-size: 0.75rem;
             border-radius: var(--radius-md);
             background: var(--bg-secondary);
             color: var(--text-secondary);
@@ -1106,7 +1135,7 @@
                         <div class="panel-header"><h3>文风档案</h3></div>
                         <div id="styleList"></div>
                         <div class="style-actions">
-                            <button class="btn" onclick="resetStyleProfile()">清空文风档案</button>
+                            <button class="btn" onclick="resetActiveStyle()">清空文风档案</button>
                         </div>
                     </div>
                 </div>
@@ -1358,6 +1387,110 @@
             }
         }
 
+        // ---- Named Style Profiles ----
+        const STYLE_KEY = 'style_profiles';
+        const STYLE_ACTIVE_KEY = 'style_active';
+
+        function loadStyleProfiles() {
+            try {
+                const raw = localStorage.getItem(STYLE_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch { return {}; }
+        }
+
+        function saveStyleProfiles(profiles) {
+            localStorage.setItem(STYLE_KEY, JSON.stringify(profiles));
+        }
+
+        function getActiveStyle() {
+            const profiles = loadStyleProfiles();
+            const activeName = localStorage.getItem(STYLE_ACTIVE_KEY) || '_default';
+            if (profiles[activeName]) return { name: activeName, ...profiles[activeName] };
+            // Fallback to _default if it exists, otherwise first available
+            if (profiles['_default']) return { name: '_default', ...profiles['_default'] };
+            const first = Object.keys(profiles)[0];
+            if (first) return { name: first, ...profiles[first] };
+            return null;
+        }
+
+        function setActiveStyle(name) {
+            localStorage.setItem(STYLE_ACTIVE_KEY, name);
+        }
+
+        function createStyleProfile(name) {
+            const profiles = loadStyleProfiles();
+            if (profiles[name]) return false;
+            profiles[name] = {
+                name,
+                profile: { voice: {}, language: {}, character: {}, taboos: [], examples: [] },
+                history: [],
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
+            saveStyleProfiles(profiles);
+            return true;
+        }
+
+        function getActiveProfile() {
+            const active = getActiveStyle();
+            return active ? active.profile : { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
+        }
+
+        function getActiveStyleName() {
+            const active = getActiveStyle();
+            return active ? active.name : null;
+        }
+
+        function commitToStyle(name, profile, source) {
+            const profiles = loadStyleProfiles();
+            const entry = profiles[name];
+            if (!entry) return;
+            entry.profile = mergeStyleProfile(entry.profile, profile);
+            entry.history.push({ at: Date.now(), profile: JSON.parse(JSON.stringify(profile)), source });
+            if (entry.history.length > 50) entry.history = entry.history.slice(-50);
+            entry.updatedAt = Date.now();
+            saveStyleProfiles(profiles);
+        }
+
+        function deleteStyleProfile(name) {
+            const profiles = loadStyleProfiles();
+            delete profiles[name];
+            saveStyleProfiles(profiles);
+            if (getActiveStyleName() === name) {
+                const first = Object.keys(profiles)[0];
+                setActiveStyle(first || '');
+            }
+        }
+
+        // Migrate old inline styleProfile to named profile
+        function migrateStyleToNamed() {
+            if (!currentStory.styleProfile || isEmptyProfile(currentStory.styleProfile)) {
+                delete currentStory.styleProfile;
+                saveStoryData();
+                return;
+            }
+            const profiles = loadStyleProfiles();
+            // Create a default named profile from existing data
+            const name = '_default';
+            if (!profiles[name]) {
+                profiles[name] = {
+                    name,
+                    profile: currentStory.styleProfile,
+                    history: [{ at: Date.now(), profile: JSON.parse(JSON.stringify(currentStory.styleProfile)), source: '旧数据迁移' }],
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                };
+            } else {
+                profiles[name].profile = mergeStyleProfile(profiles[name].profile, currentStory.styleProfile);
+                profiles[name].history.push({ at: Date.now(), profile: JSON.parse(JSON.stringify(currentStory.styleProfile)), source: '旧数据合并' });
+                profiles[name].updatedAt = Date.now();
+            }
+            saveStyleProfiles(profiles);
+            setActiveStyle(name);
+            delete currentStory.styleProfile;
+            saveStoryData();
+        }
+
         // Initialize page
         function init() {
             if (!loadStoryData()) {
@@ -1368,8 +1501,16 @@
 
             migrateHistory();
 
-            if (!currentStory.styleProfile) {
-                currentStory.styleProfile = { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
+            // Migrate old inline styleProfile → named profile
+            if (currentStory.styleProfile) {
+                migrateStyleToNamed();
+            }
+
+            // Ensure at least a default style profile exists
+            const profiles = loadStyleProfiles();
+            if (Object.keys(profiles).length === 0) {
+                createStyleProfile('_default');
+                setActiveStyle('_default');
             }
 
             document.getElementById('worldTitle').textContent = currentStory.worldTitle || '未知世界';
@@ -1434,7 +1575,7 @@
                 return;
             }
 
-            const styleBlock = formatStylePrompt(currentStory.styleProfile);
+            const styleBlock = formatStylePrompt(getActiveProfile());
             const prompt = `${getPrefPrompt()}${styleBlock}
 世界：${currentStory.worldTitle}
 世界逻辑：${currentStory.worldDesc || ''}
@@ -1719,11 +1860,12 @@ JSON 结构：
                     showToast('文风学习失败：解析结果异常');
                     return;
                 }
-                const oldProfile = currentStory.styleProfile || { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
-                currentStory.styleProfile = mergeStyleProfile(oldProfile, freshProfile);
-                saveStoryData();
+                const styleName = getActiveStyleName() || '_default';
+                if (!loadStyleProfiles()[styleName]) createStyleProfile(styleName);
+                const source = currentStory.worldTitle ? currentStory.worldTitle + '·段' + currentStory.history.length : '未命名';
+                commitToStyle(styleName, freshProfile, source);
                 renderStyleProfile();
-                showToast('文风已学习');
+                showToast('文风已学习 → ' + styleName);
             } catch (e) {
                 console.error('analyzeStyleDiff error:', e);
                 showToast('文风学习失败，请稍后重试');
@@ -1765,15 +1907,42 @@ JSON 结构：
             return merged;
         }
 
+        function getStyleNames() {
+            return Object.keys(loadStyleProfiles()).filter(n => !n.startsWith('_'));
+        }
+
         function renderStyleProfile() {
             const list = document.getElementById('styleList');
             if (!list) return;
-            const profile = currentStory.styleProfile || { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
-            if (isEmptyProfile(profile)) {
-                list.innerHTML = '<div class="style-empty">暂无文风记录<br>润色任意段落后将在此显示</div>';
+            const active = getActiveStyle();
+            const activeName = active ? active.name : null;
+            const profile = active ? active.profile : { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
+            const names = getStyleNames();
+            const isDefault = localStorage.getItem(STYLE_ACTIVE_KEY) === '_default' || (activeName === '_default' && names.length === 0);
+
+            // Header: selector + new button
+            let html = '<div class="style-selector">' +
+                '<select id="styleNameSelect" onchange="switchActiveStyle(this.value)" style="flex:1;min-width:0;">';
+            const allNames = ['_default', ...names];
+            allNames.forEach(n => {
+                const display = n === '_default' ? '默认文风' : n;
+                html += '<option value="' + escapeHTML(n) + '"' + (activeName === n ? ' selected' : '') + '>' + escapeHTML(display) + '</option>';
+            });
+            html += '</select>' +
+                '<button class="btn-sm" onclick="createNamedStyle()" title="新建">+</button>' +
+                '</div>';
+
+            // Default toggle
+            html += '<label class="style-default-toggle"><input type="checkbox" onchange="toggleDefaultStyle(this.checked)"' + (isDefault ? ' checked' : '') + '> 默认文风（新故事自动使用）</label>';
+
+            if (isEmptyProfile(profile) && (!active || !active.history || active.history.length === 0)) {
+                html += '<div class="style-empty">暂无文风记录<br>润色任意段落后将在此显示</div>';
+                html += '<div class="style-actions"><button class="btn" onclick="resetActiveStyle()">清空当前文风</button></div>';
+                list.innerHTML = html;
                 return;
             }
-            let html = '';
+
+            // Profile sections
             if (profile.voice && Object.keys(profile.voice).length > 0) {
                 html += '<div class="style-group"><div class="style-group-title">语气与节奏</div>' + renderKeyValues(profile.voice) + '</div>';
             }
@@ -1800,6 +1969,27 @@ JSON 结构：
                 });
                 html += '</div>';
             }
+
+            // Commit history
+            if (active && active.history && active.history.length > 0) {
+                html += '<div class="style-group"><div class="style-group-title">提交历史 (' + active.history.length + ')</div>';
+                const recent = active.history.slice(-10).reverse();
+                recent.forEach(h => {
+                    const d = new Date(h.at).toLocaleDateString('zh-CN');
+                    html += '<div class="style-commit-item">' +
+                        '<span class="style-commit-date">' + d + '</span> ' +
+                        '<span class="style-commit-source">' + escapeHTML(h.source || '') + '</span>' +
+                        '</div>';
+                });
+                html += '</div>';
+            }
+
+            // Actions
+            html += '<div class="style-actions">' +
+                '<button class="btn" onclick="renameActiveStyle()">重命名</button>' +
+                '<button class="btn" onclick="resetActiveStyle()">清空此文风</button>' +
+                '</div>';
+
             list.innerHTML = html;
         }
 
@@ -1824,13 +2014,64 @@ JSON 结构：
             return !hasVoice && !hasLanguage && !hasCharacter && !hasTaboos && !hasExamples;
         }
 
-        function resetStyleProfile() {
-            if (!confirm('确定要清空文风档案吗？此操作不可撤销。')) return;
-            currentStory.styleProfile = { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
-            saveStoryData();
+        // ---- Style UI actions ----
+        function switchActiveStyle(name) {
+            setActiveStyle(name);
             renderStyleProfile();
             document.getElementById('continueHint').textContent = fmtContinueHint(false);
-            showToast('文风档案已清空');
+            showToast('已切换至 ' + (name === '_default' ? '默认文风' : name));
+        }
+
+        function createNamedStyle() {
+            const name = prompt('请输入新文风名称：');
+            if (!name || !name.trim()) return;
+            if (loadStyleProfiles()[name.trim()]) { showToast('此名称已存在'); return; }
+            createStyleProfile(name.trim());
+            setActiveStyle(name.trim());
+            renderStyleProfile();
+            showToast('已创建并激活「' + name.trim() + '」');
+        }
+
+        function toggleDefaultStyle(on) {
+            if (on) {
+                setActiveStyle('_default');
+            } else {
+                const names = getStyleNames();
+                if (names.length > 0) setActiveStyle(names[0]);
+            }
+            renderStyleProfile();
+        }
+
+        function renameActiveStyle() {
+            const oldName = getActiveStyleName();
+            if (!oldName || oldName === '_default') { showToast('默认文风不可重命名'); return; }
+            const newName = prompt('新名称：', oldName);
+            if (!newName || !newName.trim() || newName.trim() === oldName) return;
+            const profiles = loadStyleProfiles();
+            if (profiles[newName.trim()]) { showToast('此名称已存在'); return; }
+            profiles[newName.trim()] = profiles[oldName];
+            profiles[newName.trim()].name = newName.trim();
+            delete profiles[oldName];
+            saveStyleProfiles(profiles);
+            setActiveStyle(newName.trim());
+            renderStyleProfile();
+            showToast('已重命名为「' + newName.trim() + '」');
+        }
+
+        function resetActiveStyle() {
+            const name = getActiveStyleName() || '当前';
+            if (!confirm('确定要清空「' + name + '」的文风档案吗？此操作不可撤销。')) return;
+            const profiles = loadStyleProfiles();
+            const entry = profiles[getActiveStyleName()];
+            if (entry) {
+                entry.profile = { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
+                entry.history = [];
+                entry.updatedAt = Date.now();
+                saveStyleProfiles(profiles);
+            }
+            renderStyleProfile();
+            document.getElementById('continueHint').textContent = fmtContinueHint(false);
+            showToast(name + ' 已清空');
         }
 
         function formatStylePrompt(profile) {
@@ -1938,7 +2179,7 @@ JSON 结构：
 
             const storySoFar = currentStory.history.map(h => h.content).join('\n\n');
 
-            const styleBlock = formatStylePrompt(currentStory.styleProfile);
+            const styleBlock = formatStylePrompt(getActiveProfile());
             const prompt = `${getPrefPrompt()}${styleBlock}
 用户选择：${userChoice}
 
@@ -2175,7 +2416,7 @@ ${storySoFar}
 
         function fmtContinueHint(hasInput) {
             if (hasInput) return '将按自定义剧情继续';
-            return isEmptyProfile(currentStory.styleProfile)
+            return isEmptyProfile(getActiveProfile())
                 ? '输入剧情方向，或直接点击继续'
                 : '输入剧情方向，AI 将按当前文风续写';
         }
