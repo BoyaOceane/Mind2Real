@@ -1253,52 +1253,7 @@
 第三人称开场，直接进入冲突。文字直白有张力，画面感强。结尾停在主角的剧情转折点——面临抉择、危机或关键发现时停笔。不提供选项，让用户在底部输入框自行决定。
 
 【字数要求】
-- 每次输出约半章篇幅（1000字左右），在主角面临抉择、危机或转折点时自然停笔
-- 剧情打点不计入正文，放在正文之后
-
-【剧情打点 - 智能标记】
-在生成剧情的同时，请根据剧情内容智能判断并标记关键节点。
-
-1. 【提纲节点】识别剧情中的关键转折点、高潮、悬念设置点：
-   - 类型：转折 / 高潮 / 悬念 / 铺垫 / 揭示
-   - 重要性：critical(重点剧情，红色) / major(较重要，橙色) / normal(普通，灰色)
-   - 一句话总结（15字以内）
-
-2. 【线索节点】识别线索的状态变化点，每条线索是一条独立时间线：
-   - 线索名
-   - 状态变化：伏笔→展开 / 展开→揭示 / 揭示→闭合 等
-   - 一句话描述
-   - 重要性
-
-3. 【人物节点】识别新人物出场。每个新角色必须按主角生成规则立体塑造：
-   - 人物ID（唯一标识，如 char_001）
-   - 人物名
-   - 核心创伤类型（从10种中选1种，决定行为模式）
-   - 表层欲望 vs 深层需求（表面想要什么 / 真正缺什么）
-   - 人物标签：主角 / 配角 / 反派 / 中立
-   - 一句话简述（含身份、处境、性格底色）
-
-4. 【关系边】识别已有节点之间的关系变化：
-   - 源人物ID
-   - 目标人物ID
-   - 关系类型：敌对 / 盟友 / 主仆 / 血缘 / 师徒 / 爱慕 / 竞争 等
-   - 关系强度（1-5分，随剧情变化可更新）
-   - 首次建立关系的场景描述
-
-输出格式（在正文结束后另起一行）：
-【剧情打点】
-[提纲节点]
-转折 | critical | 主角发现密室暗门
-悬念 | major | 神秘人留下警告信
-
-[线索节点]
-古宅秘宝 | 伏笔→展开 | 地图碎片出现 | major
-
-[人物节点]
-char_001 | 李管家 | 1 | 配角 | 古宅管家，知道秘密
-
-[关系边]
-char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接`;
+- 每次输出约半章篇幅（1000字左右），在主角面临抉择、危机或转折点时自然停笔`;
 
         function getStoryPrompt() {
             try {
@@ -1521,7 +1476,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                     };
                     currentStory.history.push(segment);
                     displayFullStory();
-                    appendNewMeta(content);
+                    await extractMetadata();
                     saveStoryData();
                     autoSave();
                 } else {
@@ -2029,7 +1984,7 @@ ${storySoFar}
                     displayFullStory();
                     document.getElementById('customInput').value = '';
                     document.getElementById('continueHint').textContent = fmtContinueHint(false);
-                    appendNewMeta(content);
+                    await extractMetadata();
                     saveStoryData();
                     autoSave();
                 }
@@ -2466,6 +2421,100 @@ ${storySoFar}
             }
 
             return { outline, clues, chars };
+        }
+
+        // Independent metadata extraction — separate API call after body generation
+        async function extractMetadata() {
+            const config = getApiConfig();
+            if (!config.apiKey) return;
+            const fullStory = currentStory.history.map((h, i) => `[段${i + 1}]\n${h.content}`).join('\n\n');
+            if (!fullStory.trim()) return;
+
+            const systemPrompt = `你是一位专业的故事分析员。请阅读以下完整故事，提取结构化元数据。只输出合法JSON，不要任何额外文字。
+
+JSON结构：
+{
+  "outline": [
+    { "type": "转折|高潮|悬念|铺垫|揭示", "importance": "critical|major|normal", "summary": "15字以内" }
+  ],
+  "clues": [
+    { "name": "线索名", "stateChange": "伏笔→展开", "desc": "一句话描述", "importance": "major|normal" }
+  ],
+  "characters": [
+    { "id": "char_001", "name": "人物名", "trauma": "1-10", "desire": "表层欲望", "need": "深层需求", "tag": "主角|配角|反派|中立", "desc": "一句话简述" }
+  ],
+  "relations": [
+    { "source": "char_001", "target": "protagonist", "type": "敌对|盟友|主仆|血缘|师徒|爱慕|竞争", "strength": 3, "scene": "首次建立关系的场景" }
+  ]
+}
+
+规则：
+1. outline只标记真正重要的转折点（2-5个即可）
+2. clues追踪已有线索的状态变化，不要重复相同状态
+3. characters只添加新角色或角色新信息，已存在的忽略
+4. relations记录新建立或变化的关系
+5. 没有的字段返回空数组
+6. 只输出JSON，不要markdown代码块`;
+
+            try {
+                const { content } = await callDeepSeek(fullStory, systemPrompt);
+                if (!content) return;
+                const meta = parseStyleJson(content);  // reuse JSON parser
+                if (!meta) return;
+
+                const segIdx = currentStory.history.length - 1;
+                let hasNew = false;
+
+                if (meta.outline && meta.outline.length > 0) {
+                    meta.outline.forEach(o => o._seg = segIdx);
+                    storyOutline.push(...meta.outline);
+                    renderOutline();
+                    renderTimeline();
+                    hasNew = true;
+                }
+                if (meta.clues && meta.clues.length > 0) {
+                    meta.clues.forEach(c => { c._seg = segIdx;
+                        const exist = storyClues.find(x => x.name === c.name);
+                        if (exist) { exist.stateChange = c.stateChange;
+                            exist.desc = c.desc;
+                            exist.importance = c.importance; }
+                        else { storyClues.push(c); }
+                    });
+                    renderClues();
+                    renderTimeline();
+                    hasNew = true;
+                }
+                if (meta.characters && meta.characters.length > 0) {
+                    meta.characters.forEach(nc => {
+                        const exist = characterCards.find(c => c.id === nc.id);
+                        if (exist) { exist.freq = (exist.freq || 1) + 1; }
+                        else { nc.freq = 1;
+                            characterCards.push(nc); }
+                    });
+                    renderChars();
+                    hasNew = true;
+                }
+                if (meta.relations && meta.relations.length > 0) {
+                    meta.relations.forEach(nr => {
+                        const exist = characterRelations.find(r => r.source === nr.source && r.target === nr.target);
+                        if (exist) { exist.type = nr.type;
+                            exist.strength = nr.strength;
+                            exist.scene = nr.scene; }
+                        else { characterRelations.push(nr); }
+                    });
+                    renderRelationGraph();
+                    hasNew = true;
+                }
+                if (hasNew) {
+                    currentStory.storyOutline = storyOutline;
+                    currentStory.storyClues = storyClues;
+                    currentStory.characterCards = characterCards;
+                    currentStory.characterRelations = characterRelations;
+                    saveStoryData();
+                }
+            } catch (e) {
+                console.error('extractMetadata error:', e);
+            }
         }
 
         function appendNewMeta(result) {
