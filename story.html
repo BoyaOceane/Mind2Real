@@ -732,6 +732,8 @@
             color: var(--text-muted);
             border-top: 1px solid var(--border-light);
             white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
         }
         .seg-edit-btn {
             padding: 2px 10px;
@@ -1558,7 +1560,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 if (h.reasoning) {
                     const rid = 'reasoning-' + i;
                     reasoningBlock =
-                        '<div class="reasoning-bar collapsed" id="' + rid + '">' +
+                        '<div class="reasoning-bar" id="' + rid + '">' +
                             '<div class="reasoning-header" onclick="document.getElementById(\'' + rid + '\').classList.toggle(\'collapsed\')">' +
                                 '<span>文风推理</span>' +
                                 '<span class="reasoning-arrow">▾</span>' +
@@ -1903,7 +1905,7 @@ JSON 结构：
                 parts.push('【改写示例】\n' + exLines);
             }
             return '【用户文风约束】\n' + parts.join('\n') +
-                '\n\n请先用【风格推理】标记简要说明你将如何把以上约束应用到本次创作（1-2句话），然后用【正文】标记开始正文。';
+                '\n\n请先输出【风格推理】块，逐条说明你对每条约束的理解和本次打算如何落实，比如：句式节奏你打算怎么控制？用词层级选哪个方向？禁忌如何规避？示例给了你什么启发？推理越具体越好，让读者能看出你的思考过程。推理结束后用【正文】标记开始创作。';
         }
 
         // Display story content: all previous history + current streaming text
