@@ -1,7 +1,7 @@
 # 即墨 Execution Status
 
-> **Last updated:** 2026-06-06 — 剧情生成大改版：停止保留/偏好注入/八大准则/模型切换/侧边栏持久化
-> **Active branches:** `main` HEAD `0ad7bdf` (feat: 首页横向Tab改版 + 写作指南深度集成 + 10项逻辑修复)
+> **Last updated:** 2026-06-15 — 文风学习循环：段落编辑 + 风格解析 + 文风档案 + 续写注入
+> **Active branches:** `feat/style-learning-loop` HEAD `439d707` (fix: 新段落同时保存 original 字段)
 > **Source:** index of phase execution records under this folder. Gate verdicts here are authoritative.
 
 ## Phase ledger
@@ -9,6 +9,7 @@
 | Phase | Plan | Execution record(s) | Implementation | Smoke gate | Notes |
 |-------|------|---------------------|----------------|------------|-------|
 | **P0 — MVP** | `docs/plans/2026-05-14-jimo-poc-mvp.md` | `docs/records/2026-06-06-bugfix-audit.md` | ✅ done (20 commits on `main`) | – | 三页面均可用；10 项逻辑修复 |
+| **P4 — 文风学习** | `docs/plans/2026-06-15-style-learning-loop-plan.md` | – | ✅ done (6 commits) | `docs/smoke/2026-06-15-style-learning-loop-smoke.md` | 段落编辑 + 风格解析 Agent + 文风档案 + 续写注入 |
 
 Legend: `✅ validated · ⚠ conditionally validated · ⏸ implementation done, gate open · ⏳ planned · ❌ blocked`
 
