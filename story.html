@@ -1239,7 +1239,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             if (partialResult.trim()) {
                 const displayText = ensureCompleteSentence(stripStructuredMeta(partialResult));
                 if (displayText.trim()) {
-                    currentStory.history.push({ content: displayText, timestamp: Date.now() });
+                    currentStory.history.push({ content: displayText, original: displayText, timestamp: Date.now() });
                     displayFullStory();
                     appendNewMeta(partialResult);
                     saveStoryData();
@@ -1394,6 +1394,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                     const displayText = ensureCompleteSentence(stripStructuredMeta(result));
                     const segment = {
                         content: displayText,
+                        original: displayText,
                         timestamp: Date.now()
                     };
                     currentStory.history.push(segment);
@@ -1814,6 +1815,7 @@ ${storySoFar}
                     const displayText = ensureCompleteSentence(stripStructuredMeta(result));
                     const segment = {
                         content: displayText,
+                        original: displayText,
                         timestamp: Date.now()
                     };
                     currentStory.history.push(segment);
