@@ -979,6 +979,41 @@
             font-style: italic;
             padding: 2px 0;
         }
+        .style-taboo-item {
+            background: rgba(184, 85, 85, 0.04);
+            border: 1px solid rgba(184, 85, 85, 0.12);
+            border-radius: var(--radius-md);
+            padding: 8px 10px;
+            margin-bottom: 6px;
+        }
+        .taboo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .taboo-pattern {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #b85555;
+        }
+        .taboo-count {
+            font-size: 0.68rem;
+            color: #b85555;
+            background: rgba(184, 85, 85, 0.08);
+            padding: 1px 6px;
+            border-radius: 10px;
+        }
+        .taboo-deleted {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+            margin-bottom: 2px;
+        }
+        .taboo-reason {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
         .style-actions {
             display: flex;
             gap: 6px;
@@ -1832,20 +1867,33 @@ JSON 结构：
 - character.inner_thoughts: 内心戏处理，如动作暗示、留白。
 - character.description_rule: 人物描写规则，如外貌一笔带过。
 
-【反面提示词 — 不要做什么】（taboos 字段，必须基于用户删掉的内容分析）
-- 核心逻辑：在<原稿>和<改稿>的对比中，找出用户明确删除、替换、改写的部分。这些被用户拿掉的内容就是反面教材。
-- 分析方法：逐句对比，标记"原稿有而改稿没有"的词语、句式、写法，提炼为禁忌规则。
-- taboos 示例：
-  · 原稿有"突然"→改稿删除 → taboo: "不用'突然''忽然'"
-  · 原稿有大段设定解释→改稿全部删掉 → taboo: "不解释世界观设定"
-  · 原稿有"他感到很愤怒"→改稿换成动作描写 → taboo: "避免直接写情绪形容词"
-  · 原稿有成语连用→改稿换成白话 → taboo: "少用四字成语"
-- 每条 taboo 必须有对应的原文删除证据，不要凭空猜测。
+【反面提示词 — 不要做什么】（taboos 字段，必须基于用户删掉的内容进行深度分析）
+- 核心逻辑：在<原稿>和<改稿>的对比中，找出用户明确删除、替换、改写的部分。
+- taboos 格式为对象数组，每条包含：
+  {
+    "pattern": "被删除的写法类型（如：情绪形容词、成语、设定解释）",
+    "deleted": "原稿中被删掉的具体片段（原文引用）",
+    "reason": "分析为什么用户删掉它（如：削弱紧张感、太啰嗦、不符合人物性格）",
+    "count": 本次对比中该模式出现次数
+  }
+
+分析方法：
+1. 逐句对比原稿与改稿，标记所有"原稿有而改稿没有"的词语、句式、写法。
+2. 对每种删除模式，分析用户为什么删——是太啰嗦？破坏氛围？不符合人物？信息冗余？
+3. 统计每种模式在本段中出现的次数。
+4. 只输出有明确删除证据的条目，不凭空猜测。
+
+示例：
+"taboos": [
+  { "pattern": "情绪形容词", "deleted": "他感到一阵愤怒", "reason": "用户偏好用动作外化情绪而非直接陈述", "count": 2 },
+  { "pattern": "设定说明句", "deleted": "这个世界的力量体系分为三个层次，分别是...", "reason": "用户反对信息倾泻式的解释，更倾向分散暗示", "count": 1 },
+  { "pattern": "突然/忽然", "deleted": "突然，门被推开了", "reason": "用副词削弱了动作的冲击力", "count": 3 }
+]
 
 规则：
 1. 严格区分：voice/language/character/examples 从改稿的写法中提取（正面），taboos 从被删掉的内容中提取（反面）。
-2. 每条 taboo 必须对应原稿中确实被删除/替换的内容。
-3. 若某字段无法推断，留空字符串或空数组。
+2. 每条 taboo 必须包含 pattern / deleted / reason / count 四个字段。
+3. 若无法推断，taboos 返回空数组。
 4. 只输出 JSON，不要 markdown 代码块，不要额外文字。`;
 
         async function analyzeStyleDiff(original, edited) {
@@ -1902,15 +1950,37 @@ JSON 结构：
             }
         }
 
+        // Normalize taboos: string → object, merge by pattern
+        function normalizeTaboos(taboos) {
+            return (taboos || []).map(t => {
+                if (typeof t === 'string') return { pattern: t, deleted: '', reason: '', count: 1 };
+                return t;
+            });
+        }
+
         function mergeStyleProfile(old, fresh) {
-            const merged = {
+            // Merge taboos by pattern
+            const oldTaboos = normalizeTaboos(old.taboos || []);
+            const freshTaboos = normalizeTaboos(fresh.taboos || []);
+            const tabooMap = {};
+            oldTaboos.forEach(t => { tabooMap[t.pattern] = t; });
+            freshTaboos.forEach(t => {
+                if (tabooMap[t.pattern]) {
+                    tabooMap[t.pattern].count += t.count;
+                    if (t.reason) tabooMap[t.pattern].reason = t.reason;
+                    if (t.deleted) tabooMap[t.pattern].deleted = t.deleted;
+                } else {
+                    tabooMap[t.pattern] = t;
+                }
+            });
+
+            return {
                 voice: { ...(old.voice || {}), ...(fresh.voice || {}) },
                 language: { ...(old.language || {}), ...(fresh.language || {}) },
                 character: { ...(old.character || {}), ...(fresh.character || {}) },
-                taboos: Array.from(new Set([...(old.taboos || []), ...(fresh.taboos || [])])),
+                taboos: Object.values(tabooMap),
                 examples: [...(old.examples || []), ...(fresh.examples || [])].slice(-10)
             };
-            return merged;
         }
 
         function getStyleNames() {
@@ -1977,12 +2047,24 @@ JSON 结构：
 
             // Section 2: 反面提示词 — what NOT to do
             html += '<div class="style-section-title" style="margin-top:14px;">反面提示词</div>';
-            html += '<div class="style-section-desc">告诉 AI 不要怎么写</div>';
-            html += '<div class="style-group"><div class="style-group-title">禁忌</div>' +
-                (profile.taboos && profile.taboos.length > 0
-                    ? '<div class="style-kv-row"><span class="style-kv-value">' + escapeHTML(profile.taboos.join('、')) + '</span></div>'
-                    : '<div class="style-empty-item">— 暂无 —</div>') +
-                '</div>';
+            html += '<div class="style-section-desc">基于你的删除分析</div>';
+            html += '<div class="style-group"><div class="style-group-title">删除分析</div>';
+            if (profile.taboos && profile.taboos.length > 0) {
+                const tabs = normalizeTaboos(profile.taboos);
+                tabs.forEach(t => {
+                    html += '<div class="style-taboo-item">' +
+                        '<div class="taboo-header">' +
+                        '<span class="taboo-pattern">' + escapeHTML(t.pattern) + '</span>' +
+                        '<span class="taboo-count">×' + (t.count || 1) + '</span>' +
+                        '</div>' +
+                        '<div class="taboo-deleted">删除：' + escapeHTML(t.deleted) + '</div>' +
+                        '<div class="taboo-reason">原因：' + escapeHTML(t.reason) + '</div>' +
+                        '</div>';
+                });
+            } else {
+                html += '<div class="style-empty-item">— 润色保存后自动生成 —</div>';
+            }
+            html += '</div>';
 
             // Commit history
             if (active && active.history && active.history.length > 0) {
@@ -2023,7 +2105,7 @@ JSON 结构：
             const hasVoice = p.voice && Object.keys(p.voice).length > 0 && Object.values(p.voice).some(v => v && (!Array.isArray(v) || v.length > 0));
             const hasLanguage = p.language && Object.keys(p.language).length > 0 && Object.values(p.language).some(v => v && (!Array.isArray(v) || v.length > 0));
             const hasCharacter = p.character && Object.keys(p.character).length > 0 && Object.values(p.character).some(v => v && (!Array.isArray(v) || v.length > 0));
-            const hasTaboos = p.taboos && p.taboos.length > 0;
+            const hasTaboos = p.taboos && p.taboos.length > 0 && p.taboos.some(t => (typeof t === 'string' && t) || (typeof t === 'object' && t.pattern));
             const hasExamples = p.examples && p.examples.length > 0;
             return !hasVoice && !hasLanguage && !hasCharacter && !hasTaboos && !hasExamples;
         }
@@ -2115,7 +2197,13 @@ JSON 结构：
 
             // 反面提示词 — 不要做什么
             if (profile.taboos && profile.taboos.length > 0) {
-                neg.push('【禁忌】' + profile.taboos.join('、'));
+                const tb = normalizeTaboos(profile.taboos);
+                const lines = tb.map(t => {
+                    let line = '- ' + t.pattern + (t.count > 1 ? '（已出现' + t.count + '次）' : '');
+                    if (t.reason) line += '：' + t.reason;
+                    return line;
+                });
+                neg.push('【禁忌】\n' + lines.join('\n'));
             }
 
             let result = '【用户文风约束】\n';
