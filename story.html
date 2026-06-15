@@ -933,6 +933,17 @@
         .style-commit-date { color: var(--text-muted); font-size: 0.68rem; }
         .style-commit-source { color: var(--text-secondary); }
         .style-group { }
+        .style-section-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+        .style-section-desc {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
         .style-group-title {
             font-size: 0.72rem;
             color: var(--text-muted);
@@ -1799,48 +1810,36 @@
         }
 
         // Placeholder for Task 3
-        const STYLE_ANALYZER_PROMPT = `你是一位文风分析师。请对比用户提供的原稿与改稿，推断用户的文风偏好，输出一份 JSON 风格档案。只输出合法 JSON，不要任何解释性文字。
+        const STYLE_ANALYZER_PROMPT = `你是一位文风分析师。请对比用户提供的原稿与改稿，从"正面（要做什么）"和"反面（不要做什么）"两个维度推断用户的文风偏好。只输出合法 JSON，不要任何解释性文字。
 
 JSON 结构：
 {
-  "voice": {
-    "sentence_rhythm": "",
-    "tone": "",
-    "pacing": ""
-  },
-  "language": {
-    "word_level": "",
-    "sensory_bias": [],
-    "dialogue_mode": "",
-    "metaphor_style": ""
-  },
-  "character": {
-    "inner_thoughts": "",
-    "description_rule": ""
-  },
+  "voice": { "sentence_rhythm": "", "tone": "", "pacing": "" },
+  "language": { "word_level": "", "sensory_bias": [], "dialogue_mode": "", "metaphor_style": "" },
+  "character": { "inner_thoughts": "", "description_rule": "" },
   "taboos": [],
-  "examples": [
-    { "original": "", "edited": "", "rule": "" }
-  ]
+  "examples": [ { "original": "", "edited": "", "rule": "" } ]
 }
 
-字段说明：
-- voice.sentence_rhythm: 句式节奏偏好，如短句凌厉、长句缠绵、整散结合等。
-- voice.tone: 整体语气，如冷峻、温情、戏谑、压抑等。
-- voice.pacing: 叙事节奏，如快节奏推进、慢镜头描写、张弛有度等。
-- language.word_level: 用词层级，如文言化、口语化、书面化、网文感等。
-- language.sensory_bias: 感官偏向数组，如视觉、听觉、嗅觉、触觉、味觉。
-- language.dialogue_mode: 对话风格，如简洁有力、潜台词丰富、话痨、沉默等。
-- language.metaphor_style: 比喻风格，如密集隐喻、白描无喻、生活化比喻等。
-- character.inner_thoughts: 内心戏处理方式，如直接呈现、动作暗示、留白等。
-- character.description_rule: 人物描写规则，如外貌一笔带过、心理优先、行动定义人设等。
-- taboos: 用户改稿中体现出的禁忌或回避，如避免心理描写、不用成语、不出现长句等。
-- examples: 从本次对比中提取的典型改写示例，最多 5 条，每条说明改稿相对于原稿遵循了什么规则。
+【正面提示词 — 要做什么】（voice / language / character / examples 这四个字段描述用户希望你采用的写法）
+- voice.sentence_rhythm: 句式节奏，如短句凌厉、长句缠绵。
+- voice.tone: 整体语气，如冷峻、温情。
+- voice.pacing: 叙事节奏，如快节奏推进、慢镜头描写。
+- language.word_level: 用词层级，如口语化、书面化。
+- language.sensory_bias: 感官偏向数组，如视觉、听觉、触觉。
+- language.dialogue_mode: 对话风格，如简洁有力、潜台词丰富。
+- language.metaphor_style: 比喻风格，如密集隐喻、白描无喻。
+- character.inner_thoughts: 内心戏处理，如动作暗示、留白。
+- character.description_rule: 人物描写规则，如外貌一笔带过。
+
+【反面提示词 — 不要做什么】（taboos 字段描述用户删掉或回避的写法）
+- taboos: 用户改稿中明确删除、替换或回避的写法，如"不用'突然''忽然'"、"不解释设定"、"避免大段心理描写"。
 
 规则：
-1. 若某字段无法推断，留空字符串或空数组。
-2. 只输出 JSON，不要 markdown 代码块，不要额外文字。
-3. 尽量具体，避免泛泛而谈。`;
+1. 区分配置面与反面：voice/language/character/examples 是"要怎么做"，taboos 是"不要怎么做"。
+2. 若某字段无法推断，留空字符串或空数组。
+3. 只输出 JSON，不要 markdown 代码块，不要额外文字。
+4. 尽量具体，避免泛泛而谈。`;
 
         async function analyzeStyleDiff(original, edited) {
             try {
@@ -1935,8 +1934,9 @@ JSON 结构：
             // Default toggle
             html += '<label class="style-default-toggle"><input type="checkbox" onchange="toggleDefaultStyle(this.checked)"' + (isDefault ? ' checked' : '') + '> 默认文风（新故事自动使用）</label>';
 
-            // Profile sections — always show, with placeholder when empty
-            const empty = isEmptyProfile(profile);
+            // Section 1: 正面提示词 — what to do
+            html += '<div class="style-section-title">正面提示词</div>';
+            html += '<div class="style-section-desc">告诉 AI 应该怎么写</div>';
             html += '<div class="style-group"><div class="style-group-title">语气与节奏</div>' +
                 (profile.voice && Object.keys(profile.voice).length > 0
                     ? renderKeyValues(profile.voice)
@@ -1950,11 +1950,6 @@ JSON 结构：
             html += '<div class="style-group"><div class="style-group-title">人物刻画</div>' +
                 (profile.character && Object.keys(profile.character).length > 0
                     ? renderKeyValues(profile.character)
-                    : '<div class="style-empty-item">— 暂无 —</div>') +
-                '</div>';
-            html += '<div class="style-group"><div class="style-group-title">禁忌</div>' +
-                (profile.taboos && profile.taboos.length > 0
-                    ? '<div class="style-kv-row"><span class="style-kv-value">' + escapeHTML(profile.taboos.join('、')) + '</span></div>'
                     : '<div class="style-empty-item">— 暂无 —</div>') +
                 '</div>';
             html += '<div class="style-group"><div class="style-group-title">改写示例</div>';
@@ -1972,6 +1967,15 @@ JSON 结构：
                 html += '<div class="style-empty-item">— 润色段落保存后自动生成 —</div>';
             }
             html += '</div>';
+
+            // Section 2: 反面提示词 — what NOT to do
+            html += '<div class="style-section-title" style="margin-top:14px;">反面提示词</div>';
+            html += '<div class="style-section-desc">告诉 AI 不要怎么写</div>';
+            html += '<div class="style-group"><div class="style-group-title">禁忌</div>' +
+                (profile.taboos && profile.taboos.length > 0
+                    ? '<div class="style-kv-row"><span class="style-kv-value">' + escapeHTML(profile.taboos.join('、')) + '</span></div>'
+                    : '<div class="style-empty-item">— 暂无 —</div>') +
+                '</div>';
 
             // Commit history
             if (active && active.history && active.history.length > 0) {
@@ -2079,30 +2083,39 @@ JSON 结构：
 
         function formatStylePrompt(profile) {
             if (isEmptyProfile(profile)) return '';
-            let parts = [];
+            const pos = [], neg = [];
+
+            // 正面提示词 — 要做什么
             if (profile.voice && Object.keys(profile.voice).length > 0) {
-                parts.push('【语气与节奏】' + Object.entries(profile.voice).map(([k, v]) => k + '：' + v).join('；'));
+                pos.push('【语气与节奏】' + Object.entries(profile.voice).map(([k, v]) => k + '：' + v).join('；'));
             }
             if (profile.language && Object.keys(profile.language).length > 0) {
                 const langEntries = Object.entries(profile.language).map(([k, v]) => {
                     const display = Array.isArray(v) ? v.join('、') : String(v);
                     return k + '：' + display;
                 }).join('；');
-                parts.push('【语言偏好】' + langEntries);
+                pos.push('【语言偏好】' + langEntries);
             }
             if (profile.character && Object.keys(profile.character).length > 0) {
-                parts.push('【人物刻画】' + Object.entries(profile.character).map(([k, v]) => k + '：' + v).join('；'));
-            }
-            if (profile.taboos && profile.taboos.length > 0) {
-                parts.push('【禁忌】' + profile.taboos.join('、'));
+                pos.push('【人物刻画】' + Object.entries(profile.character).map(([k, v]) => k + '：' + v).join('；'));
             }
             if (profile.examples && profile.examples.length > 0) {
                 const exLines = profile.examples.map((ex, i) => {
                     return (i + 1) + '. 原句：' + (ex.original || '') + ' → 改句：' + (ex.edited || '') + '（规则：' + (ex.rule || '') + '）';
                 }).join('\n');
-                parts.push('【改写示例】\n' + exLines);
+                pos.push('【改写示例】\n' + exLines);
             }
-            return '【用户文风约束】\n' + parts.join('\n');
+
+            // 反面提示词 — 不要做什么
+            if (profile.taboos && profile.taboos.length > 0) {
+                neg.push('【禁忌】' + profile.taboos.join('、'));
+            }
+
+            let result = '【用户文风约束】\n';
+            if (pos.length > 0) result += '【要做什么 — 正面提示】\n' + pos.join('\n') + '\n';
+            if (neg.length > 0) result += '【不要做什么 — 反面提示】\n' + neg.join('\n');
+            return result;
+        }
         }
 
         // Display story content: all previous history + current streaming text
