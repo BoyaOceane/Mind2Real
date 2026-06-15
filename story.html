@@ -1360,7 +1360,9 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 return;
             }
 
-            const prompt = `${getPrefPrompt()}世界：${currentStory.worldTitle}
+            const styleBlock = formatStylePrompt(currentStory.styleProfile);
+            const prompt = `${getPrefPrompt()}${styleBlock}
+世界：${currentStory.worldTitle}
 世界逻辑：${currentStory.worldDesc || ''}
 世界标签：${currentStory.worldTags.join('、')}
 主角：${currentStory.protagonist}${currentStory.protagonistDesc ? ' — ' + currentStory.protagonistDesc : ''}
@@ -1491,6 +1493,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             if (newText !== original) {
                 try { await analyzeStyleDiff(original, newText); } catch (e) { console.error('analyzeStyleDiff error:', e); }
             }
+            document.getElementById('continueHint').textContent = fmtContinueHint(false);
             displayFullStory();
         }
 
@@ -1666,6 +1669,7 @@ JSON 结构：
             currentStory.styleProfile = { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
             saveStoryData();
             renderStyleProfile();
+            document.getElementById('continueHint').textContent = fmtContinueHint(false);
             showToast('文风档案已清空');
         }
 
@@ -1774,7 +1778,9 @@ JSON 结构：
 
             const storySoFar = currentStory.history.map(h => h.content).join('\n\n');
 
-            const prompt = `${getPrefPrompt()}用户选择：${userChoice}
+            const styleBlock = formatStylePrompt(currentStory.styleProfile);
+            const prompt = `${getPrefPrompt()}${styleBlock}
+用户选择：${userChoice}
 
 世界：${currentStory.worldTitle}（${currentStory.worldTags.join('、')}）
 主角：${currentStory.protagonist}${currentStory.protagonistDesc ? ' — ' + currentStory.protagonistDesc : ''}
@@ -1813,7 +1819,7 @@ ${storySoFar}
                     currentStory.history.push(segment);
                     displayFullStory();
                     document.getElementById('customInput').value = '';
-                    document.getElementById('continueHint').textContent = '输入剧情方向，或直接点击继续';
+                    document.getElementById('continueHint').textContent = fmtContinueHint(false);
                     appendNewMeta(result);
                     saveStoryData();
                     autoSave();
@@ -2003,12 +2009,16 @@ ${storySoFar}
             }
         });
 
+        function fmtContinueHint(hasInput) {
+            if (hasInput) return '将按自定义剧情继续';
+            return isEmptyProfile(currentStory.styleProfile)
+                ? '输入剧情方向，或直接点击继续'
+                : '输入剧情方向，AI 将按当前文风续写';
+        }
+
         document.getElementById('customInput').addEventListener('input', () => {
-            if (document.getElementById('customInput').value.trim()) {
-                document.getElementById('continueHint').textContent = '将按自定义剧情继续';
-            } else {
-                document.getElementById('continueHint').textContent = '输入剧情方向，或直接点击继续';
-            }
+            document.getElementById('continueHint').textContent =
+                fmtContinueHint(!!document.getElementById('customInput').value.trim());
         });
 
         document.getElementById('customInput').addEventListener('keydown', (event) => {
