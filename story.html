@@ -1107,12 +1107,28 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             localStorage.setItem('current_story_session', JSON.stringify(currentStory));
         }
 
+        // Migration: ensure history entries have `original` field
+        function migrateHistory() {
+            if (!Array.isArray(currentStory.history)) return;
+            for (const seg of currentStory.history) {
+                if (seg && typeof seg.original === 'undefined') {
+                    seg.original = seg.content;
+                }
+            }
+        }
+
         // Initialize page
         function init() {
             if (!loadStoryData()) {
                 alert('没有找到故事数据，请先在首页开始创作');
                 window.location.href = 'index.html';
                 return;
+            }
+
+            migrateHistory();
+
+            if (!currentStory.styleProfile) {
+                currentStory.styleProfile = { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
             }
 
             document.getElementById('worldTitle').textContent = currentStory.worldTitle || '未知世界';
