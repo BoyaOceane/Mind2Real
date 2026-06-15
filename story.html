@@ -701,6 +701,38 @@
 
         .story-segment { position: relative; }
         .seg-toolbar { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+        /* 文风推理条 */
+        .reasoning-bar {
+            background: oklch(97% 0.008 85);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: all var(--transition-fast);
+        }
+        .reasoning-bar.collapsed .reasoning-body { display: none; }
+        .reasoning-bar.collapsed .reasoning-arrow { transform: rotate(-90deg); }
+        .reasoning-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.72rem;
+            color: var(--accent-tertiary);
+            letter-spacing: 0.04em;
+        }
+        .reasoning-header:hover { background: oklch(94% 0.010 85); }
+        .reasoning-arrow { transition: transform 0.2s; font-size: 0.65rem; }
+        .reasoning-body {
+            padding: 8px 12px 10px;
+            font-size: 0.78rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-light);
+            white-space: pre-wrap;
+        }
         .seg-edit-btn {
             padding: 2px 10px;
             font-size: 0.72rem;
@@ -1322,9 +1354,10 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
             typewriterReset();
             // Save whatever was generated so far
             if (partialResult.trim()) {
-                const displayText = ensureCompleteSentence(stripStructuredMeta(partialResult));
+                const { reasoning, body } = parseStyleReasoning(partialResult);
+                const displayText = ensureCompleteSentence(stripStructuredMeta(body));
                 if (displayText.trim()) {
-                    currentStory.history.push({ content: displayText, original: displayText, timestamp: Date.now() });
+                    currentStory.history.push({ content: displayText, original: displayText, reasoning: reasoning || undefined, timestamp: Date.now() });
                     displayFullStory();
                     appendNewMeta(partialResult);
                     saveStoryData();
@@ -1477,10 +1510,12 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 if (result) {
                     partialResult = '';
                     typewriterReset();
-                    const displayText = ensureCompleteSentence(stripStructuredMeta(result));
+                    const { reasoning, body } = parseStyleReasoning(result);
+                    const displayText = ensureCompleteSentence(stripStructuredMeta(body));
                     const segment = {
                         content: displayText,
                         original: displayText,
+                        reasoning: reasoning || undefined,
                         timestamp: Date.now()
                     };
                     currentStory.history.push(segment);
@@ -1518,13 +1553,25 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 
         // Display full story (all history segments)
         function displayFullStory() {
-            const allContent = currentStory.history.map(h => h.content);
-            document.getElementById('storyText').innerHTML = allContent.map((c, i) =>
-                '<div id="seg-' + i + '" class="story-segment">' +
+            document.getElementById('storyText').innerHTML = currentStory.history.map((h, i) => {
+                let reasoningBlock = '';
+                if (h.reasoning) {
+                    const rid = 'reasoning-' + i;
+                    reasoningBlock =
+                        '<div class="reasoning-bar collapsed" id="' + rid + '">' +
+                            '<div class="reasoning-header" onclick="document.getElementById(\'' + rid + '\').classList.toggle(\'collapsed\')">' +
+                                '<span>文风推理</span>' +
+                                '<span class="reasoning-arrow">▾</span>' +
+                            '</div>' +
+                            '<div class="reasoning-body">' + escapeHTML(h.reasoning) + '</div>' +
+                        '</div>';
+                }
+                return '<div id="seg-' + i + '" class="story-segment">' +
                     '<div class="seg-toolbar"><button class="seg-edit-btn" onclick="editSegment(' + i + ')">润色</button></div>' +
-                    '<div class="seg-content">' + textToHtml(c) + '</div>' +
-                '</div>'
-            ).join('<hr class="story-divider">');
+                    reasoningBlock +
+                    '<div class="seg-content">' + textToHtml(h.content) + '</div>' +
+                '</div>';
+            }).join('<hr class="story-divider">');
         }
 
         // ---- Segment editing ----
@@ -1855,7 +1902,8 @@ JSON 结构：
                 }).join('\n');
                 parts.push('【改写示例】\n' + exLines);
             }
-            return '【用户文风约束】\n' + parts.join('\n');
+            return '【用户文风约束】\n' + parts.join('\n') +
+                '\n\n请先用【风格推理】标记简要说明你将如何把以上约束应用到本次创作（1-2句话），然后用【正文】标记开始正文。';
         }
 
         // Display story content: all previous history + current streaming text
@@ -1969,10 +2017,12 @@ ${storySoFar}
                 if (result) {
                     partialResult = '';
                     typewriterReset();
-                    const displayText = ensureCompleteSentence(stripStructuredMeta(result));
+                    const { reasoning, body } = parseStyleReasoning(result);
+                    const displayText = ensureCompleteSentence(stripStructuredMeta(body));
                     const segment = {
                         content: displayText,
                         original: displayText,
+                        reasoning: reasoning || undefined,
                         timestamp: Date.now()
                     };
                     currentStory.history.push(segment);
@@ -2284,6 +2334,25 @@ ${storySoFar}
                 return text.slice(0, Math.min(...cutAt)).trim();
             }
             return text.trim();
+        }
+
+        // Extract 【风格推理】and 【正文】from AI output
+        function parseStyleReasoning(text) {
+            const rStart = text.indexOf('【风格推理】');
+            const bStart = text.indexOf('【正文】');
+            if (rStart === -1 && bStart === -1) return { reasoning: '', body: text };
+            let reasoning = '';
+            let body = text;
+            if (rStart !== -1) {
+                const rEnd = bStart > rStart ? bStart : text.length;
+                reasoning = text.slice(rStart + 6, rEnd).trim();
+            }
+            if (bStart !== -1) {
+                body = text.slice(bStart + 4);
+            } else if (rStart !== -1) {
+                body = text.slice(0, rStart);
+            }
+            return { reasoning, body };
         }
 
         // Extract section by markers
