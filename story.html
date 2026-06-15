@@ -962,6 +962,12 @@
             font-size: 0.78rem;
             line-height: 1.6;
         }
+        .style-empty-item {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 2px 0;
+        }
         .style-actions {
             display: flex;
             gap: 6px;
@@ -1929,29 +1935,30 @@ JSON 结构：
             // Default toggle
             html += '<label class="style-default-toggle"><input type="checkbox" onchange="toggleDefaultStyle(this.checked)"' + (isDefault ? ' checked' : '') + '> 默认文风（新故事自动使用）</label>';
 
-            if (isEmptyProfile(profile) && (!active || !active.history || active.history.length === 0)) {
-                html += '<div class="style-empty">暂无文风记录<br>润色任意段落后将在此显示</div>';
-                html += '<div class="style-actions"><button class="btn" onclick="resetActiveStyle()">清空当前文风</button></div>';
-                list.innerHTML = html;
-                return;
-            }
-
-            // Profile sections
-            if (profile.voice && Object.keys(profile.voice).length > 0) {
-                html += '<div class="style-group"><div class="style-group-title">语气与节奏</div>' + renderKeyValues(profile.voice) + '</div>';
-            }
-            if (profile.language && Object.keys(profile.language).length > 0) {
-                html += '<div class="style-group"><div class="style-group-title">语言偏好</div>' + renderKeyValues(profile.language) + '</div>';
-            }
-            if (profile.character && Object.keys(profile.character).length > 0) {
-                html += '<div class="style-group"><div class="style-group-title">人物刻画</div>' + renderKeyValues(profile.character) + '</div>';
-            }
-            if (profile.taboos && profile.taboos.length > 0) {
-                html += '<div class="style-group"><div class="style-group-title">禁忌</div>' +
-                    '<div class="style-kv-row"><span class="style-kv-value">' + escapeHTML(profile.taboos.join('、')) + '</span></div></div>';
-            }
+            // Profile sections — always show, with placeholder when empty
+            const empty = isEmptyProfile(profile);
+            html += '<div class="style-group"><div class="style-group-title">语气与节奏</div>' +
+                (profile.voice && Object.keys(profile.voice).length > 0
+                    ? renderKeyValues(profile.voice)
+                    : '<div class="style-empty-item">— 暂无 —</div>') +
+                '</div>';
+            html += '<div class="style-group"><div class="style-group-title">语言偏好</div>' +
+                (profile.language && Object.keys(profile.language).length > 0
+                    ? renderKeyValues(profile.language)
+                    : '<div class="style-empty-item">— 暂无 —</div>') +
+                '</div>';
+            html += '<div class="style-group"><div class="style-group-title">人物刻画</div>' +
+                (profile.character && Object.keys(profile.character).length > 0
+                    ? renderKeyValues(profile.character)
+                    : '<div class="style-empty-item">— 暂无 —</div>') +
+                '</div>';
+            html += '<div class="style-group"><div class="style-group-title">禁忌</div>' +
+                (profile.taboos && profile.taboos.length > 0
+                    ? '<div class="style-kv-row"><span class="style-kv-value">' + escapeHTML(profile.taboos.join('、')) + '</span></div>'
+                    : '<div class="style-empty-item">— 暂无 —</div>') +
+                '</div>';
+            html += '<div class="style-group"><div class="style-group-title">改写示例</div>';
             if (profile.examples && profile.examples.length > 0) {
-                html += '<div class="style-group"><div class="style-group-title">改写示例</div>';
                 profile.examples.forEach(ex => {
                     html += '<div class="style-example">' +
                         '<div class="style-example-label">原句</div>' +
@@ -1961,8 +1968,10 @@ JSON 结构：
                         '<div class="style-example-rule">规则：' + escapeHTML(ex.rule || '') + '</div>' +
                         '</div>';
                 });
-                html += '</div>';
+            } else {
+                html += '<div class="style-empty-item">— 润色段落保存后自动生成 —</div>';
             }
+            html += '</div>';
 
             // Commit history
             if (active && active.history && active.history.length > 0) {
