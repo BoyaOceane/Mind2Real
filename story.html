@@ -787,7 +787,82 @@
         }
         .seg-edit-actions .btn-primary:hover { background: var(--ink-black); }
 
-        /* Responsive - Mobile */
+        /* Style panel */
+        .style-panel { display: flex; flex-direction: column; gap: 12px; }
+        .style-group { }
+        .style-group-title {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            letter-spacing: 0.05em;
+        }
+        .style-kv-row {
+            display: flex;
+            gap: 8px;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            padding: 3px 0;
+        }
+        .style-kv-key {
+            color: var(--text-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .style-kv-value {
+            color: var(--text-secondary);
+            word-break: break-word;
+        }
+        .style-empty {
+            text-align: center;
+            padding: 24px 0;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            line-height: 1.6;
+        }
+        .style-actions {
+            padding-top: 8px;
+            border-top: 1px solid var(--border-light);
+        }
+        .style-actions .btn {
+            width: 100%;
+            padding: 8px 0;
+            font-size: 0.82rem;
+            border-radius: var(--radius-md);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-medium);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all var(--transition-fast);
+        }
+        .style-actions .btn:hover {
+            background: var(--accent-tertiary);
+            color: var(--text-inverse);
+            border-color: var(--accent-tertiary);
+        }
+        .style-example {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        .style-example-label {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .style-example-text {
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .style-example-rule {
+            font-size: 0.72rem;
+            color: var(--accent-tertiary);
+            margin-top: 4px;
+        }
         @media (max-width: 640px) {
             .container { padding: 8px 16px 0; }
             .top-bar { gap: 10px; align-items: flex-start; }
@@ -902,13 +977,22 @@
                 <button class="s-tab active" data-tab="outline" onclick="switchTab('outline')">提纲</button>
                 <button class="s-tab" data-tab="clues" onclick="switchTab('clues')">线索</button>
                 <button class="s-tab" data-tab="characters" onclick="switchTab('characters')">人物</button>
+                <button class="s-tab" data-tab="style" onclick="switchTab('style')">文风</button>
             </div>
             <div class="sidebar-body" id="sidebarBody">
                 <div class="sb-pane active" id="sbOutline"><div class="sb-list" id="outlineList"></div></div>
                 <div class="sb-pane" id="sbClues"><div class="sb-list" id="cluesList"></div></div>
                 <div class="sb-pane" id="sbChars"><div class="sb-list" id="charsList"></div></div>
+                <div class="sb-pane" id="sbStyle">
+                    <div class="style-panel">
+                        <div class="panel-header"><h3>文风档案</h3></div>
+                        <div id="styleList"></div>
+                        <div class="style-actions">
+                            <button class="btn" onclick="resetStyleProfile()">清空文风档案</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
     </div>
 
     <!-- 固定底栏 -->
@@ -1260,6 +1344,7 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                 generateOpening();
             }
 
+            renderStyleProfile();
             saveStoryData();
         }
 
@@ -1518,7 +1603,98 @@ JSON 结构：
         }
 
         function renderStyleProfile() {
-            // Task 4 will implement this
+            const list = document.getElementById('styleList');
+            if (!list) return;
+            const profile = currentStory.styleProfile || { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
+            if (isEmptyProfile(profile)) {
+                list.innerHTML = '<div class="style-empty">暂无文风记录<br>润色任意段落后将在此显示</div>';
+                return;
+            }
+            let html = '';
+            if (profile.voice && Object.keys(profile.voice).length > 0) {
+                html += '<div class="style-group"><div class="style-group-title">语气与节奏</div>' + renderKeyValues(profile.voice) + '</div>';
+            }
+            if (profile.language && Object.keys(profile.language).length > 0) {
+                html += '<div class="style-group"><div class="style-group-title">语言偏好</div>' + renderKeyValues(profile.language) + '</div>';
+            }
+            if (profile.character && Object.keys(profile.character).length > 0) {
+                html += '<div class="style-group"><div class="style-group-title">人物刻画</div>' + renderKeyValues(profile.character) + '</div>';
+            }
+            if (profile.taboos && profile.taboos.length > 0) {
+                html += '<div class="style-group"><div class="style-group-title">禁忌</div>' +
+                    '<div class="style-kv-row"><span class="style-kv-value">' + escapeHTML(profile.taboos.join('、')) + '</span></div></div>';
+            }
+            if (profile.examples && profile.examples.length > 0) {
+                html += '<div class="style-group"><div class="style-group-title">改写示例</div>';
+                profile.examples.forEach(ex => {
+                    html += '<div class="style-example">' +
+                        '<div class="style-example-label">原句</div>' +
+                        '<div class="style-example-text">' + escapeHTML(ex.original || '') + '</div>' +
+                        '<div class="style-example-label">改句</div>' +
+                        '<div class="style-example-text">' + escapeHTML(ex.edited || '') + '</div>' +
+                        '<div class="style-example-rule">规则：' + escapeHTML(ex.rule || '') + '</div>' +
+                        '</div>';
+                });
+                html += '</div>';
+            }
+            list.innerHTML = html;
+        }
+
+        function renderKeyValues(obj) {
+            if (!obj || typeof obj !== 'object') return '';
+            return Object.entries(obj).map(([k, v]) => {
+                let display = '';
+                if (Array.isArray(v)) display = v.join('、');
+                else display = String(v ?? '');
+                if (!display) return '';
+                return '<div class="style-kv-row"><span class="style-kv-key">' + escapeHTML(k) + '</span><span class="style-kv-value">' + escapeHTML(display) + '</span></div>';
+            }).filter(Boolean).join('');
+        }
+
+        function isEmptyProfile(p) {
+            if (!p) return true;
+            const hasVoice = p.voice && Object.keys(p.voice).length > 0 && Object.values(p.voice).some(v => v && (!Array.isArray(v) || v.length > 0));
+            const hasLanguage = p.language && Object.keys(p.language).length > 0 && Object.values(p.language).some(v => v && (!Array.isArray(v) || v.length > 0));
+            const hasCharacter = p.character && Object.keys(p.character).length > 0 && Object.values(p.character).some(v => v && (!Array.isArray(v) || v.length > 0));
+            const hasTaboos = p.taboos && p.taboos.length > 0;
+            const hasExamples = p.examples && p.examples.length > 0;
+            return !hasVoice && !hasLanguage && !hasCharacter && !hasTaboos && !hasExamples;
+        }
+
+        function resetStyleProfile() {
+            if (!confirm('确定要清空文风档案吗？此操作不可撤销。')) return;
+            currentStory.styleProfile = { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
+            saveStoryData();
+            renderStyleProfile();
+            showToast('文风档案已清空');
+        }
+
+        function formatStylePrompt(profile) {
+            if (isEmptyProfile(profile)) return '';
+            let parts = [];
+            if (profile.voice && Object.keys(profile.voice).length > 0) {
+                parts.push('【语气与节奏】' + Object.entries(profile.voice).map(([k, v]) => k + '：' + v).join('；'));
+            }
+            if (profile.language && Object.keys(profile.language).length > 0) {
+                const langEntries = Object.entries(profile.language).map(([k, v]) => {
+                    const display = Array.isArray(v) ? v.join('、') : String(v);
+                    return k + '：' + display;
+                }).join('；');
+                parts.push('【语言偏好】' + langEntries);
+            }
+            if (profile.character && Object.keys(profile.character).length > 0) {
+                parts.push('【人物刻画】' + Object.entries(profile.character).map(([k, v]) => k + '：' + v).join('；'));
+            }
+            if (profile.taboos && profile.taboos.length > 0) {
+                parts.push('【禁忌】' + profile.taboos.join('、'));
+            }
+            if (profile.examples && profile.examples.length > 0) {
+                const exLines = profile.examples.map((ex, i) => {
+                    return (i + 1) + '. 原句：' + (ex.original || '') + ' → 改句：' + (ex.edited || '') + '（规则：' + (ex.rule || '') + '）';
+                }).join('\n');
+                parts.push('【改写示例】\n' + exLines);
+            }
+            return '【用户文风约束】\n' + parts.join('\n');
         }
 
         // Display story content: all previous history + current streaming text
