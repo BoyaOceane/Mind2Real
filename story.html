@@ -1410,9 +1410,115 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
         }
 
         // Placeholder for Task 3
-        async function analyzeStyleDiff(original, revised) {
-            // Task 3 will implement this
-            console.log('analyzeStyleDiff placeholder called', original.slice(0, 30), revised.slice(0, 30));
+        const STYLE_ANALYZER_PROMPT = `你是一位文风分析师。请对比用户提供的原稿与改稿，推断用户的文风偏好，输出一份 JSON 风格档案。只输出合法 JSON，不要任何解释性文字。
+
+JSON 结构：
+{
+  "voice": {
+    "sentence_rhythm": "",
+    "tone": "",
+    "pacing": ""
+  },
+  "language": {
+    "word_level": "",
+    "sensory_bias": [],
+    "dialogue_mode": "",
+    "metaphor_style": ""
+  },
+  "character": {
+    "inner_thoughts": "",
+    "description_rule": ""
+  },
+  "taboos": [],
+  "examples": [
+    { "original": "", "edited": "", "rule": "" }
+  ]
+}
+
+字段说明：
+- voice.sentence_rhythm: 句式节奏偏好，如短句凌厉、长句缠绵、整散结合等。
+- voice.tone: 整体语气，如冷峻、温情、戏谑、压抑等。
+- voice.pacing: 叙事节奏，如快节奏推进、慢镜头描写、张弛有度等。
+- language.word_level: 用词层级，如文言化、口语化、书面化、网文感等。
+- language.sensory_bias: 感官偏向数组，如视觉、听觉、嗅觉、触觉、味觉。
+- language.dialogue_mode: 对话风格，如简洁有力、潜台词丰富、话痨、沉默等。
+- language.metaphor_style: 比喻风格，如密集隐喻、白描无喻、生活化比喻等。
+- character.inner_thoughts: 内心戏处理方式，如直接呈现、动作暗示、留白等。
+- character.description_rule: 人物描写规则，如外貌一笔带过、心理优先、行动定义人设等。
+- taboos: 用户改稿中体现出的禁忌或回避，如避免心理描写、不用成语、不出现长句等。
+- examples: 从本次对比中提取的典型改写示例，最多 5 条，每条说明改稿相对于原稿遵循了什么规则。
+
+规则：
+1. 若某字段无法推断，留空字符串或空数组。
+2. 只输出 JSON，不要 markdown 代码块，不要额外文字。
+3. 尽量具体，避免泛泛而谈。`;
+
+        async function analyzeStyleDiff(original, edited) {
+            try {
+                const config = getApiConfig();
+                if (!config.apiKey) {
+                    showToast('请先在首页设置 API Key');
+                    return;
+                }
+                const userPrompt = `<原稿>\n${original}\n\n<改稿>\n${edited}\n\n请输出 JSON 风格档案。`;
+                const raw = await callDeepSeek(userPrompt, STYLE_ANALYZER_PROMPT);
+                if (!raw || !raw.trim()) {
+                    showToast('文风学习失败：API 无返回');
+                    return;
+                }
+                const freshProfile = parseStyleJson(raw);
+                if (!freshProfile) {
+                    showToast('文风学习失败：解析结果异常');
+                    return;
+                }
+                const oldProfile = currentStory.styleProfile || { voice: {}, language: {}, character: {}, taboos: [], examples: [] };
+                currentStory.styleProfile = mergeStyleProfile(oldProfile, freshProfile);
+                saveStoryData();
+                renderStyleProfile();
+                showToast('文风已学习');
+            } catch (e) {
+                console.error('analyzeStyleDiff error:', e);
+                showToast('文风学习失败，请稍后重试');
+            }
+        }
+
+        function parseStyleJson(raw) {
+            if (!raw) return null;
+            let text = raw.trim();
+            // Remove markdown code block fences
+            if (text.startsWith('```json')) text = text.slice(7);
+            else if (text.startsWith('```')) text = text.slice(3);
+            if (text.endsWith('```')) text = text.slice(0, -3);
+            text = text.trim();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                // Fallback: extract first {...} block
+                const match = text.match(/\{[\s\S]*\}/);
+                if (match) {
+                    try {
+                        return JSON.parse(match[0]);
+                    } catch (e2) {
+                        return null;
+                    }
+                }
+                return null;
+            }
+        }
+
+        function mergeStyleProfile(old, fresh) {
+            const merged = {
+                voice: { ...(old.voice || {}), ...(fresh.voice || {}) },
+                language: { ...(old.language || {}), ...(fresh.language || {}) },
+                character: { ...(old.character || {}), ...(fresh.character || {}) },
+                taboos: Array.from(new Set([...(old.taboos || []), ...(fresh.taboos || [])])),
+                examples: [...(old.examples || []), ...(fresh.examples || [])].slice(-10)
+            };
+            return merged;
+        }
+
+        function renderStyleProfile() {
+            // Task 4 will implement this
         }
 
         // Display story content: all previous history + current streaming text
