@@ -704,6 +704,89 @@
         }
         .btn-sm:hover { background: var(--bg-tertiary); }
 
+        .story-segment { position: relative; }
+        .seg-toolbar { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+        .seg-edit-btn {
+            padding: 2px 10px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all var(--transition-fast);
+        }
+        .seg-edit-btn:hover {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        .seg-edit-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .seg-original-panel, .seg-edited-panel {
+            background: var(--paper-aged);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+        .seg-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .seg-original-text {
+            font-size: 0.88rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+        }
+        .seg-edit-textarea {
+            width: 100%;
+            min-height: 180px;
+            resize: vertical;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm);
+            box-sizing: border-box;
+        }
+        .seg-edit-textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.15);
+        }
+        .seg-edit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .seg-edit-actions .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .seg-edit-actions .btn-sm:hover { background: var(--bg-tertiary); }
+        .seg-edit-actions .btn-primary {
+            background: var(--ink-heavy);
+            color: var(--paper-new);
+            border: none;
+        }
+        .seg-edit-actions .btn-primary:hover { background: var(--ink-black); }
+
         /* Responsive - Mobile */
         @media (max-width: 640px) {
             .container { padding: 8px 16px 0; }
@@ -1263,8 +1346,73 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
         function displayFullStory() {
             const allContent = currentStory.history.map(h => h.content);
             document.getElementById('storyText').innerHTML = allContent.map((c, i) =>
-                '<div id="seg-' + i + '">' + textToHtml(c) + '</div>'
+                '<div id="seg-' + i + '" class="story-segment">' +
+                    '<div class="seg-toolbar"><button class="seg-edit-btn" onclick="editSegment(' + i + ')">润色</button></div>' +
+                    '<div class="seg-content">' + textToHtml(c) + '</div>' +
+                '</div>'
             ).join('<hr class="story-divider">');
+        }
+
+        // ---- Segment editing ----
+        function editSegment(index) {
+            const seg = currentStory.history[index];
+            if (!seg) return;
+            const el = document.getElementById('seg-' + index);
+            if (!el) return;
+            const original = seg.original || seg.content;
+            el.innerHTML =
+                '<div class="seg-edit-layout">' +
+                    '<div class="seg-original-panel">' +
+                        '<span class="seg-label">原稿</span>' +
+                        '<div class="seg-original-text">' + escapeHTML(original) + '</div>' +
+                    '</div>' +
+                    '<div class="seg-edited-panel">' +
+                        '<span class="seg-label">改稿</span>' +
+                        '<textarea id="seg-edit-' + index + '" class="seg-edit-textarea">' + escapeHTML(seg.content) + '</textarea>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="seg-edit-actions">' +
+                    '<button class="btn-sm" onclick="resetSegmentToOriginal(' + index + ')">重置为原稿</button>' +
+                    '<button class="btn-sm" onclick="cancelSegmentEdit()">取消</button>' +
+                    '<button class="btn-sm btn-primary" onclick="saveSegmentEdit(' + index + ')">保存</button>' +
+                '</div>';
+        }
+
+        function cancelSegmentEdit() {
+            displayFullStory();
+        }
+
+        function resetSegmentToOriginal(index) {
+            const seg = currentStory.history[index];
+            if (!seg) return;
+            const textarea = document.getElementById('seg-edit-' + index);
+            if (textarea) textarea.value = seg.original || seg.content;
+        }
+
+        async function saveSegmentEdit(index) {
+            const seg = currentStory.history[index];
+            if (!seg) return;
+            const textarea = document.getElementById('seg-edit-' + index);
+            if (!textarea) return;
+            const newText = textarea.value.trim();
+            if (!newText) { showToast('改稿不能为空'); return; }
+            if (newText === seg.content) { displayFullStory(); return; }
+            const oldContent = seg.content;
+            seg.content = newText;
+            if (typeof seg.original === 'undefined') seg.original = oldContent;
+            saveStoryData();
+            autoSave();
+            const original = seg.original || oldContent;
+            if (newText !== original) {
+                try { await analyzeStyleDiff(original, newText); } catch (e) { console.error('analyzeStyleDiff error:', e); }
+            }
+            displayFullStory();
+        }
+
+        // Placeholder for Task 3
+        async function analyzeStyleDiff(original, revised) {
+            // Task 3 will implement this
+            console.log('analyzeStyleDiff placeholder called', original.slice(0, 30), revised.slice(0, 30));
         }
 
         // Display story content: all previous history + current streaming text
