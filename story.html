@@ -232,21 +232,20 @@
             flex: 1;
             display: flex;
             align-items: stretch;
-            justify-content: center;
             overflow: hidden;
             min-height: 0;
             position: relative;
         }
-        /* Container — story panel, always centered, max-width 560px */
+        /* Container — story panel on left, sidebar pinned right */
         .container {
             display: flex;
             flex-direction: column;
-            width: 100%;
-            max-width: 680px;
-            padding: 16px 0 0;
+            flex: 1 1 auto;
+            min-width: 0;
+            max-width: 860px;
+            padding: 16px 24px 0;
             min-height: 0;
             overflow: hidden;
-            transition: max-width 0.3s ease, padding 0.3s ease;
         }
 
         /* ===== Timeline（垂直线+节点）===== */
