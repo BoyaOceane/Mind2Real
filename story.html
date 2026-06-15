@@ -721,7 +721,21 @@
             flex-direction: column;
             gap: 10px;
         }
-        /* 原稿 — 顶部折叠条 */
+        /* 顶部工具栏：原稿 + 操作按钮 */
+        .seg-edit-toolbar {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .seg-edit-toolbar .seg-original-panel {
+            flex: 1;
+            min-width: 0;
+        }
+        .seg-edit-toolbar .seg-edit-actions {
+            flex-shrink: 0;
+            margin-top: 0;
+        }
+        /* 原稿 — 折叠条 */
         .seg-original-panel {
             background: var(--paper-aged);
             border: 1px solid var(--border-light);
@@ -1523,12 +1537,19 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
 
             el.innerHTML =
                 '<div class="seg-edit-layout">' +
-                    '<div class="seg-original-panel collapsed" id="seg-orig-' + index + '">' +
-                        '<div class="seg-original-header" onclick="document.getElementById(\'seg-orig-' + index + '\').classList.toggle(\'collapsed\')">' +
-                            '<span>原稿</span>' +
-                            '<span class="arrow">▾</span>' +
+                    '<div class="seg-edit-toolbar">' +
+                        '<div class="seg-original-panel collapsed" id="seg-orig-' + index + '">' +
+                            '<div class="seg-original-header" onclick="document.getElementById(\'seg-orig-' + index + '\').classList.toggle(\'collapsed\')">' +
+                                '<span>原稿</span>' +
+                                '<span class="arrow">▾</span>' +
+                            '</div>' +
+                            '<div class="seg-original-body">' + escapeHTML(original) + '</div>' +
                         '</div>' +
-                        '<div class="seg-original-body">' + escapeHTML(original) + '</div>' +
+                        '<div class="seg-edit-actions">' +
+                            '<button class="btn-sm" onclick="resetSegmentToOriginal(' + index + ')">重置为原稿</button>' +
+                            '<button class="btn-sm" onclick="cancelSegmentEdit()">取消</button>' +
+                            '<button class="btn-sm btn-primary" onclick="saveSegmentEdit(' + index + ')">保存</button>' +
+                        '</div>' +
                     '</div>' +
                     '<div class="seg-edit-row">' +
                         '<div class="seg-edited-panel">' +
@@ -1542,11 +1563,6 @@ char_001 | protagonist | 主仆 | 3 | 主角初入古宅，李管家前来迎接
                             '</div>' +
                         '</div>' +
                     '</div>' +
-                '</div>' +
-                '<div class="seg-edit-actions">' +
-                    '<button class="btn-sm" onclick="resetSegmentToOriginal(' + index + ')">重置为原稿</button>' +
-                    '<button class="btn-sm" onclick="cancelSegmentEdit()">取消</button>' +
-                    '<button class="btn-sm btn-primary" onclick="saveSegmentEdit(' + index + ')">保存</button>' +
                 '</div>';
 
             const ta = document.getElementById('seg-edit-' + index);
