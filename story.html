@@ -1350,6 +1350,14 @@
             return result;
         }
 
+        function nextArchiveId(prefix, list) {
+            const max = list.reduce((m, item) => {
+                const num = parseInt(item.id?.slice(1), 10) || 0;
+                return Math.max(m, num);
+            }, 0);
+            return `${prefix}${String(max + 1).padStart(3, '0')}`;
+        }
+
         function escapeHTML(value) {
             return String(value ?? '').replace(/[&<>"']/g, (char) => ({
                 '&': '&amp;',
@@ -2379,6 +2387,11 @@ ${storySoFar}
             const existIdx = autoSaveId ? history.findIndex(h => h._autoId === autoSaveId) : -1;
             const storyData = {
                 _autoId: autoSaveId || (autoSaveId = Date.now().toString(36)),
+                id: autoSaveId ? (() => {
+                    const found = history.find(h => h._autoId === autoSaveId);
+                    return found?.id || nextArchiveId('S', history);
+                })() : nextArchiveId('S', history),
+                createdAt: Date.now(),
                 title: currentStory.worldTitle + ' - 故事',
                 date: new Date().toLocaleString('zh-CN'),
                 content,
@@ -2387,6 +2400,8 @@ ${storySoFar}
                 protagonist: currentStory.protagonist,
                 goldenFinger: currentStory.goldenFinger,
                 narrative: currentStory.narrative,
+                worldId: currentStory.worldId || null,
+                protagonistId: currentStory.protagonistId || null,
                 storyOutline, storyClues, characterCards, characterRelations
             };
 
@@ -2411,6 +2426,11 @@ ${storySoFar}
             const existIdx = autoSaveId ? history.findIndex(h => h._autoId === autoSaveId) : -1;
             const storyData = {
                 _autoId: autoSaveId || (autoSaveId = Date.now().toString(36)),
+                id: autoSaveId ? (() => {
+                    const found = history.find(h => h._autoId === autoSaveId);
+                    return found?.id || nextArchiveId('S', history);
+                })() : nextArchiveId('S', history),
+                createdAt: Date.now(),
                 title: title,
                 date: new Date().toLocaleString('zh-CN'),
                 content,
@@ -2419,6 +2439,8 @@ ${storySoFar}
                 protagonist: currentStory.protagonist,
                 goldenFinger: currentStory.goldenFinger,
                 narrative: currentStory.narrative,
+                worldId: currentStory.worldId || null,
+                protagonistId: currentStory.protagonistId || null,
                 storyOutline, storyClues, characterCards, characterRelations
             };
 
