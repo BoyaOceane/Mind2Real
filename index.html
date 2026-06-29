@@ -1681,6 +1681,33 @@ function startCreating() {
   const protagonistTags = Object.entries(p).map(([, t]) => t);
   const narrativeTag = Object.values(n)[0];
 
+  // Ensure world and protagonist are archived
+  let worldId = state.world.savedId;
+  let protagonistId = state.protagonist.savedId;
+
+  if (!worldId && state.world.generatedTitle) {
+    const rec = addWorldRecord({
+      tags: Object.values(w),
+      title: state.world.generatedTitle,
+      content: state.world.generatedDesc || worldTags.join(' / '),
+      prompt: ''
+    });
+    worldId = rec.id;
+    state.world.savedId = rec.id;
+  }
+
+  if (!protagonistId && state.protagonist.generatedName) {
+    const rec = addProtagonistRecord({
+      tags: Object.values(p),
+      title: state.protagonist.generatedName,
+      content: state.protagonist.generatedDesc || '',
+      prompt: '',
+      worldId: worldId
+    });
+    protagonistId = rec.id;
+    state.protagonist.savedId = rec.id;
+  }
+
   const session = {
     worldTitle: state.world.generatedTitle || Object.values(w)[0] || '未知世界',
     worldDesc: state.world.generatedDesc || worldTags.join(' / '),
@@ -1697,7 +1724,9 @@ function startCreating() {
     storyClues: [],
     characterCards: [],
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    worldId: worldId || null,
+    protagonistId: protagonistId || null
   };
 
   localStorage.setItem('current_story_session', JSON.stringify(session));
