@@ -972,14 +972,161 @@ function getPrompt(key) {
   return WRITING_SYSTEM + '\n\n---\n\n' + prompt;
 }
 
+// ==================== ARCHIVE UTILITIES ====================
+const ARCHIVE_KEYS = {
+  worlds: 'jimo_worlds',
+  protagonists: 'jimo_protagonists'
+};
+
+function loadArchive(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error(`Failed to load archive ${key}:`, e);
+    return [];
+  }
+}
+
+function saveArchive(key, list) {
+  try {
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch (e) {
+    console.error(`Failed to save archive ${key}:`, e);
+    showToast('保存失败，可能本地存储已满');
+  }
+}
+
+function nextArchiveId(prefix, list) {
+  const max = list.reduce((m, item) => {
+    const num = parseInt(item.id?.slice(1), 10) || 0;
+    return Math.max(m, num);
+  }, 0);
+  return `${prefix}${String(max + 1).padStart(3, '0')}`;
+}
+
+function addWorldRecord(item) {
+  const list = loadArchive(ARCHIVE_KEYS.worlds);
+  const record = {
+    id: nextArchiveId('W', list),
+    createdAt: Date.now(),
+    tags: item.tags || [],
+    title: item.title || '未命名世界',
+    content: item.content || '',
+    prompt: item.prompt || ''
+  };
+  list.unshift(record);
+  saveArchive(ARCHIVE_KEYS.worlds, list.slice(0, 200));
+  return record;
+}
+
+function addProtagonistRecord(item) {
+  const list = loadArchive(ARCHIVE_KEYS.protagonists);
+  const record = {
+    id: nextArchiveId('P', list),
+    createdAt: Date.now(),
+    tags: item.tags || [],
+    title: item.title || '未命名主角',
+    content: item.content || '',
+    prompt: item.prompt || '',
+    worldId: item.worldId || null
+  };
+  list.unshift(record);
+  saveArchive(ARCHIVE_KEYS.protagonists, list.slice(0, 200));
+  return record;
+}
+
+function findWorldByTitle(title) {
+  const worlds = loadArchive(ARCHIVE_KEYS.worlds);
+  return worlds.find(w => w.title === title) || null;
+}
+
+function findProtagonistByTitle(title) {
+  const protagonists = loadArchive(ARCHIVE_KEYS.protagonists);
+  return protagonists.find(p => p.title === title) || null;
+}
+
+function exportAllHistory() {
+  const payload = {
+    version: 1,
+    exportedAt: Date.now(),
+    worlds: loadArchive(ARCHIVE_KEYS.worlds),
+    protagonists: loadArchive(ARCHIVE_KEYS.protagonists),
+    stories: JSON.parse(localStorage.getItem('story_history') || '[]')
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  const ts = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}`;
+  a.href = url;
+  a.download = `jimo-history-${ts}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function importAllHistory(file) {
+  const text = await file.text();
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch (e) {
+    showToast('文件格式错误，无法解析');
+    return;
+  }
+  if (!payload || payload.version !== 1) {
+    showToast('不兼容的历史记录版本');
+    return;
+  }
+
+  const merge = (key, incoming) => {
+    if (!Array.isArray(incoming)) return;
+    const existing = loadArchive(key);
+    const existingIds = new Set(existing.map(i => i.id));
+    let added = 0;
+    for (const item of incoming) {
+      if (item.id && !existingIds.has(item.id)) {
+        existing.push(item);
+        existingIds.add(item.id);
+        added++;
+      }
+    }
+    saveArchive(key, existing);
+    return added;
+  };
+
+  const worldsAdded = merge(ARCHIVE_KEYS.worlds, payload.worlds);
+  const protsAdded = merge(ARCHIVE_KEYS.protagonists, payload.protagonists);
+
+  // Merge stories into story_history
+  let storiesAdded = 0;
+  if (Array.isArray(payload.stories)) {
+    const existing = JSON.parse(localStorage.getItem('story_history') || '[]');
+    const existingIds = new Set(existing.map(i => i._autoId || i.id));
+    for (const item of payload.stories) {
+      const key = item._autoId || item.id;
+      if (key && !existingIds.has(key)) {
+        existing.push(item);
+        existingIds.add(key);
+        storiesAdded++;
+      }
+    }
+    localStorage.setItem('story_history', JSON.stringify(existing));
+  }
+
+  showToast(`导入完成：世界观 +${worldsAdded || 0}，主角 +${protsAdded || 0}，故事 +${storiesAdded || 0}`);
+}
+
 // ==================== STATE ====================
 const state = {
   world: {
-    selected: {}  // dimKey -> tagName
+    selected: {},  // dimKey -> tagName
+    savedId: null
   },
   protagonist: {
     style: '',    // 'chinese' | 'western' | ''
-    selected: {}  // dimKey -> tagName
+    selected: {},  // dimKey -> tagName
+    savedId: null
   },
   narrative: {
     selected: {}  // dimKey -> tagName
@@ -1723,6 +1870,16 @@ ${worldContext}
         state.protagonist.generatedDesc = desc || (descMatch ? descMatch[1].trim() : '');
         infoEl.classList.remove('streaming');
         infoEl.innerHTML = `<div class="generated-name">${escapeHTML(name)}</div><div class="generated-desc">${escapeHTML(state.protagonist.generatedDesc)}</div>`;
+
+        const protagonistRecord = addProtagonistRecord({
+          tags: Object.values(s),
+          title: state.protagonist.generatedName,
+          content: state.protagonist.generatedDesc,
+          prompt: prompt,
+          worldId: state.world.savedId || null
+        });
+        state.protagonist.savedId = protagonistRecord.id;
+
         showToast('主角已生成');
       } else {
         showToast('生成主角失败，请重试');
@@ -1780,6 +1937,15 @@ function generateWorld() {
         state.world.generatedDesc = ensureCompleteSentence(descMatch ? descMatch[1].trim() : '');
         worldInfoEl.classList.remove('streaming');
         worldInfoEl.innerHTML = `<div class="generated-name">${escapeHTML(state.world.generatedTitle)}</div><div class="generated-desc">${escapeHTML(state.world.generatedDesc)}</div>`;
+
+        const worldRecord = addWorldRecord({
+          tags: Object.values(w),
+          title: state.world.generatedTitle,
+          content: state.world.generatedDesc,
+          prompt: worldPromptContent
+        });
+        state.world.savedId = worldRecord.id;
+
         showToast('世界已生成');
       } else {
         showToast('生成世界失败，请重试');
@@ -1877,6 +2043,14 @@ function oneClickGenerate() {
         state.world.generatedTitle = title;
         state.world.generatedDesc = desc;
 
+        const worldRecord = addWorldRecord({
+          tags: Object.values(worldSelected),
+          title: title,
+          content: desc,
+          prompt: worldPrompt
+        });
+        state.world.savedId = worldRecord.id;
+
         // Update world display
         const worldContainer = document.getElementById('worldTagsDisplay');
         let html = Object.entries(worldSelected).map(([, tag]) =>
@@ -1951,6 +2125,16 @@ function generateProtagonistForWorld(worldTitle, worldDesc, style, selectedTags)
         state.protagonist.generatedDesc = desc || (descMatch ? descMatch[1].trim() : '');
         protoInfoEl.classList.remove('streaming');
         protoInfoEl.innerHTML = `<div class="generated-name">${escapeHTML(name)}</div><div class="generated-desc">${escapeHTML(state.protagonist.generatedDesc)}</div>`;
+
+        const protagonistRecord = addProtagonistRecord({
+          tags: Object.entries(selectedTags).map(([, v]) => v),
+          title: state.protagonist.generatedName,
+          content: state.protagonist.generatedDesc,
+          prompt: prompt,
+          worldId: state.world.savedId || null
+        });
+        state.protagonist.savedId = protagonistRecord.id;
+
         showToast('一键生成完成');
       } else {
         showToast('生成主角失败');
