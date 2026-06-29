@@ -1696,28 +1696,80 @@ function renderHistoryList() {
       if (item.protagonistId) parts.push(item.protagonistId);
       if (parts.length) relation = ` · 关联 ${parts.join(' / ')}`;
     }
+    const itemId = item.id || item._autoId || '';
     return `
-      <div class="history-item" onclick="loadHistoryItem('${item.type}', ${idx})">
+      <div class="history-item" data-type="${item.type}" data-id="${itemId}" data-idx="${idx}" onclick="loadHistoryItem('${item.type}', '${itemId}', ${idx})">
         <div class="history-item-left">
           <div class="history-item-title">${escapeHTML(item.title || '无标题')}</div>
           <div class="history-item-meta">${typeLabel} · ${dateStr}${relation}</div>
         </div>
-        <button class="history-item-delete" onclick="event.stopPropagation(); deleteHistoryItem('${item.type}', ${idx})">&#x2715;</button>
+        <button class="history-item-delete" onclick="event.stopPropagation(); deleteHistoryItem('${item.type}', '${itemId}', ${idx})">&#x2715;</button>
       </div>
     `;
   }).join('');
 }
 
-function loadHistoryItem(type, idx) {
-  if (type !== 'story') {
-    showToast('该类型历史暂不支持加载到创作页');
+function loadHistoryItem(type, itemId, idx) {
+  if (type === 'world') {
+    const worlds = loadArchive(ARCHIVE_KEYS.worlds);
+    const record = worlds.find(r => r.id === itemId);
+    if (!record) return;
+
+    // Reverse-lookup tags to dimension keys
+    const restored = {};
+    for (const tag of record.tags) {
+      for (const [dim, tags] of Object.entries(worldDims)) {
+        if (tags.includes(tag)) { restored[dim] = tag; break; }
+      }
+    }
+    state.world.selected = restored;
+    state.world.generatedTitle = record.title;
+    state.world.generatedDesc = record.content;
+    state.world.savedId = record.id;
+    renderCard('world');
+    closeHistory();
+    showToast(`已加载世界观 ${record.id}`);
     return;
   }
+
+  if (type === 'protagonist') {
+    const prots = loadArchive(ARCHIVE_KEYS.protagonists);
+    const record = prots.find(r => r.id === itemId);
+    if (!record) return;
+
+    // Try both styles to reverse-lookup tags
+    let restored = {};
+    let detectedStyle = '';
+    for (const style of ['chinese', 'western']) {
+      const dims = style === 'chinese' ? protagonistChineseDims : protagonistWesternDims;
+      restored = {};
+      for (const tag of record.tags) {
+        for (const [dim, tags] of Object.entries(dims)) {
+          if (tags.includes(tag)) { restored[dim] = tag; break; }
+        }
+      }
+      if (Object.keys(restored).length >= (style === 'chinese' ? 3 : 2)) {
+        detectedStyle = style;
+        break;
+      }
+    }
+    state.protagonist.style = detectedStyle || 'chinese';
+    state.protagonist.selected = restored;
+    state.protagonist.generatedName = record.title;
+    state.protagonist.generatedDesc = record.content;
+    state.protagonist.savedId = record.id;
+    renderCard('protagonist');
+    closeHistory();
+    showToast(`已加载主角 ${record.id}`);
+    return;
+  }
+
+  // Story: navigate to story.html
   let stories;
   try {
     stories = JSON.parse(localStorage.getItem('story_history') || '[]');
   } catch (e) { return; }
-  const item = stories[idx];
+  const item = stories.find(s => (s.id || s._autoId) === itemId) || stories[idx];
   if (!item) return;
 
   const session = {
@@ -1742,21 +1794,25 @@ function loadHistoryItem(type, idx) {
   window.location.href = 'story.html';
 }
 
-function deleteHistoryItem(type, idx) {
+function deleteHistoryItem(type, itemId, idx) {
   if (type === 'world') {
     const list = loadArchive(ARCHIVE_KEYS.worlds);
-    list.splice(idx, 1);
+    const pos = list.findIndex(r => r.id === itemId);
+    if (pos >= 0) list.splice(pos, 1);
     saveArchive(ARCHIVE_KEYS.worlds, list);
   } else if (type === 'protagonist') {
     const list = loadArchive(ARCHIVE_KEYS.protagonists);
-    list.splice(idx, 1);
+    const pos = list.findIndex(r => r.id === itemId);
+    if (pos >= 0) list.splice(pos, 1);
     saveArchive(ARCHIVE_KEYS.protagonists, list);
   } else if (type === 'story') {
     let stories;
     try {
       stories = JSON.parse(localStorage.getItem('story_history') || '[]');
     } catch (e) { return; }
-    stories.splice(idx, 1);
+    const pos = stories.findIndex(s => (s.id || s._autoId) === itemId);
+    if (pos >= 0) stories.splice(pos, 1);
+    else stories.splice(idx, 1); // fallback to idx
     localStorage.setItem('story_history', JSON.stringify(stories));
   }
   renderHistoryList();
