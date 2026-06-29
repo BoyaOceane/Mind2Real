@@ -666,6 +666,42 @@
       background: oklch(48% 0.16 28 / 0.12);
       color: var(--seal-dark);
     }
+    .history-filter-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .history-filter-btn {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      background: var(--paper-new);
+      color: var(--ink-mid);
+      font-size: 0.82rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+    }
+    .history-filter-btn:hover {
+      border-color: var(--seal);
+      color: var(--seal-dark);
+    }
+    .history-filter-btn.active {
+      background: oklch(48% 0.16 28 / 0.12);
+      border-color: var(--seal);
+      color: var(--seal-dark);
+      font-weight: 600;
+    }
+    .history-panel-footer {
+      padding: var(--space-md) var(--space-lg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-sm);
+      flex-shrink: 0;
+    }
 
     /* ===== TOAST ===== */
     .toast {
@@ -842,7 +878,18 @@
       <div class="history-panel-title">历史记录</div>
       <button class="history-panel-close" onclick="closeHistory()">&#x2715;</button>
     </div>
+    <div class="history-filter-bar" id="historyFilterBar">
+      <button class="history-filter-btn active" data-filter="all" onclick="setHistoryFilter('all')">全部</button>
+      <button class="history-filter-btn" data-filter="world" onclick="setHistoryFilter('world')">世界观</button>
+      <button class="history-filter-btn" data-filter="protagonist" onclick="setHistoryFilter('protagonist')">主角</button>
+      <button class="history-filter-btn" data-filter="story" onclick="setHistoryFilter('story')">故事</button>
+    </div>
     <div class="history-list" id="historyList"></div>
+    <div class="history-panel-footer">
+      <button class="btn btn-custom" onclick="exportAllHistory()">导出历史</button>
+      <button class="btn btn-custom" onclick="document.getElementById('historyImportInput').click()">导入历史</button>
+      <input type="file" id="historyImportInput" accept="application/json" style="display:none" onchange="onHistoryImport(this)">
+    </div>
   </div>
 </div>
 
@@ -1568,6 +1615,25 @@ document.getElementById('apiPanelOverlay').addEventListener('click', function(e)
 });
 
 // ==================== HISTORY PANEL ====================
+let currentHistoryFilter = 'all';
+
+function setHistoryFilter(filter) {
+  currentHistoryFilter = filter;
+  document.querySelectorAll('.history-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+  renderHistoryList();
+}
+
+function onHistoryImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  importAllHistory(file).then(() => {
+    renderHistoryList();
+    input.value = '';
+  });
+}
+
 function openHistory() {
   const panel = document.getElementById('historyPanelOverlay');
   renderHistoryList();
@@ -1580,36 +1646,79 @@ function closeHistory() {
 
 function renderHistoryList() {
   const list = document.getElementById('historyList');
-  let history;
-  try {
-    history = JSON.parse(localStorage.getItem('story_history') || '[]');
-  } catch (e) { history = []; }
+  let items = [];
 
-  if (history.length === 0) {
+  if (currentHistoryFilter === 'all' || currentHistoryFilter === 'world') {
+    loadArchive(ARCHIVE_KEYS.worlds).forEach(item => {
+      items.push({ type: 'world', ...item });
+    });
+  }
+  if (currentHistoryFilter === 'all' || currentHistoryFilter === 'protagonist') {
+    loadArchive(ARCHIVE_KEYS.protagonists).forEach(item => {
+      items.push({ type: 'protagonist', ...item });
+    });
+  }
+  if (currentHistoryFilter === 'all' || currentHistoryFilter === 'story') {
+    let stories;
+    try {
+      stories = JSON.parse(localStorage.getItem('story_history') || '[]');
+    } catch (e) { stories = []; }
+    stories.forEach(item => {
+      items.push({ type: 'story', ...item, title: item.title || '无标题故事' });
+    });
+  }
+
+  items.sort((a, b) => {
+    const ta = a.createdAt || a.date || 0;
+    const tb = b.createdAt || b.date || 0;
+    return new Date(tb).getTime() - new Date(ta).getTime();
+  });
+
+  if (items.length === 0) {
     list.innerHTML = '<div class="history-empty">暂无历史记录</div>';
     return;
   }
 
-  list.innerHTML = history.map((item, idx) => `
-    <div class="history-item" onclick="loadHistory(${idx})">
-      <div class="history-item-left">
-        <div class="history-item-title">${escapeHTML(item.title || '无标题')}</div>
-        <div class="history-item-meta">${item.date || ''} · ${item.content ? item.content.length : 0}字</div>
+  list.innerHTML = items.map((item, idx) => {
+    const typeLabels = { world: '世界观', protagonist: '主角', story: '故事' };
+    const typeLabel = typeLabels[item.type] || item.type;
+    const dateStr = item.createdAt
+      ? new Date(item.createdAt).toLocaleString('zh-CN')
+      : (item.date || '');
+    let relation = '';
+    if (item.type === 'protagonist' && item.worldId) {
+      relation = ` · 关联 ${item.worldId}`;
+    }
+    if (item.type === 'story') {
+      const parts = [];
+      if (item.worldId) parts.push(item.worldId);
+      if (item.protagonistId) parts.push(item.protagonistId);
+      if (parts.length) relation = ` · 关联 ${parts.join(' / ')}`;
+    }
+    return `
+      <div class="history-item" onclick="loadHistoryItem('${item.type}', ${idx})">
+        <div class="history-item-left">
+          <div class="history-item-title">${escapeHTML(item.title || '无标题')}</div>
+          <div class="history-item-meta">${typeLabel} · ${dateStr}${relation}</div>
+        </div>
+        <button class="history-item-delete" onclick="event.stopPropagation(); deleteHistoryItem('${item.type}', ${idx})">&#x2715;</button>
       </div>
-      <button class="history-item-delete" onclick="event.stopPropagation(); deleteHistory(${idx})">&#x2715;</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
-function loadHistory(idx) {
-  let history;
+function loadHistoryItem(type, idx) {
+  if (type !== 'story') {
+    showToast('该类型历史暂不支持加载到创作页');
+    return;
+  }
+  let stories;
   try {
-    history = JSON.parse(localStorage.getItem('story_history') || '[]');
+    stories = JSON.parse(localStorage.getItem('story_history') || '[]');
   } catch (e) { return; }
-  const item = history[idx];
+  const item = stories[idx];
   if (!item) return;
 
-  // Write to current_story_session and navigate
   const session = {
     worldTitle: item.worldTitle || '未知世界',
     worldTags: item.worldTags || [],
@@ -1617,31 +1726,38 @@ function loadHistory(idx) {
     protagonistTags: item.protagonistTags || [],
     goldenFinger: item.goldenFinger || '',
     narrative: item.narrative || '',
-    history: [],
+    history: item.content ? [{ content: item.content, options: [] }] : [],
     storyOutline: item.storyOutline || [],
     storyClues: item.storyClues || [],
     characterCards: item.characterCards || [],
     characterRelations: item.characterRelations || [],
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    worldId: item.worldId || null,
+    protagonistId: item.protagonistId || null
   };
-
-  // Try to reconstruct history content
-  if (item.content) {
-    session.history = [{ content: item.content, options: [] }];
-  }
 
   localStorage.setItem('current_story_session', JSON.stringify(session));
   window.location.href = 'story.html';
 }
 
-function deleteHistory(idx) {
-  let history;
-  try {
-    history = JSON.parse(localStorage.getItem('story_history') || '[]');
-  } catch (e) { return; }
-  history.splice(idx, 1);
-  localStorage.setItem('story_history', JSON.stringify(history));
+function deleteHistoryItem(type, idx) {
+  if (type === 'world') {
+    const list = loadArchive(ARCHIVE_KEYS.worlds);
+    list.splice(idx, 1);
+    saveArchive(ARCHIVE_KEYS.worlds, list);
+  } else if (type === 'protagonist') {
+    const list = loadArchive(ARCHIVE_KEYS.protagonists);
+    list.splice(idx, 1);
+    saveArchive(ARCHIVE_KEYS.protagonists, list);
+  } else if (type === 'story') {
+    let stories;
+    try {
+      stories = JSON.parse(localStorage.getItem('story_history') || '[]');
+    } catch (e) { return; }
+    stories.splice(idx, 1);
+    localStorage.setItem('story_history', JSON.stringify(stories));
+  }
   renderHistoryList();
   showToast('已删除');
 }
