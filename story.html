@@ -1575,8 +1575,10 @@
                 setActiveStyle('_default');
             }
 
-            document.getElementById('worldTitle').textContent = currentStory.worldTitle || '未知世界';
-            document.getElementById('characterInfo').textContent = '主角：' + (currentStory.protagonist || '未知');
+            const worldIdSuffix = currentStory.worldId ? `（${currentStory.worldId}）` : '';
+            document.getElementById('worldTitle').textContent = (currentStory.worldTitle || '未知世界') + worldIdSuffix;
+            const protoIdSuffix = currentStory.protagonistId ? `（${currentStory.protagonistId}）` : '';
+            document.getElementById('characterInfo').textContent = '主角：' + (currentStory.protagonist || '未知') + protoIdSuffix;
             document.getElementById('narrativeInfo').textContent = '叙事：' + (currentStory.narrative || '默认');
 
             // World tags + description (inside collapsible)
