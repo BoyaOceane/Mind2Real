@@ -1268,6 +1268,12 @@
         };
         let isLoading = false;
 
+        // 去芜：累积的 AI 味禁忌
+        let aiFlavorTaboos = [];
+        try {
+            aiFlavorTaboos = JSON.parse(localStorage.getItem('ai_flavor_taboos') || '[]');
+        } catch (e) {}
+
         // Sidebar & structured metadata state
         let storyOutline = [];
         let storyClues = [];
@@ -1844,11 +1850,85 @@
                         '</div>';
                 }
                 return '<div id="seg-' + i + '" class="story-segment">' +
-                    '<div class="seg-toolbar"><button class="seg-edit-btn" onclick="editSegment(' + i + ')">润色</button></div>' +
+                    '<div class="seg-toolbar"><button class="seg-edit-btn" onclick="editSegment(' + i + ')">润色</button><button class="seg-edit-btn" onclick="deFlavor(' + i + ')">去芜</button></div>' +
                     reasoningBlock +
                     '<div class="seg-content">' + textToHtml(h.content) + '</div>' +
                 '</div>';
             }).join('<hr class="story-divider">');
+        }
+
+        // ---- 去芜：AI 味分析与优化 ----
+        async function deFlavor(index) {
+            const seg = currentStory.history[index];
+            if (!seg || isLoading) return;
+            const el = document.getElementById('seg-' + index);
+            if (!el) return;
+            const btn = el.querySelector('.seg-edit-btn:last-child');
+            if (btn) { btn.textContent = '分析中...'; btn.disabled = true; }
+
+            const config = getApiConfig();
+            if (!config.apiKey) {
+                showToast('请先设置 API Key');
+                if (btn) { btn.textContent = '去芜'; btn.disabled = false; }
+                return;
+            }
+
+            const content = seg.content || seg.original || '';
+            if (!content.trim()) {
+                if (btn) { btn.textContent = '去芜'; btn.disabled = false; }
+                return;
+            }
+
+            const prompt = `分析以下文字，找出其中的 AI 味问题（如解释悬念、身体感受做过渡、库存填充动作等），输出优化版和发现的通用禁忌。
+
+原文：
+${content}
+
+要求：
+1. 优化版保持原文的情节、信息和节奏，只去掉 AI 味的表达方式
+2. 发现的禁忌每条一句话（10-25字），是通用的写作规则，不是针对这段的建议
+3. 只输出合法 JSON，不要 markdown 代码块，不要任何额外文字
+
+JSON 格式：
+{
+  "optimized": "优化后的全文",
+  "taboos": ["禁忌规则1", "禁忌规则2"]
+}`;
+
+            try {
+                const { content: json } = await callDeepSeek(prompt, '你是专业的文字编辑，只输出 JSON。', null, false, 'deepseek-v4-flash', 0.3);
+                if (!json) throw new Error('empty');
+
+                const result = parseStyleJson(json);
+                if (!result || !result.optimized) throw new Error('bad format');
+
+                // 更新正文
+                seg.content = result.optimized;
+                saveStoryData();
+                displayFullStory();
+
+                // 累积禁忌
+                if (result.taboos && Array.isArray(result.taboos) && result.taboos.length > 0) {
+                    const existing = new Set(aiFlavorTaboos);
+                    let added = 0;
+                    result.taboos.forEach(t => {
+                        const clean = String(t).trim();
+                        if (clean && !existing.has(clean)) {
+                            existing.add(clean);
+                            added++;
+                        }
+                    });
+                    if (added > 0) {
+                        aiFlavorTaboos = Array.from(existing);
+                        localStorage.setItem('ai_flavor_taboos', JSON.stringify(aiFlavorTaboos));
+                        showToast('已记录 ' + added + ' 条新禁忌');
+                    }
+                }
+            } catch (e) {
+                console.error('去芜失败:', e);
+                showToast('去芜分析失败，请稍后再试');
+                if (btn) { btn.textContent = '去芜'; btn.disabled = false; }
+            }
         }
 
         // ---- Segment editing ----
@@ -2840,8 +2920,12 @@ ${storySoFar}
 
         // ---- Anti-AI flavor helpers ----
         function getAntiAiPromptBlock() {
+            const dynamicTaboos = aiFlavorTaboos.length > 0
+                ? aiFlavorTaboos.map(t => '- ' + t).join('\n')
+                : '';
+            const dynamicBlock = dynamicTaboos ? '\n【从去芜中学习的禁忌 — 必须遵守】\n' + dynamicTaboos : '';
             return `
-【去 AI 味约束 — 每次写作必须执行】
+【去 AI 味约束 — 每次写作必须执行】${dynamicBlock}
 - 禁止连续使用省略号（……）超过 1 处；禁止用破折号（——）做解释或停顿。
 - 禁止模板化转折词：然而、但是、不仅如此、从某种意义上说。
 - 禁止空泛填充词：某种、仿佛、一丝、眼中闪过。
