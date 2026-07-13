@@ -2343,6 +2343,72 @@ JSON 结构：
             storyEl.scrollTop = storyEl.scrollHeight;
         }
 
+        // 生成分支走向：基于当前故事状态返回 4 个带钩子的剧情走向
+        async function generateBranches() {
+            const config = getApiConfig();
+            if (!config.apiKey) {
+                showToast('请先在首页设置 API Key');
+                return [];
+            }
+
+            const recentStory = currentStory.history.slice(-3).map(h => h.content).join('\n\n');
+            const outlineSummary = storyOutline.slice(-5).map(o => `${o.importance || 'normal'}｜${o.summary || ''}`).join('\n') || '（暂无）';
+            const clueSummary = storyClues.slice(-6).map(c => `${c.name}（${c.state || '伏笔'}）：${c.desc || ''}`).join('\n') || '（暂无）';
+            const charSummary = characterCards.slice(0, 8).map(c => `${c.name}（${c.tag || '角色'}）：${c.desc || ''}`).join('\n') || '（暂无）';
+
+            const styleBlock = formatStylePrompt(getActiveProfile());
+
+            const prompt = `${getPrefPrompt()}${styleBlock}${getAntiAiPromptBlock()}
+你是一位故事思维伙伴。基于以下故事状态，给出 4 个不同的剧情走向。
+
+【最近正文】
+${recentStory}
+
+【提纲】
+${outlineSummary}
+
+【线索】
+${clueSummary}
+
+【人物】
+${charSummary}
+
+【世界】${currentStory.worldTitle}（${currentStory.worldTags.join('、')}）
+【主角】${currentStory.protagonist}${currentStory.protagonistDesc ? ' — ' + currentStory.protagonistDesc : ''}
+【叙事】${currentStory.narrative}
+
+要求：
+1. 给出 4 个走向，每个 direction 2-3 句
+2. 4 个走向在情绪基调（紧张/舒缓/悬疑/温情）、节奏（推进/停顿/回溯）、牵动线索上要有差异，不能都是同一类型
+3. 每个走向必须连回至少一条现有线索或人物，不能凭空起
+4. 不写正文，只写走向和钩子
+5. 只输出合法 JSON 数组，不要 markdown 代码块，不要任何额外文字
+
+JSON 格式：
+[
+  { "direction": "2-3句走向描述", "hooks": "牵动的线索/人物/情绪" },
+  { "direction": "...", "hooks": "..." },
+  { "direction": "...", "hooks": "..." },
+  { "direction": "...", "hooks": "..." }
+]`;
+
+            const systemPrompt = '你是故事思维伙伴，只输出 JSON 数组。';
+
+            try {
+                const { content } = await callDeepSeek(prompt, systemPrompt, null, false, 'deepseek-v4-flash');
+                if (!content) return [];
+                const branches = parseStyleJson(content);
+                if (!Array.isArray(branches)) return [];
+                return branches.slice(0, 4).map(b => ({
+                    direction: String(b.direction || '').trim(),
+                    hooks: String(b.hooks || '').trim()
+                })).filter(b => b.direction);
+            } catch (e) {
+                console.error('生成分支失败:', e);
+                return [];
+            }
+        }
+
         // Continue story
         async function continueStory() {
             if (isLoading) return;
