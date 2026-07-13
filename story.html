@@ -1220,6 +1220,7 @@
                 <button class="s-tab" data-tab="clues" onclick="switchTab('clues')">线索</button>
                 <button class="s-tab" data-tab="characters" onclick="switchTab('characters')">人物</button>
                 <button class="s-tab" data-tab="style" onclick="switchTab('style')">文风</button>
+                <button class="s-tab" data-tab="deflavor" onclick="switchTab('deflavor')">去芜</button>
             </div>
             <div class="sidebar-body" id="sidebarBody">
                 <div class="sb-pane active" id="sbOutline"><div class="sb-list" id="outlineList"></div></div>
@@ -1227,6 +1228,9 @@
                 <div class="sb-pane" id="sbChars"><div class="sb-list" id="charsList"></div></div>
                 <div class="sb-pane" id="sbStyle">
                     <div class="style-panel" id="styleList"></div>
+                </div>
+                <div class="sb-pane" id="sbDeflavor">
+                    <div class="style-panel" id="deflavorList"></div>
                 </div>
             </div>
     </div>
@@ -3575,12 +3579,47 @@ JSON结构：
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
+        // 渲染去芜禁忌列表
+        function renderDeflavorTaboos() {
+            const container = document.getElementById('deflavorList');
+            if (!container) return;
+            if (aiFlavorTaboos.length === 0) {
+                container.innerHTML = '<div class="style-empty-item">暂无禁忌 — 点击段落的"去芜"按钮开始累积</div>';
+                return;
+            }
+            let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+                '<span style="font-size:0.78rem;color:var(--text-muted);">共 ' + aiFlavorTaboos.length + ' 条禁忌</span>' +
+                '<button class="btn-sm" onclick="clearDeflavorTaboos()">清空全部</button></div>';
+            aiFlavorTaboos.forEach((t, i) => {
+                html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-light);">' +
+                    '<span style="flex:1;font-size:0.82rem;color:var(--text-primary);line-height:1.5;">' + (i + 1) + '. ' + escapeHTML(t) + '</span>' +
+                    '<button class="btn-sm" style="flex-shrink:0;" onclick="removeDeflavorTaboo(' + i + ')" title="删除">×</button>' +
+                    '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function clearDeflavorTaboos() {
+            if (!confirm('确定清空全部去芜禁忌？')) return;
+            aiFlavorTaboos = [];
+            localStorage.setItem('ai_flavor_taboos', '[]');
+            renderDeflavorTaboos();
+            showToast('已清空全部禁忌');
+        }
+
+        function removeDeflavorTaboo(index) {
+            aiFlavorTaboos.splice(index, 1);
+            localStorage.setItem('ai_flavor_taboos', JSON.stringify(aiFlavorTaboos));
+            renderDeflavorTaboos();
+        }
+
         function switchTab(tab) {
             currentSidebarTab = tab;
             document.querySelectorAll('.s-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
             document.querySelectorAll('.sb-pane').forEach(p => p.classList.toggle('active', p.id === 'sb' + tab.charAt(0).toUpperCase() + tab.slice(1)));
             if (tab === 'characters') { renderChars();
                 renderRelationGraph(); }
+            else if (tab === 'deflavor') { renderDeflavorTaboos(); }
             else { renderTimeline(); }
         }
 
