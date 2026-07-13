@@ -1263,7 +1263,8 @@
             protagonistTags: [],
             goldenFinger: '',
             narrative: '',
-            history: []
+            history: [],
+            currentArc: ''
         };
         let isLoading = false;
 
@@ -2397,7 +2398,7 @@ JSON 结构：
             storyEl.scrollTop = storyEl.scrollHeight;
         }
 
-        // 生成分支走向：基于当前故事状态返回 4 个带钩子的剧情走向
+        // 生成分支走向：基于当前故事状态返回 3 个大方向
         async function generateBranches() {
             const config = getApiConfig();
             if (!config.apiKey) {
@@ -2411,9 +2412,10 @@ JSON 结构：
             const charSummary = characterCards.slice(0, 8).map(c => `${c.name}（${c.tag || '角色'}）：${c.desc || ''}`).join('\n') || '（暂无）';
 
             const styleBlock = formatStylePrompt(getActiveProfile());
+            const arcLine = currentStory.currentArc ? `\n【当前大方向】${currentStory.currentArc}\n给出 3 个推进或转折当前大方向的走向，每个仍是持续轨迹而非一次性事件。` : '\n当前还没有大方向，给出 3 个互斥的大方向。';
 
             const prompt = `${getPrefPrompt()}${styleBlock}${getAntiAiPromptBlock()}
-你是一位故事思维伙伴。基于以下故事状态，给出 4 个不同的剧情走向。
+你是一位故事思维伙伴。基于以下故事状态，给出 3 个大方向的剧情走向。
 
 【最近正文】
 ${recentStory}
@@ -2430,17 +2432,18 @@ ${charSummary}
 【世界】${currentStory.worldTitle}（${currentStory.worldTags.join('、')}）
 【主角】${currentStory.protagonist}${currentStory.protagonistDesc ? ' — ' + currentStory.protagonistDesc : ''}
 【叙事】${currentStory.narrative}
+${arcLine}
 
 要求：
-1. 给出 4 个走向，每个一句话（10-20字），只说下一步发生什么
-2. 4 个走向必须在情绪/节奏/方向上明显不同：一个推进冲突、一个回溯或铺垫、一个引入新元素、一个转向意外——一眼能区分
-3. 不写正文，不写原因，不写钩子，只写走向本身
-4. 只输出合法 JSON 数组，不要 markdown 代码块，不要任何额外文字
+1. 给出 3 个大方向，每个一句话（10-20字）
+2. 每个大方向是一条持续的故事轨迹，不是一次性事件——选了会塑造后续多段的走向
+3. 3 个大方向必须互斥：选了 A 就很难自然走到 B 的领域，要拐得绕大弯。在主题/立场/路线上明显不同
+4. 不写正文，不写原因，只写大方向本身
+5. 只输出合法 JSON 数组，不要 markdown 代码块，不要任何额外文字
 
 JSON 格式：
 [
-  { "direction": "一句话走向" },
-  { "direction": "..." },
+  { "direction": "一句话大方向" },
   { "direction": "..." },
   { "direction": "..." }
 ]`;
@@ -2452,7 +2455,7 @@ JSON 格式：
                 if (!content) return [];
                 const branches = parseStyleJson(content);
                 if (!Array.isArray(branches)) return [];
-                return branches.slice(0, 4).map(b => ({
+                return branches.slice(0, 3).map(b => ({
                     direction: String(b.direction || '').trim()
                 })).filter(b => b.direction);
             } catch (e) {
@@ -2478,6 +2481,7 @@ JSON 格式：
                 dirEl.textContent = b.direction;
                 card.appendChild(dirEl);
                 card.onclick = () => {
+                    currentStory.currentArc = b.direction;
                     clearBranches();
                     continueStory(b.direction);
                 };
@@ -2576,6 +2580,7 @@ JSON 格式：
             const styleBlock = formatStylePrompt(getActiveProfile());
             const prompt = `${getPrefPrompt()}${styleBlock}${getAntiAiPromptBlock()}
 用户选择：${userChoice}
+${currentStory.currentArc ? `\n当前大方向：${currentStory.currentArc}\n这是持续的故事轨迹，按此方向推进，不是一次性事件。` : ''}
 
 世界：${currentStory.worldTitle}（${currentStory.worldTags.join('、')}）
 主角：${currentStory.protagonist}${currentStory.protagonistDesc ? ' — ' + currentStory.protagonistDesc : ''}
@@ -2590,7 +2595,7 @@ ${storySoFar}
 2. 情节要有推进和转折
 3. 只呈现行动、对话、环境，不解释角色为什么这么做
 4. 段落要有厚度：每段包含 2-4 个完整句子，禁止一句一段或频繁空行
-5. 结尾停在新的关键节点，提供3个选项`;
+5. 结尾停在新的关键节点`;
 
             const systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
@@ -2915,6 +2920,7 @@ ${storySoFar}
                 showToast('请先写下你的走向');
                 return;
             }
+            currentStory.currentArc = val;
             hideCustomInput();
             continueStory(val);
         });
