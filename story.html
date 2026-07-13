@@ -1725,6 +1725,8 @@
             // Display all history if exists
             if (currentStory.history.length > 0) {
                 displayFullStory();
+                // 自动生成走向
+                setTimeout(() => onGiveDirection(), 0);
             } else {
                 generateOpening();
             }
