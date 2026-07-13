@@ -2446,7 +2446,7 @@ JSON 格式：
             const systemPrompt = '你是故事思维伙伴，只输出 JSON 数组。';
 
             try {
-                const { content } = await callDeepSeek(prompt, systemPrompt, null, false, 'deepseek-v4-flash');
+                const { content } = await callDeepSeek(prompt, systemPrompt, null, false, 'deepseek-v4-flash', 0.9);
                 if (!content) return [];
                 const branches = parseStyleJson(content);
                 if (!Array.isArray(branches)) return [];
@@ -2465,11 +2465,19 @@ JSON 格式：
             const panel = document.getElementById('branchPanel');
             panel.innerHTML = '';
 
-            branches.forEach((b, i) => {
+            branches.forEach((b) => {
                 const card = document.createElement('div');
                 card.className = 'branch-card';
-                card.innerHTML = `<div class="branch-direction">${b.direction}</div>` +
-                    (b.hooks ? `<div class="branch-hooks">牵动：${b.hooks}</div>` : '');
+                const dirEl = document.createElement('div');
+                dirEl.className = 'branch-direction';
+                dirEl.textContent = b.direction;
+                card.appendChild(dirEl);
+                if (b.hooks) {
+                    const hooksEl = document.createElement('div');
+                    hooksEl.className = 'branch-hooks';
+                    hooksEl.textContent = '牵动：' + b.hooks;
+                    card.appendChild(hooksEl);
+                }
                 card.onclick = () => {
                     clearBranches();
                     continueStory(b.direction);
@@ -2508,14 +2516,20 @@ JSON 格式：
         }
 
         async function onGiveDirection() {
-            setLoadingState(true, '正在生成走向...');
-            const branches = await generateBranches();
-            setLoadingState(false);
-            if (branches.length === 0) {
+            try {
+                setLoadingState(true, '正在生成走向...');
+                const branches = await generateBranches();
+                if (branches.length === 0) {
+                    showToast('生成走向失败，请稍后再试');
+                    return;
+                }
+                renderBranches(branches);
+            } catch (e) {
+                console.error('生成走向失败:', e);
                 showToast('生成走向失败，请稍后再试');
-                return;
+            } finally {
+                setLoadingState(false);
             }
-            renderBranches(branches);
         }
 
         // Continue story
@@ -2796,8 +2810,8 @@ ${storySoFar}
         function fmtContinueHint(hasInput) {
             if (hasInput) return '将按自定义剧情继续';
             return isEmptyProfile(getActiveProfile())
-                ? '输入剧情方向，或直接点击继续'
-                : '输入剧情方向，AI 将按当前文风续写';
+                ? '点"给走向"看可能的发展，或自己写'
+                : '点"给走向"看可能的发展，AI 将按当前文风续写';
         }
 
         // ---- Anti-AI flavor helpers ----
@@ -2894,7 +2908,7 @@ ${storySoFar}
         });
 
         // API functions (simplified - would need full implementation)
-        async function callDeepSeek(prompt, systemPrompt, onChunk, enableThinking = false, modelOverride = null) {
+        async function callDeepSeek(prompt, systemPrompt, onChunk, enableThinking = false, modelOverride = null, temperatureOverride = null) {
             const config = getApiConfig();
             if (!config.apiKey) return { reasoning: '', content: '' };
 
@@ -2906,7 +2920,7 @@ ${storySoFar}
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: prompt }
                 ],
-                temperature: 0.6,
+                temperature: temperatureOverride !== null ? temperatureOverride : 0.6,
                 stream: true
             };
             if (enableThinking) {
