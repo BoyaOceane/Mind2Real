@@ -607,6 +607,31 @@
             font-size: 0.78rem;
             color: var(--text-muted);
         }
+        .bottom-action-row {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            padding-top: 4px;
+        }
+        .bottom-action-row .branch-action {
+            padding: 6px 14px;
+            border: 1px solid var(--border-medium);
+            border-radius: 20px;
+            background: transparent;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all var(--transition-fast);
+        }
+        .bottom-action-row .branch-action:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+        .bottom-action-row .branch-action:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
         .custom-input-wrap {
             display: none;
             flex-direction: column;
@@ -1256,7 +1281,7 @@
 
     <!-- 固定底栏 -->
     <div class="bottom-action-bar">
-        <div class="bottom-continue-hint" id="continueHint">点"给走向"看可能的发展，或直接自己写</div>
+        <div class="bottom-continue-hint" id="continueHint">选一个走向继续，或自己写</div>
         <!-- 分支走向横排区（默认隐藏） -->
         <div class="branch-panel" id="branchPanel"></div>
         <!-- 自写输入区（默认隐藏） -->
@@ -1266,6 +1291,11 @@
                 <button class="btn" id="btnBackToBranches">返回选项</button>
                 <button class="btn btn-primary" id="btnConfirmCustom">按此方向续写</button>
             </div>
+        </div>
+        <!-- 常驻操作栏 -->
+        <div class="bottom-action-row">
+            <button class="branch-action" id="btnDirectContinue">直接继续</button>
+            <button class="branch-action" id="btnRefresh">换一批</button>
         </div>
     </div>
     <div id="toast" class="toast" aria-live="polite"></div>
@@ -1459,6 +1489,11 @@
         function setLoadingState(loading, message = '') {
             isLoading = loading;
             document.getElementById('storyStatus').textContent = message;
+            // 常驻按钮禁用态
+            const dc = document.getElementById('btnDirectContinue');
+            const rf = document.getElementById('btnRefresh');
+            if (dc) dc.disabled = loading;
+            if (rf) rf.disabled = loading;
         }
 
         let partialResult = '';
@@ -2575,13 +2610,6 @@ JSON 格式：
             };
             panel.appendChild(selfPill);
 
-            // 换一批
-            const refreshBtn = document.createElement('button');
-            refreshBtn.className = 'branch-action';
-            refreshBtn.textContent = '换一批';
-            refreshBtn.onclick = (e) => { e.stopPropagation(); onGiveDirection(); };
-            panel.appendChild(refreshBtn);
-
             panel.classList.add('active');
         }
 
@@ -2996,19 +3024,36 @@ ${storySoFar}
             showBranchPanel();
         });
 
-        // 键盘快捷键：1/2/3 选分支
+        // 常驻按钮
+        document.getElementById('btnDirectContinue').addEventListener('click', () => {
+            if (isLoading) return;
+            clearBranches();
+            continueStory();
+        });
+
+        document.getElementById('btnRefresh').addEventListener('click', () => {
+            if (isLoading) return;
+            onGiveDirection();
+        });
+
+        // 键盘快捷键：1/2/3 选分支，Enter 直接继续
         document.addEventListener('keydown', (event) => {
             if (isLoading) return;
-            const panel = document.getElementById('branchPanel');
-            if (!panel.classList.contains('active')) return;
             if (document.getElementById('customInputWrap').classList.contains('active')) return;
+            const panel = document.getElementById('branchPanel');
             const key = parseInt(event.key);
-            if (key >= 1 && key <= 3 && currentBranches.length >= key) {
+            if (panel.classList.contains('active') && key >= 1 && key <= 3 && currentBranches.length >= key) {
                 event.preventDefault();
                 const b = currentBranches[key - 1];
                 currentStory.currentArc = b.direction;
                 clearBranches();
                 continueStory(b.direction);
+            }
+            if (event.key === 'Enter' && !event.ctrlKey && !event.metaKey) {
+                event.preventDefault();
+                if (!panel.classList.contains('active') || currentBranches.length === 0) {
+                    continueStory();
+                }
             }
         });
 
