@@ -2709,14 +2709,14 @@ ${storySoFar}
         });
 
         // API functions (simplified - would need full implementation)
-        async function callDeepSeek(prompt, systemPrompt, onChunk, enableThinking = false) {
+        async function callDeepSeek(prompt, systemPrompt, onChunk, enableThinking = false, modelOverride = null) {
             const config = getApiConfig();
             if (!config.apiKey) return { reasoning: '', content: '' };
 
             abortController = new AbortController();
 
             const body = {
-                model: config.model,
+                model: modelOverride || config.model,
                 messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: prompt }
