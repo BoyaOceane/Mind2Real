@@ -1241,12 +1241,13 @@
         <div class="custom-input-wrap" id="customInputWrap">
             <textarea class="custom-input" id="customInput" rows="2" placeholder="写下你想要的剧情走向..."></textarea>
             <div class="bottom-action-btns">
+                <button class="btn" id="btnBackToBranches">返回选项</button>
                 <button class="btn btn-primary" id="btnConfirmCustom">按此方向续写</button>
             </div>
         </div>
         <div class="bottom-action-inner">
             <div class="bottom-action-btns" style="width:100%; justify-content:flex-end;">
-                <button class="btn btn-primary" id="btnContinue" onclick="isLoading ? stopGeneration() : onGiveDirection()">给走向</button>
+                <button class="btn btn-primary" id="btnContinue" onclick="isLoading ? stopGeneration() : onGiveDirection()">换一批</button>
             </div>
         </div>
     </div>
@@ -1435,7 +1436,7 @@
             isLoading = loading;
             const btn = document.getElementById('btnContinue');
             btn.disabled = false;
-            btn.textContent = loading ? '停止创作' : '给走向';
+            btn.textContent = loading ? '停止创作' : '换一批';
             document.getElementById('storyStatus').textContent = message;
         }
 
@@ -1769,6 +1770,8 @@
                     await extractMetadata();
                     saveStoryData();
                     autoSave();
+                    // 自动生成下一组走向
+                    await onGiveDirection();
                 } else {
                     partialResult = '';
                     typewriterReset();
@@ -2429,18 +2432,17 @@ ${charSummary}
 【叙事】${currentStory.narrative}
 
 要求：
-1. 给出 4 个走向，每个 direction 2-3 句
-2. 4 个走向在情绪基调（紧张/舒缓/悬疑/温情）、节奏（推进/停顿/回溯）、牵动线索上要有差异，不能都是同一类型
-3. 每个走向必须连回至少一条现有线索或人物，不能凭空起
-4. 不写正文，只写走向和钩子
-5. 只输出合法 JSON 数组，不要 markdown 代码块，不要任何额外文字
+1. 给出 4 个走向，每个一句话（10-20字），只说下一步发生什么
+2. 4 个走向必须在情绪/节奏/方向上明显不同：一个推进冲突、一个回溯或铺垫、一个引入新元素、一个转向意外——一眼能区分
+3. 不写正文，不写原因，不写钩子，只写走向本身
+4. 只输出合法 JSON 数组，不要 markdown 代码块，不要任何额外文字
 
 JSON 格式：
 [
-  { "direction": "2-3句走向描述", "hooks": "牵动的线索/人物/情绪" },
-  { "direction": "...", "hooks": "..." },
-  { "direction": "...", "hooks": "..." },
-  { "direction": "...", "hooks": "..." }
+  { "direction": "一句话走向" },
+  { "direction": "..." },
+  { "direction": "..." },
+  { "direction": "..." }
 ]`;
 
             const systemPrompt = '你是故事思维伙伴，只输出 JSON 数组。';
@@ -2451,8 +2453,7 @@ JSON 格式：
                 const branches = parseStyleJson(content);
                 if (!Array.isArray(branches)) return [];
                 return branches.slice(0, 4).map(b => ({
-                    direction: String(b.direction || '').trim(),
-                    hooks: String(b.hooks || '').trim()
+                    direction: String(b.direction || '').trim()
                 })).filter(b => b.direction);
             } catch (e) {
                 console.error('生成分支失败:', e);
@@ -2460,8 +2461,12 @@ JSON 格式：
             }
         }
 
+        // 当前展示的分支（自己写时保留，选中时清空）
+        let currentBranches = [];
+
         // 渲染分支卡片 + 自己写
         function renderBranches(branches) {
+            currentBranches = branches;
             const panel = document.getElementById('branchPanel');
             panel.innerHTML = '';
 
@@ -2472,12 +2477,6 @@ JSON 格式：
                 dirEl.className = 'branch-direction';
                 dirEl.textContent = b.direction;
                 card.appendChild(dirEl);
-                if (b.hooks) {
-                    const hooksEl = document.createElement('div');
-                    hooksEl.className = 'branch-hooks';
-                    hooksEl.textContent = '牵动：' + b.hooks;
-                    card.appendChild(hooksEl);
-                }
                 card.onclick = () => {
                     clearBranches();
                     continueStory(b.direction);
@@ -2490,7 +2489,7 @@ JSON 格式：
             selfCard.className = 'branch-card branch-self';
             selfCard.textContent = '＋ 自己写一个走向';
             selfCard.onclick = () => {
-                clearBranches();
+                hideBranchPanel();
                 showCustomInput();
             };
             panel.appendChild(selfCard);
@@ -2499,9 +2498,19 @@ JSON 格式：
         }
 
         function clearBranches() {
+            currentBranches = [];
             const panel = document.getElementById('branchPanel');
             panel.innerHTML = '';
             panel.classList.remove('active');
+        }
+
+        // 隐藏分支面板但保留 currentBranches（自己写时用，可返回）
+        function hideBranchPanel() {
+            document.getElementById('branchPanel').classList.remove('active');
+        }
+
+        function showBranchPanel() {
+            document.getElementById('branchPanel').classList.add('active');
         }
 
         function showCustomInput() {
@@ -2518,14 +2527,22 @@ JSON 格式：
         async function onGiveDirection() {
             try {
                 setLoadingState(true, '正在生成走向...');
+                const panel = document.getElementById('branchPanel');
+                panel.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:0.85rem;">正在生成走向...</div>';
+                panel.classList.add('active');
                 const branches = await generateBranches();
                 if (branches.length === 0) {
+                    panel.innerHTML = '';
+                    panel.classList.remove('active');
                     showToast('生成走向失败，请稍后再试');
                     return;
                 }
                 renderBranches(branches);
             } catch (e) {
                 console.error('生成走向失败:', e);
+                const panel = document.getElementById('branchPanel');
+                panel.innerHTML = '';
+                panel.classList.remove('active');
                 showToast('生成走向失败，请稍后再试');
             } finally {
                 setLoadingState(false);
@@ -2607,6 +2624,8 @@ ${storySoFar}
                     await extractMetadata();
                     saveStoryData();
                     autoSave();
+                    // 自动生成下一组走向
+                    await onGiveDirection();
                 }
             } catch (error) {
                 partialResult = '';
@@ -2810,8 +2829,8 @@ ${storySoFar}
         function fmtContinueHint(hasInput) {
             if (hasInput) return '将按自定义剧情继续';
             return isEmptyProfile(getActiveProfile())
-                ? '点"给走向"看可能的发展，或自己写'
-                : '点"给走向"看可能的发展，AI 将按当前文风续写';
+                ? '选一个走向继续，或自己写'
+                : '选一个走向继续，AI 将按当前文风续写';
         }
 
         // ---- Anti-AI flavor helpers ----
@@ -2898,6 +2917,11 @@ ${storySoFar}
             }
             hideCustomInput();
             continueStory(val);
+        });
+
+        document.getElementById('btnBackToBranches').addEventListener('click', () => {
+            hideCustomInput();
+            showBranchPanel();
         });
 
         document.getElementById('customInput').addEventListener('keydown', (event) => {
