@@ -1800,41 +1800,11 @@
 
         // Render text to HTML paragraphs
         function textToHtml(content) {
-            // Merge single-line paragraphs into thicker blocks, but don't make them too long
             const lines = content.split('\n').map(l => l.trim()).filter(l => l);
-            const blocks = [];
-            let current = '';
-            for (const line of lines) {
+            return lines.map(line => {
                 const isChoice = /^[A-E][\.、:：]/.test(line) || /^选项[一二三四五]/.test(line);
-                const isBreak = /^(——|-----|___|\*\*\*|第\s*\d+\s*[章节]|\[|【)/.test(line);
-                if (isChoice || isBreak) {
-                    if (current) { blocks.push(current); current = ''; }
-                    blocks.push({ choice: isChoice, text: line });
-                    continue;
-                }
-                const projected = current ? current + ' ' + line : line;
-                const projectedLen = projected.length;
-                if (!current) {
-                    current = line;
-                } else if (line.length < 20) {
-                    current = projected;
-                } else if (projectedLen > 160) {
-                    blocks.push(current);
-                    current = line;
-                } else if (projectedLen > 220) {
-                    blocks.push(current);
-                    current = line;
-                } else {
-                    current = projected;
-                }
-            }
-            if (current) blocks.push(current);
-
-            return blocks.map(b => {
-                if (typeof b === 'object' && b.choice) {
-                    return `<p class="choice-line">${escapeHTML(b.text)}</p>`;
-                }
-                return `<p>${escapeHTML(b)}</p>`;
+                if (isChoice) return `<p class="choice-line">${escapeHTML(line)}</p>`;
+                return `<p>${escapeHTML(line)}</p>`;
             }).join('');
         }
 
@@ -2971,33 +2941,9 @@ ${storySoFar}
             s = s.replace(/突然，/g, '');
             // 清理多余空格
             s = s.replace(/  +/g, ' ').trim();
-            s = compactShortSentences(s);
-            return s;
-        }
-
-        function compactShortSentences(text) {
-            if (!text) return text;
-            // Normalize whitespace around periods
-            let s = text.replace(/。\s*/g, '。');
-            // Split into sentences, then merge consecutive short action sentences
-            const parts = s.split('。');
-            const out = [];
-            let buffer = '';
-            for (let i = 0; i < parts.length; i++) {
-                const part = parts[i].trim();
-                if (!part) continue;
-                // If current sentence is short and looks like a continuation, merge
-                if (buffer && part.length <= 18 && !/^[然而但是不过可是].*/.test(part) && !/^[他她它].*[说问道答].*/.test(part)) {
-                    buffer += '，' + part;
-                } else if (buffer && part.length <= 10) {
-                    buffer += '，' + part;
-                } else {
-                    if (buffer) out.push(buffer + '。');
-                    buffer = part;
-                }
-            }
-            if (buffer) out.push(buffer + '。');
-            return out.join('').replace(/，。/g, '。').replace(/。。/g, '。');
+            // 强制一句一段：每个句号/感叹号/问号后换行
+            s = s.replace(/([。！？])\s*/g, '$1\n\n');
+            return s.trim();
         }
 
         document.getElementById('customInput').addEventListener('input', () => {
