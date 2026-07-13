@@ -2410,16 +2410,15 @@ JSON 格式：
         }
 
         // Continue story
-        async function continueStory() {
+        async function continueStory(direction = '') {
             if (isLoading) return;
 
-            const customInput = document.getElementById('customInput').value.trim();
             let userChoice = '';
-
-            if (customInput) {
-                userChoice = customInput;
+            if (direction) {
+                userChoice = direction;
             } else {
-                userChoice = '继续发展剧情';
+                const customInput = document.getElementById('customInput').value.trim();
+                userChoice = customInput || '继续发展剧情';
             }
 
             setLoadingState(true, '正在续写...');
@@ -2479,7 +2478,8 @@ ${storySoFar}
                     };
                     currentStory.history.push(segment);
                     displayFullStory();
-                    document.getElementById('customInput').value = '';
+                    const customInputEl = document.getElementById('customInput');
+                    if (customInputEl) customInputEl.value = '';
                     document.getElementById('continueHint').textContent = fmtContinueHint(false);
                     await extractMetadata();
                     saveStoryData();
