@@ -553,41 +553,59 @@
             text-align: center;
             margin-bottom: 6px;
         }
-        /* 分支卡片区 */
+        /* 分支走向横排药丸区 */
         .branch-panel {
             display: none;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            margin-bottom: 6px;
         }
         .branch-panel.active { display: flex; }
-        .branch-card {
-            padding: 10px 14px;
+        .branch-pill {
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 7px 12px;
             border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
+            border-radius: 20px;
             background: var(--bg-primary);
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            text-align: center;
             cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             transition: all var(--transition-fast);
         }
-        .branch-card:hover {
+        .branch-pill:hover {
             border-color: var(--accent-primary);
             background: rgba(201, 168, 108, 0.06);
         }
-        .branch-card .branch-direction {
-            font-size: 0.88rem;
-            color: var(--text-primary);
-            line-height: 1.5;
-        }
-        .branch-card .branch-hooks {
-            font-size: 0.74rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-        .branch-card.branch-self {
+        .branch-pill.branch-self {
+            flex: 0 0 auto;
             border-style: dashed;
-            text-align: center;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            padding: 7px 14px;
+        }
+        .branch-action {
+            flex-shrink: 0;
+            font-size: 0.78rem;
+            padding: 7px 10px;
+            border: none;
+            border-radius: 20px;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .branch-action:hover { color: var(--accent-primary); }
+        .branch-loading {
+            flex: 1;
+            text-align: center;
+            padding: 7px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
         }
         .custom-input-wrap {
             display: none;
@@ -1239,7 +1257,7 @@
     <!-- 固定底栏 -->
     <div class="bottom-action-bar">
         <div class="bottom-continue-hint" id="continueHint">点"给走向"看可能的发展，或直接自己写</div>
-        <!-- 分支卡片区（默认隐藏） -->
+        <!-- 分支走向横排区（默认隐藏） -->
         <div class="branch-panel" id="branchPanel"></div>
         <!-- 自写输入区（默认隐藏） -->
         <div class="custom-input-wrap" id="customInputWrap">
@@ -1247,11 +1265,6 @@
             <div class="bottom-action-btns">
                 <button class="btn" id="btnBackToBranches">返回选项</button>
                 <button class="btn btn-primary" id="btnConfirmCustom">按此方向续写</button>
-            </div>
-        </div>
-        <div class="bottom-action-inner">
-            <div class="bottom-action-btns" style="width:100%; justify-content:flex-end;">
-                <button class="btn btn-primary" id="btnContinue" onclick="isLoading ? stopGeneration() : onGiveDirection()">换一批</button>
             </div>
         </div>
     </div>
@@ -1445,9 +1458,6 @@
 
         function setLoadingState(loading, message = '') {
             isLoading = loading;
-            const btn = document.getElementById('btnContinue');
-            btn.disabled = false;
-            btn.textContent = loading ? '停止创作' : '换一批';
             document.getElementById('storyStatus').textContent = message;
         }
 
@@ -1896,6 +1906,8 @@ JSON 格式：
                         aiFlavorTaboos = Array.from(existing);
                         localStorage.setItem('ai_flavor_taboos', JSON.stringify(aiFlavorTaboos));
                         showToast('已记录 ' + added + ' 条新禁忌');
+                        // 异步整理去重
+                        consolidateTaboos();
                     }
                 }
             } catch (e) {
@@ -2521,36 +2533,42 @@ JSON 格式：
         // 当前展示的分支（自己写时保留，选中时清空）
         let currentBranches = [];
 
-        // 渲染分支卡片 + 自己写
+        // 渲染分支横排药丸 + 自己写 + 换一批
         function renderBranches(branches) {
             currentBranches = branches;
             const panel = document.getElementById('branchPanel');
             panel.innerHTML = '';
 
-            branches.forEach((b) => {
-                const card = document.createElement('div');
-                card.className = 'branch-card';
-                const dirEl = document.createElement('div');
-                dirEl.className = 'branch-direction';
-                dirEl.textContent = b.direction;
-                card.appendChild(dirEl);
-                card.onclick = () => {
+            const labels = ['①', '②', '③'];
+            branches.forEach((b, i) => {
+                const pill = document.createElement('div');
+                pill.className = 'branch-pill';
+                pill.textContent = labels[i] + ' ' + b.direction;
+                pill.title = '按 ' + (i + 1) + ' 选择';
+                pill.onclick = () => {
                     currentStory.currentArc = b.direction;
                     clearBranches();
                     continueStory(b.direction);
                 };
-                panel.appendChild(card);
+                panel.appendChild(pill);
             });
 
-            // 第 5 项：自己写
-            const selfCard = document.createElement('div');
-            selfCard.className = 'branch-card branch-self';
-            selfCard.textContent = '＋ 自己写一个走向';
-            selfCard.onclick = () => {
+            // 自己写
+            const selfPill = document.createElement('div');
+            selfPill.className = 'branch-pill branch-self';
+            selfPill.textContent = '自己写';
+            selfPill.onclick = () => {
                 hideBranchPanel();
                 showCustomInput();
             };
-            panel.appendChild(selfCard);
+            panel.appendChild(selfPill);
+
+            // 换一批
+            const refreshBtn = document.createElement('button');
+            refreshBtn.className = 'branch-action';
+            refreshBtn.textContent = '换一批';
+            refreshBtn.onclick = (e) => { e.stopPropagation(); onGiveDirection(); };
+            panel.appendChild(refreshBtn);
 
             panel.classList.add('active');
         }
@@ -2562,7 +2580,6 @@ JSON 格式：
             panel.classList.remove('active');
         }
 
-        // 隐藏分支面板但保留 currentBranches（自己写时用，可返回）
         function hideBranchPanel() {
             document.getElementById('branchPanel').classList.remove('active');
         }
@@ -2586,7 +2603,7 @@ JSON 格式：
             try {
                 setLoadingState(true, '正在生成走向...');
                 const panel = document.getElementById('branchPanel');
-                panel.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:0.85rem;">正在生成走向...</div>';
+                panel.innerHTML = '<span class="branch-loading">正在生成走向...</span>';
                 panel.classList.add('active');
                 const branches = await generateBranches();
                 if (branches.length === 0) {
@@ -2965,6 +2982,22 @@ ${storySoFar}
         document.getElementById('btnBackToBranches').addEventListener('click', () => {
             hideCustomInput();
             showBranchPanel();
+        });
+
+        // 键盘快捷键：1/2/3 选分支
+        document.addEventListener('keydown', (event) => {
+            if (isLoading) return;
+            const panel = document.getElementById('branchPanel');
+            if (!panel.classList.contains('active')) return;
+            if (document.getElementById('customInputWrap').classList.contains('active')) return;
+            const key = parseInt(event.key);
+            if (key >= 1 && key <= 3 && currentBranches.length >= key) {
+                event.preventDefault();
+                const b = currentBranches[key - 1];
+                currentStory.currentArc = b.direction;
+                clearBranches();
+                continueStory(b.direction);
+            }
         });
 
         document.getElementById('customInput').addEventListener('keydown', (event) => {
@@ -3557,6 +3590,32 @@ JSON结构：
             aiFlavorTaboos.splice(index, 1);
             localStorage.setItem('ai_flavor_taboos', JSON.stringify(aiFlavorTaboos));
             renderDeflavorTaboos();
+        }
+
+        // 后台整理：合并语义重复的禁忌
+        async function consolidateTaboos() {
+            if (aiFlavorTaboos.length < 3) return;
+            const prompt = '以下是从去芜中累积的写作禁忌。请合并语义相同或高度相似的条目，返回精简后的列表。每条保持一句话（10-25字）。\n\n' +
+                aiFlavorTaboos.map((t, i) => (i + 1) + '. ' + t).join('\n') +
+                '\n\n只输出 JSON 字符串数组：["禁忌1", "禁忌2", ...]';
+            try {
+                const { content } = await callDeepSeek(prompt, '只输出 JSON 字符串数组。', null, false, 'deepseek-v4-flash', 0.3);
+                const consolidated = parseStyleJson(content);
+                if (Array.isArray(consolidated) && consolidated.length > 0) {
+                    const cleaned = consolidated.map(t => String(t).trim()).filter(t => t);
+                    if (cleaned.length > 0 && cleaned.length !== aiFlavorTaboos.length || !arraysEqual(cleaned, aiFlavorTaboos)) {
+                        aiFlavorTaboos = cleaned;
+                        localStorage.setItem('ai_flavor_taboos', JSON.stringify(aiFlavorTaboos));
+                    }
+                }
+            } catch (e) {
+                console.error('禁忌整理失败:', e);
+            }
+        }
+
+        function arraysEqual(a, b) {
+            if (a.length !== b.length) return false;
+            return a.every((v, i) => v === b[i]);
         }
 
         function switchTab(tab) {
