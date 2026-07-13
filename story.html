@@ -553,6 +553,49 @@
             text-align: center;
             margin-bottom: 6px;
         }
+        /* 分支卡片区 */
+        .branch-panel {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .branch-panel.active { display: flex; }
+        .branch-card {
+            padding: 10px 14px;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            background: var(--bg-primary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .branch-card:hover {
+            border-color: var(--accent-primary);
+            background: rgba(201, 168, 108, 0.06);
+        }
+        .branch-card .branch-direction {
+            font-size: 0.88rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        .branch-card .branch-hooks {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .branch-card.branch-self {
+            border-style: dashed;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .custom-input-wrap {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .custom-input-wrap.active { display: flex; }
         .btn {
             padding: 14px 32px;
             border: none;
@@ -1191,11 +1234,19 @@
 
     <!-- 固定底栏 -->
     <div class="bottom-action-bar">
-        <div class="bottom-continue-hint" id="continueHint">输入剧情方向，或直接点击继续</div>
-        <div class="bottom-action-inner">
-            <textarea class="custom-input" id="customInput" rows="1" placeholder="输入你想要的剧情方向..."></textarea>
+        <div class="bottom-continue-hint" id="continueHint">点"给走向"看可能的发展，或直接自己写</div>
+        <!-- 分支卡片区（默认隐藏） -->
+        <div class="branch-panel" id="branchPanel"></div>
+        <!-- 自写输入区（默认隐藏） -->
+        <div class="custom-input-wrap" id="customInputWrap">
+            <textarea class="custom-input" id="customInput" rows="2" placeholder="写下你想要的剧情走向..."></textarea>
             <div class="bottom-action-btns">
-                <button class="btn btn-primary" id="btnContinue" onclick="isLoading ? stopGeneration() : continueStory()">继续创作</button>
+                <button class="btn btn-primary" id="btnConfirmCustom">按此方向续写</button>
+            </div>
+        </div>
+        <div class="bottom-action-inner">
+            <div class="bottom-action-btns" style="width:100%; justify-content:flex-end;">
+                <button class="btn btn-primary" id="btnContinue" onclick="isLoading ? stopGeneration() : continueStory()">给走向</button>
             </div>
         </div>
     </div>
@@ -1384,7 +1435,7 @@
             isLoading = loading;
             const btn = document.getElementById('btnContinue');
             btn.disabled = false;
-            btn.textContent = loading ? '停止创作' : '继续创作';
+            btn.textContent = loading ? '停止创作' : '给走向';
             document.getElementById('storyStatus').textContent = message;
         }
 
