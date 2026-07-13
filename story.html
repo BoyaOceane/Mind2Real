@@ -1262,7 +1262,9 @@
 
 第八条·考据隐身：任何虚构设定锚定真实世界对象。专业信息全部隐入角色动作、对话、环境描写。正文绝不出现在何解释性注释或术语罗列。最终标准：读者说不出哪里好，但觉得这个世界的质感比别的世界更沉。
 
-执行顺序：开篇先用第一条（钩子）→ 每段叙事按第二条（感受优先）展开 → 整体节奏按第三条（节奏控制）把控 → 引入设定按第四条（规则演出来）→ 塑造角色按第五条（行动即人设）→ 每章结尾回看第六条（爽点兑现）→ 修改阶段执行第七条（语言透明）→ 后台始终运行第八条（考据隐身）。全部过完，就是你想要的文字。
+第九条·因果留白：只写感官事实，不写因果。禁止六类——"不是X是Y"结构、比喻、破折号解释、角色背景说明、角色动机陈述、一句一行。段落加厚：每段3-5句组成完整节奏块，信息密度允许松紧交错。避免每句单独成行（那是诗，不是小说节奏）。
+
+执行顺序：开篇先用第一条（钩子）→ 每段叙事按第二条（感受优先）展开 → 整体节奏按第三条（节奏控制）把控 → 引入设定按第四条（规则演出来）→ 塑造角色按第五条（行动即人设）→ 每章结尾回看第六条（爽点兑现）→ 修改阶段执行第七条（语言透明）→ 后台始终运行第八条（考据隐身）和第九条（因果留白）。全部过完，就是你想要的文字。
 
 【读者心理钩子 — 压抑→释放机制】
 每段剧情必须至少触发一种读者心理需求。先制造压抑端，再兑现释放端。压抑越深，释放越爽。
@@ -1570,9 +1572,32 @@
                 taboos: [
                     { pattern: '情绪直述', deleted: '他感到一阵愤怒', reason: '情绪应外化为具体动作，让读者自行感受', count: 1 },
                     { pattern: '副词削弱', deleted: '突然，门被推开', reason: '用副词延迟了动作发生的瞬间感，削弱冲击力', count: 1 },
-                    { pattern: '设定解释', deleted: '这个世界的力量体系分为三个层次', reason: '反对信息倾泻，设定应通过情节自然流露', count: 1 }
+                    { pattern: '设定解释', deleted: '这个世界的力量体系分为三个层次', reason: '反对信息倾泻，设定应通过情节自然流露', count: 1 },
+                    { pattern: '省略号堆砌', deleted: '他愣住了……然后笑了……', reason: '连续省略号制造廉价停顿，削弱节奏', count: 1 },
+                    { pattern: '破折号解释', deleted: '那是他的故乡——一个被战火摧毁的村庄。', reason: '破折号补充说明破坏叙事流，信息应通过场景释放', count: 1 },
+                    { pattern: 'AI 转折词', deleted: '然而，门开了。', reason: '"然而/但是/不仅如此"让句子像拼接模板，直接写动作', count: 1 },
+                    { pattern: '空泛修饰', deleted: '某种不安涌上心头。', reason: '"某种/仿佛/一丝"是模糊填充词，应用具体感官替代', count: 1 },
+                    { pattern: '眼睛戏', deleted: '眼中闪过一丝冷意。', reason: '"眼中闪过"是高频 AI 写法，用动作或沉默替代', count: 1 },
+                    { pattern: '解释性开头', deleted: '从某种意义上说，这个世界是残酷的。', reason: '不要先解释再写场景，直接呈现', count: 1 },
+                    { pattern: '对话提示语冗余', deleted: '他说道："你来了。"', reason: '对话提示语极简，能省则省', count: 1 },
+                    { pattern: '"不是X是Y"结构', deleted: '不是停在门外。是停在分馏塔的检修口。', reason: '一次可制造张力，重复出现变成模板化填空，AI 极高频使用', count: 1 },
+                    { pattern: '比喻', deleted: '像孩子拽大人过马路', reason: 'AI 的比喻来自统计平均，本质是廉价诗意。动作本身足够', count: 1 },
+                    { pattern: '背景解释', deleted: '那些被烟头烫出的疤痕组织在冷里收缩', reason: '正文不解释角色历史。伤痕本身够，读者自己攒因果', count: 1 },
+                    { pattern: '动机陈述', deleted: '不是要炸厂，是要让灵质结晶凝固，然后推给他', reason: '不让叙述者替读者总结动机。让情节自己演，读者自己连', count: 1 },
+                    { pattern: '短句分行', deleted: '每句单独成行，像诗歌排版', reason: '一句一行是 AI 节奏模板，人类小说用段落组织信息密度', count: 1 }
                 ],
-                examples: [{ original: '他感到一阵愤怒。', edited: '他把杯子攥出裂纹。', rule: '情绪外化为动作' }]
+                examples: [
+                    { original: '他感到一阵愤怒。', edited: '他把杯子攥出裂纹。', rule: '情绪外化为动作' },
+                    { original: '然而，门开了。', edited: '门开了。', rule: '去掉模板化转折词' },
+                    { original: '某种不安涌上心头。', edited: '后颈的汗毛竖了起来。', rule: '用具体感官替代空泛修饰' },
+                    { original: '眼中闪过一丝冷意。', edited: '他没眨眼。', rule: '用动作替代高频眼睛描写' },
+                    { original: '他说道："你来了。"', edited: '"你来了。"', rule: '对话提示语极简' },
+                    { original: '不是停在门外。是停在三楼的检修口。', edited: '停了。停在三楼的检修口。', rule: '去掉"不是X是Y"结构，直述' },
+                    { original: '像孩子拽大人过马路。', edited: '（删除）力道不大。', rule: '删除比喻，动作本身已完成表达' },
+                    { original: '那些被烟头烫出的疤痕组织在冷里收缩，痒得钻心。', edited: '腕疤冻得发白，痒得钻心。', rule: '不解释伤疤来历，只写当下感官' },
+                    { original: '带着焦糖味——灵质烧过头了。有人往主管道里倒了转化剂，不是要炸厂，是要让灵质结晶凝固堵死分馏塔，然后推给他。', edited: '带着焦糖味。', rule: '删破折号解释和动机陈述。感官细节让读者自己推断' },
+                    { original: '埃里希没动。\n样本瓶里的手攥着他的袖口。\n力道不大。\n瓶壁的低温把腕疤冻得发白。', edited: '埃里希没动。样本瓶里的灵质凝成的那只手攥着他的袖口，力道不大。瓶壁的低温把腕疤冻得发白，痒得钻心。', rule: '段落加厚：3-5句合成一段完整节奏块，避免每句单独成行' }
+                ]
             };
             if (Object.keys(profiles).length === 0) {
                 createStyleProfile('_default');
@@ -1648,7 +1673,7 @@
             }
 
             const styleBlock = formatStylePrompt(getActiveProfile());
-            const prompt = `${getPrefPrompt()}${styleBlock}
+            const prompt = `${getPrefPrompt()}${styleBlock}${getAntiAiPromptBlock()}
 世界：${currentStory.worldTitle}
 世界逻辑：${currentStory.worldDesc || ''}
 世界标签：${currentStory.worldTags.join('、')}
@@ -1657,11 +1682,12 @@
 叙事：${currentStory.narrative}
 
 请根据以上设定，创作故事开篇。要求：
-0. 每次生成不超过300字
-1. 第三人称开场，直接进入冲突
+0. 每次生成 600-800 字，信息密度高，拒绝解释性旁白
+1. 第三人称开场，直接进入冲突；只呈现场景、动作、对话，不解释因果
 2. 首句必须有异常、不安或未解问题
 3. 文字直白有张力，画面感强
-4. 在主角面临抉择、危机或关键发现时停笔，不提供选项`;
+4. 段落要有厚度：每段包含 2-4 个完整句子，禁止一句一段或频繁空行
+5. 在主角面临抉择、危机或关键发现时停笔，不提供选项`;
 
             const systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
@@ -1680,7 +1706,7 @@
                 if (content) {
                     partialResult = '';
                     typewriterReset();
-                    const displayText = ensureCompleteSentence(stripStructuredMeta(content));
+                    const displayText = cleanAiFlavor(ensureCompleteSentence(stripStructuredMeta(content)));
                     const segment = {
                         content: displayText,
                         original: displayText,
@@ -1709,15 +1735,42 @@
 
         // Render text to HTML paragraphs
         function textToHtml(content) {
-            return content
-                .split('\n')
-                .filter(line => line.trim())
-                .map(p => {
-                    const clean = p.trim();
-                    const isChoice = /^[A-E][\.、:：]/.test(clean) || /^选项[一二三四五]/.test(clean);
-                    return `<p class="${isChoice ? 'choice-line' : ''}">${escapeHTML(clean)}</p>`;
-                })
-                .join('');
+            // Merge single-line paragraphs into thicker blocks, but don't make them too long
+            const lines = content.split('\n').map(l => l.trim()).filter(l => l);
+            const blocks = [];
+            let current = '';
+            for (const line of lines) {
+                const isChoice = /^[A-E][\.、:：]/.test(line) || /^选项[一二三四五]/.test(line);
+                const isBreak = /^(——|-----|___|\*\*\*|第\s*\d+\s*[章节]|\[|【)/.test(line);
+                if (isChoice || isBreak) {
+                    if (current) { blocks.push(current); current = ''; }
+                    blocks.push({ choice: isChoice, text: line });
+                    continue;
+                }
+                const projected = current ? current + ' ' + line : line;
+                const projectedLen = projected.length;
+                if (!current) {
+                    current = line;
+                } else if (line.length < 20) {
+                    current = projected;
+                } else if (projectedLen > 160) {
+                    blocks.push(current);
+                    current = line;
+                } else if (projectedLen > 220) {
+                    blocks.push(current);
+                    current = line;
+                } else {
+                    current = projected;
+                }
+            }
+            if (current) blocks.push(current);
+
+            return blocks.map(b => {
+                if (typeof b === 'object' && b.choice) {
+                    return `<p class="choice-line">${escapeHTML(b.text)}</p>`;
+                }
+                return `<p>${escapeHTML(b)}</p>`;
+            }).join('');
         }
 
         // Display full story (all history segments)
@@ -2316,7 +2369,7 @@ JSON 结构：
             const storySoFar = currentStory.history.map(h => h.content).join('\n\n');
 
             const styleBlock = formatStylePrompt(getActiveProfile());
-            const prompt = `${getPrefPrompt()}${styleBlock}
+            const prompt = `${getPrefPrompt()}${styleBlock}${getAntiAiPromptBlock()}
 用户选择：${userChoice}
 
 世界：${currentStory.worldTitle}（${currentStory.worldTags.join('、')}）
@@ -2327,11 +2380,12 @@ JSON 结构：
 ${storySoFar}
 
 要求：
-0. 每次生成不超过300字
+0. 每次生成 600-800 字，信息密度高，拒绝解释性旁白
 1. 第三人称继续
 2. 情节要有推进和转折
-3. 文字直白有张力
-4. 结尾停在新的关键节点，提供3个选项`;
+3. 只呈现行动、对话、环境，不解释角色为什么这么做
+4. 段落要有厚度：每段包含 2-4 个完整句子，禁止一句一段或频繁空行
+5. 结尾停在新的关键节点，提供3个选项`;
 
             const systemPrompt = renderPrompt(getStoryPrompt(), {
                 worldTitle: currentStory.worldTitle,
@@ -2350,7 +2404,7 @@ ${storySoFar}
                 if (content) {
                     partialResult = '';
                     typewriterReset();
-                    const displayText = ensureCompleteSentence(stripStructuredMeta(content));
+                    const displayText = cleanAiFlavor(ensureCompleteSentence(stripStructuredMeta(content)));
                     const segment = {
                         content: displayText,
                         original: displayText,
@@ -2571,6 +2625,77 @@ ${storySoFar}
                 : '输入剧情方向，AI 将按当前文风续写';
         }
 
+        // ---- Anti-AI flavor helpers ----
+        function getAntiAiPromptBlock() {
+            return `
+【去 AI 味约束 — 每次写作必须执行】
+- 禁止连续使用省略号（……）超过 1 处；禁止用破折号（——）做解释或停顿。
+- 禁止模板化转折词：然而、但是、不仅如此、从某种意义上说。
+- 禁止空泛填充词：某种、仿佛、一丝、眼中闪过。
+- 禁止情绪直述：不要写"他感到愤怒/悲伤/恐惧"，改为动作或身体反应。
+- 禁止解释性旁白：不要写"这是因为""事实上""其实""从某种意义上""他知道""她明白"，直接写发生了什么。
+- 严格遵守中文标点规范：同一主体连续动作要用逗号，语义完整才用句号。不要刻意把"探灯划过。又划回。停住。"切成三个孤立短句，应写"探灯划过，又划回，停住。"
+- 禁止动作片式断句：不要把连续场景中的每个动作都切成独立句号，如"爬到靴子上。四个人同时拔枪。陆尘后退一步。不是跑。是跪。"应写成"爬到靴子上，四个人同时拔枪，陆尘后退一步——不是跑，是跪。"只有在语义完整、情境转换时才用句号。
+- 对话提示语极简，能省略就省略；不要写"他说道：""她回答道："。
+- 短句与长句交错，不要每句长度平均。每段 2-4 个完整句子，不要一句一段；同时一段也不要过长，控制在 80-150 字之间。`;
+        }
+
+        function cleanAiFlavor(text) {
+            if (!text) return text;
+            let s = text;
+            // 合并连续重复标点
+            s = s.replace(/…{2,}/g, '……');
+            s = s.replace(/（——）/g, '——');
+            // 去掉"他说道：""她回答道："等冗余提示语
+            s = s.replace(/([""""'][^""""']+[""""'])[\s]*[，。]?\s*(?:他|她|它|那人|对方)\s*(?:说道|回答道|接着说|轻声道|冷声道|缓缓道)/g, '$1');
+            // 去掉单独的"他说道"类提示语
+            s = s.replace(/(?:他|她|它|那人|对方)\s*(?:说道|回答道|接着说|轻声道|冷声道|缓缓道)[：:,\s]+/g, '');
+            // 删除模板化 AI 转折与填充短语
+            const fillers = [
+                '然而，', '但是，', '不仅如此，', '从某种意义上说，', '事实上，',
+                '不得不说，', '很显然，', '毫无疑问，', '意外的是，',
+                '某种程度来说，', '从某种意义上讲，'
+            ];
+            for (const f of fillers) {
+                s = s.split(f).join('');
+            }
+            // 替换部分高频 AI 句式
+            s = s.replace(/眼中闪过一丝([^，。]+)/g, '目光$1');
+            s = s.replace(/某种不安涌上心头/g, '后颈一紧');
+            s = s.replace(/某种([^，。]{1,8})涌上心头/g, '$1漫了上来');
+            s = s.replace(/他感到一阵([^，。]+)/g, '他$1');
+            s = s.replace(/突然，/g, '');
+            // 清理多余空格
+            s = s.replace(/  +/g, ' ').trim();
+            s = compactShortSentences(s);
+            return s;
+        }
+
+        function compactShortSentences(text) {
+            if (!text) return text;
+            // Normalize whitespace around periods
+            let s = text.replace(/。\s*/g, '。');
+            // Split into sentences, then merge consecutive short action sentences
+            const parts = s.split('。');
+            const out = [];
+            let buffer = '';
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i].trim();
+                if (!part) continue;
+                // If current sentence is short and looks like a continuation, merge
+                if (buffer && part.length <= 18 && !/^[然而但是不过可是].*/.test(part) && !/^[他她它].*[说问道答].*/.test(part)) {
+                    buffer += '，' + part;
+                } else if (buffer && part.length <= 10) {
+                    buffer += '，' + part;
+                } else {
+                    if (buffer) out.push(buffer + '。');
+                    buffer = part;
+                }
+            }
+            if (buffer) out.push(buffer + '。');
+            return out.join('').replace(/，。/g, '。').replace(/。。/g, '。');
+        }
+
         document.getElementById('customInput').addEventListener('input', () => {
             document.getElementById('continueHint').textContent =
                 fmtContinueHint(!!document.getElementById('customInput').value.trim());
@@ -2596,7 +2721,7 @@ ${storySoFar}
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: prompt }
                 ],
-                temperature: 0.8,
+                temperature: 0.6,
                 stream: true
             };
             if (enableThinking) {

@@ -1,6 +1,6 @@
 # 即墨 Execution Status
 
-> **Last updated:** 2026-06-29 — 历史记录归档系统：世界/主角/故事独立编号 + 导入导出
+> **Last updated:** 2026-07-06 — de-AI-flavor：实战改稿 → 提炼 5 条通用规则 → 写入 _default 文风档案 taboos/examples + 第九条·因果留白
 > **Active branches:** `feat/style-learning-loop` HEAD `465045d` (feat: 故事保存时生成 S### 序号)
 > **Source:** index of phase execution records under this folder. Gate verdicts here are authoritative.
 
@@ -29,7 +29,7 @@ main ← HEAD e65baa6 (19 commits, no formal PRs yet)
 
 ## Open items rolling forward
 
-_(暂无 — 后续 Phase 产生的 open items 记录于此)_
+- 评估"去 AI 味"后处理规则是否过激（如误删合理对话提示语），根据实际生成效果微调。
 
 ## Current phase implementation summary
 

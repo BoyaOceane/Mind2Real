@@ -913,7 +913,8 @@ const WRITING_SYSTEM = `【即墨写作系统 - 硬编码约束】
 - 语言透明：删形容词，留动作和对话
 - 感官细节：融入看/听/闻/触/尝，让世界可感
 - 钩子开头：首句必有异常、不安或未解之谜
-- 爽点兑现：每段至少兑现一种底层爽感（翻身/解密/占有/自由/活下来/守护）`;
+- 爽点兑现：每段至少兑现一种底层爽感（翻身/解密/占有/自由/活下来/守护）
+- 因果留白：只写感官事实，不写因果。禁"不是X是Y"、比喻、破折号解释、背景说明、动机陈述、一句一行。段落加厚：每段3-5句`;
 
 // ==================== PROMPT CONFIG ====================
 const defaultPrompts = {
@@ -1936,7 +1937,7 @@ async function callDeepSeek(prompt, systemPrompt, onChunk) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.8,
+        temperature: 0.6,
         stream: true
       })
     });
@@ -2036,7 +2037,7 @@ function generateProtagonist() {
     : '';
 
   const pref = getPrefPrompt();
-  const prompt = `${pref}根据以下设定，生成一个${styleLabel}主角。背靠这个世界，立体地塑造这个人。
+  const prompt = `${pref}${getAntiAiPromptBlock()}根据以下设定，生成一个${styleLabel}主角。背靠这个世界，立体地塑造这个人。
 
 ${worldContext}
 性格标签：${tags}
@@ -2069,7 +2070,7 @@ ${worldContext}
         const desc = [roleMatch, driveMatch, descMatch]
           .filter(m => m).map(m => m[1].trim()).join(' / ');
         state.protagonist.generatedName = name;
-        state.protagonist.generatedDesc = desc || (descMatch ? descMatch[1].trim() : '');
+        state.protagonist.generatedDesc = cleanAiFlavor(desc || (descMatch ? descMatch[1].trim() : ''));
         infoEl.classList.remove('streaming');
         infoEl.innerHTML = `<div class="generated-name">${escapeHTML(name)}</div><div class="generated-desc">${escapeHTML(state.protagonist.generatedDesc)}</div>`;
 
@@ -2114,7 +2115,7 @@ function generateWorld() {
   const pickedTags = allTags.join('、');
 
   const pref = getPrefPrompt();
-  const worldPromptContent = `${pref}根据以下标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
+  const worldPromptContent = `${pref}${getAntiAiPromptBlock()}根据以下标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
 
 标签：${pickedTags}
 
@@ -2136,7 +2137,7 @@ function generateWorld() {
       const descMatch = result.match(/底层逻辑[：:]\s*(.+)/);
       if (titleMatch) {
         state.world.generatedTitle = titleMatch[1].trim();
-        state.world.generatedDesc = ensureCompleteSentence(descMatch ? descMatch[1].trim() : '');
+        state.world.generatedDesc = cleanAiFlavor(ensureCompleteSentence(descMatch ? descMatch[1].trim() : ''));
         worldInfoEl.classList.remove('streaming');
         worldInfoEl.innerHTML = `<div class="generated-name">${escapeHTML(state.world.generatedTitle)}</div><div class="generated-desc">${escapeHTML(state.world.generatedDesc)}</div>`;
 
@@ -2213,7 +2214,7 @@ function oneClickGenerate() {
   const worldTags = Object.values(worldSelected).join('、');
   const styleLabel = style === 'chinese' ? '中式' : '西式';
 
-  const worldPrompt = `${pref}根据以下标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
+  const worldPrompt = `${pref}${getAntiAiPromptBlock()}根据以下标签，生成一个小说世界背景的底层逻辑。描述这个世界运转的核心规则——社会结构、权力来源、资源分配、人们的生存法则。不是表面风景，是"为什么这个世界是这样的"。
 
 标签：${worldTags}
 风格：${styleLabel}主角
@@ -2289,7 +2290,7 @@ function generateProtagonistForWorld(worldTitle, worldDesc, style, selectedTags)
   const tags = Object.entries(selectedTags).map(([, v]) => v).join('、');
   const styleLabel = style === 'chinese' ? '中式' : '西式';
 
-  const prompt = `根据以下世界设定，生成一个${styleLabel}主角。背靠这个世界，立体地塑造这个人。
+  const prompt = `${getAntiAiPromptBlock()}根据以下世界设定，生成一个${styleLabel}主角。背靠这个世界，立体地塑造这个人。
 
 世界名称：${worldTitle}
 世界底层逻辑：${worldDesc}
@@ -2324,7 +2325,7 @@ function generateProtagonistForWorld(worldTitle, worldDesc, style, selectedTags)
         const desc = [roleMatch, driveMatch, descMatch]
           .filter(m => m).map(m => m[1].trim()).join(' / ');
         state.protagonist.generatedName = name;
-        state.protagonist.generatedDesc = desc || (descMatch ? descMatch[1].trim() : '');
+        state.protagonist.generatedDesc = cleanAiFlavor(desc || (descMatch ? descMatch[1].trim() : ''));
         protoInfoEl.classList.remove('streaming');
         protoInfoEl.innerHTML = `<div class="generated-name">${escapeHTML(name)}</div><div class="generated-desc">${escapeHTML(state.protagonist.generatedDesc)}</div>`;
 
@@ -2367,6 +2368,40 @@ function ensureCompleteSentence(text) {
   const lastPeriod = Math.max(text.lastIndexOf('。'), text.lastIndexOf('！'), text.lastIndexOf('？'));
   if (lastPeriod > 0) return text.slice(0, lastPeriod + 1);
   return text;
+}
+
+// ---- Anti-AI flavor helpers ----
+function getAntiAiPromptBlock() {
+  return `
+【去 AI 味约束 — 每次写作必须执行】
+- 禁止模板化转折词：然而、但是、不仅如此、从某种意义上说。
+- 禁止空泛填充词：某种、仿佛、一丝、眼中闪过。
+- 禁止情绪直述：不要写"他感到愤怒/悲伤/恐惧"，改为动作或处境。
+- 短句与长句交错，不要每句长度平均。`;
+}
+
+function cleanAiFlavor(text) {
+  if (!text) return text;
+  let s = text;
+  s = s.replace(/…{2,}/g, '……');
+  s = s.replace(/（——）/g, '——');
+  s = s.replace(/([""""'][^""""']+[""""'])[\s]*[，。]?\s*(?:他|她|它|那人|对方)\s*(?:说道|回答道|接着说|轻声道|冷声道|缓缓道)/g, '$1');
+  s = s.replace(/(?:他|她|它|那人|对方)\s*(?:说道|回答道|接着说|轻声道|冷声道|缓缓道)[：:,\s]+/g, '');
+  const fillers = [
+    '然而，', '但是，', '不仅如此，', '从某种意义上说，', '事实上，',
+    '不得不说，', '很显然，', '毫无疑问，', '意外的是，',
+    '某种程度来说，', '从某种意义上讲，'
+  ];
+  for (const f of fillers) {
+    s = s.split(f).join('');
+  }
+  s = s.replace(/眼中闪过一丝([^，。]+)/g, '目光$1');
+  s = s.replace(/某种不安涌上心头/g, '后颈一紧');
+  s = s.replace(/某种([^，。]{1,8})涌上心头/g, '$1漫了上来');
+  s = s.replace(/他感到一阵([^，。]+)/g, '他$1');
+  s = s.replace(/突然，/g, '');
+  s = s.replace(/  +/g, ' ').trim();
+  return s;
 }
 
 function escapeHTML(str) {
